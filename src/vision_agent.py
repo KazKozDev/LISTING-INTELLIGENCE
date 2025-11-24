@@ -49,50 +49,43 @@ class VisionAgent:
     SUPPORTED_IMAGE_FORMATS = {".png", ".jpg", ".jpeg", ".gif", ".bmp", ".webp"}
     SUPPORTED_DOC_FORMATS = {".pdf"}
 
-    def __init__(
-        self,
-        provider: Optional[str] = None,
-        model: Optional[str] = None,
-        api_key: Optional[str] = None,
-        base_url: Optional[str] = None,
-        config: Optional[Config] = None,
-        **kwargs
-    ):
+    def __init__(self, config: Optional[Config] = None):
         """Initialize Vision Agent.
 
+        All configuration is loaded from the config object, which reads from .env file.
+        To change provider or model, update your .env file.
+
         Args:
-            provider: LLM provider name (ollama, openai, anthropic, google, azure)
-            model: Model name. If None, uses default from config
-            api_key: API key for provider (if required)
-            base_url: Base URL for provider (if applicable)
-            config: Configuration object
-            **kwargs: Additional provider-specific configuration
+            config: Configuration object. If None, creates new Config() which loads from .env
+
+        Example:
+            # Default: uses settings from .env file
+            agent = VisionAgent()
+
+            # Custom config
+            custom_config = Config()
+            agent = VisionAgent(config=custom_config)
         """
         self.config = config or Config()
 
-        # Use provided values or fall back to config
-        provider = provider or self.config.provider
-        model = model or self.config.model
-        api_key = api_key or self.config.api_key
-        base_url = base_url or self.config.base_url
-
-        # Merge additional config
+        # Create provider instance using config
         provider_config = self.config.get_provider_config()
-        provider_config.update(kwargs)
 
-        # Create provider instance
         self.provider: BaseLLMProvider = ProviderFactory.create(
-            provider_name=provider,
-            model=model,
-            api_key=api_key,
-            base_url=base_url,
+            provider_name=self.config.provider,
+            model=self.config.model,
+            api_key=self.config.api_key,
+            base_url=self.config.base_url,
             **provider_config
         )
 
         self.pdf_processor = PDFProcessor(self.config)
         self.report_generator = ReportGenerator(self.config)
 
-        logger.info(f"Initialized VisionAgent with {provider} provider, model: {model}")
+        logger.info(
+            f"Initialized VisionAgent: provider={self.config.provider}, "
+            f"model={self.config.model}"
+        )
 
     def analyze_image(
         self,

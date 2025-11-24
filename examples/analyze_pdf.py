@@ -12,7 +12,7 @@ from src import VisionAgent
 def main():
     """Analyze a PDF document example."""
     # Initialize the agent
-    agent = VisionAgent(model="qwen3-vl:8b")
+    agent = VisionAgent()
 
     # Example PDF path (replace with your actual PDF)
     pdf_path = "path/to/your/document.pdf"

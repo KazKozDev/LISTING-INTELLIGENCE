@@ -24,19 +24,11 @@ class ProviderFactory:
         "azure": AzureOpenAIProvider,
     }
 
-    DEFAULT_MODELS = {
-        "ollama": "qwen3-vl:8b",
-        "openai": "gpt-4o",
-        "anthropic": "claude-3-5-sonnet-20241022",
-        "google": "gemini-1.5-pro",
-        "azure": "gpt-4o",
-    }
-
     @classmethod
     def create(
         cls,
         provider_name: str,
-        model: Optional[str] = None,
+        model: str,
         api_key: Optional[str] = None,
         base_url: Optional[str] = None,
         **kwargs
@@ -45,7 +37,7 @@ class ProviderFactory:
 
         Args:
             provider_name: Name of the provider (ollama, openai, anthropic, google, azure)
-            model: Model name. If None, uses default for provider
+            model: Model name (required)
             api_key: API key (if required)
             base_url: Base URL (if applicable)
             **kwargs: Additional provider-specific configuration
@@ -54,7 +46,7 @@ class ProviderFactory:
             Provider instance
 
         Raises:
-            ValueError: If provider is unknown
+            ValueError: If provider is unknown or model is not specified
         """
         provider_name = provider_name.lower()
 
@@ -64,9 +56,8 @@ class ProviderFactory:
                 f"Available providers: {list(cls.PROVIDERS.keys())}"
             )
 
-        # Use default model if not specified
-        if model is None:
-            model = cls.DEFAULT_MODELS.get(provider_name)
+        if not model:
+            raise ValueError("Model name is required. Please set LLM_MODEL in .env file")
 
         provider_class = cls.PROVIDERS[provider_name]
 
@@ -94,18 +85,6 @@ class ProviderFactory:
         return list(cls.PROVIDERS.keys())
 
     @classmethod
-    def get_default_model(cls, provider_name: str) -> Optional[str]:
-        """Get default model for a provider.
-
-        Args:
-            provider_name: Provider name
-
-        Returns:
-            Default model name or None
-        """
-        return cls.DEFAULT_MODELS.get(provider_name.lower())
-
-    @classmethod
     def get_provider_info(cls) -> Dict[str, Any]:
         """Get information about all providers.
 
@@ -117,7 +96,6 @@ class ProviderFactory:
                 "name": "Ollama",
                 "requires_api_key": False,
                 "requires_base_url": True,
-                "default_model": cls.DEFAULT_MODELS["ollama"],
                 "default_base_url": "http://localhost:11434",
                 "supports_vision": True,
             },
@@ -125,32 +103,24 @@ class ProviderFactory:
                 "name": "OpenAI",
                 "requires_api_key": True,
                 "requires_base_url": False,
-                "default_model": cls.DEFAULT_MODELS["openai"],
-                "default_base_url": None,
                 "supports_vision": True,
             },
             "anthropic": {
                 "name": "Anthropic (Claude)",
                 "requires_api_key": True,
                 "requires_base_url": False,
-                "default_model": cls.DEFAULT_MODELS["anthropic"],
-                "default_base_url": None,
                 "supports_vision": True,
             },
             "google": {
                 "name": "Google AI (Gemini)",
                 "requires_api_key": True,
                 "requires_base_url": False,
-                "default_model": cls.DEFAULT_MODELS["google"],
-                "default_base_url": None,
                 "supports_vision": True,
             },
             "azure": {
                 "name": "Azure OpenAI",
                 "requires_api_key": True,
                 "requires_base_url": True,
-                "default_model": cls.DEFAULT_MODELS["azure"],
-                "default_base_url": None,
                 "supports_vision": True,
                 "additional_config": ["api_version"],
             },

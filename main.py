@@ -20,7 +20,7 @@ logger = logging.getLogger(__name__)
 def analyze_command(args):
     """Handle the analyze command."""
     try:
-        agent = VisionAgent(model=args.model)
+        agent = VisionAgent()
         file_path = Path(args.file)
 
         if not file_path.exists():
@@ -33,19 +33,11 @@ def analyze_command(args):
 
         # Determine file type and analyze
         if file_path.suffix.lower() in agent.SUPPORTED_IMAGE_FORMATS:
-            result = agent.analyze_image(
-                file_path,
-                task=args.task,
-                temperature=args.temperature
-            )
+            result = agent.analyze_image(file_path, task=args.task)
             results = [result]
 
         elif file_path.suffix.lower() in agent.SUPPORTED_DOC_FORMATS:
-            results = agent.analyze_pdf(
-                file_path,
-                task=args.task,
-                temperature=args.temperature
-            )
+            results = agent.analyze_pdf(file_path, task=args.task)
 
         else:
             print(f"Error: Unsupported file format: {file_path.suffix}")
@@ -80,7 +72,7 @@ def analyze_command(args):
 def batch_command(args):
     """Handle the batch command."""
     try:
-        agent = VisionAgent(model=args.model)
+        agent = VisionAgent()
         input_path = Path(args.input)
 
         if not input_path.exists():
@@ -108,11 +100,7 @@ def batch_command(args):
         print(f"{'='*60}\n")
 
         # Analyze files
-        results = agent.batch_analyze(
-            file_paths,
-            task=args.task,
-            temperature=args.temperature
-        )
+        results = agent.batch_analyze(file_paths, task=args.task)
 
         print(f"\n✓ Analyzed {len(results)} files successfully")
 
@@ -141,7 +129,7 @@ def batch_command(args):
 def interactive_command(args):
     """Handle the interactive command."""
     try:
-        agent = VisionAgent(model=args.model)
+        agent = VisionAgent()
 
         if args.file:
             file_path = Path(args.file)
@@ -181,7 +169,7 @@ def interactive_command(args):
 def chart_command(args):
     """Handle the chart analysis command."""
     try:
-        agent = VisionAgent(model=args.model)
+        agent = VisionAgent()
         file_path = Path(args.file)
 
         if not file_path.exists():
@@ -223,7 +211,7 @@ def chart_command(args):
 def ui_command(args):
     """Handle the UI screenshot analysis command."""
     try:
-        agent = VisionAgent(model=args.model)
+        agent = VisionAgent()
         file_path = Path(args.file)
 
         if not file_path.exists():
@@ -265,9 +253,13 @@ def ui_command(args):
 def main():
     """Main CLI entry point."""
     parser = argparse.ArgumentParser(
-        description="Vision Agent Analyst - Multimodal analysis with Ollama",
+        description="Vision Agent Analyst - Multimodal analysis (configure via .env file)",
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog="""
+Configuration:
+  All settings (provider, model, API keys) are loaded from .env file.
+  Edit .env to change the LLM provider and model.
+
 Examples:
   # Analyze a single image
   python main.py analyze chart.png --task "Analyze this chart"
@@ -289,12 +281,6 @@ Examples:
         """
     )
 
-    parser.add_argument(
-        "--model",
-        default="qwen3-vl:8b",
-        help="Ollama model to use (default: qwen3-vl:8b)"
-    )
-
     subparsers = parser.add_subparsers(dest="command", help="Command to execute")
 
     # Analyze command
@@ -306,12 +292,6 @@ Examples:
         help="Analysis task/question"
     )
     analyze_parser.add_argument("--output", "-o", help="Output report path")
-    analyze_parser.add_argument(
-        "--temperature",
-        type=float,
-        default=0.7,
-        help="Model temperature (default: 0.7)"
-    )
     analyze_parser.set_defaults(func=analyze_command)
 
     # Batch command
@@ -322,12 +302,6 @@ Examples:
         "--task",
         default="Analyze this file.",
         help="Analysis task"
-    )
-    batch_parser.add_argument(
-        "--temperature",
-        type=float,
-        default=0.7,
-        help="Model temperature"
     )
     batch_parser.set_defaults(func=batch_command)
 
@@ -348,7 +322,6 @@ Examples:
     chart_parser.add_argument("file", help="Path to chart image")
     chart_parser.add_argument("--task", help="Custom analysis task")
     chart_parser.add_argument("--output", "-o", help="Output report path")
-    chart_parser.add_argument("--temperature", type=float, default=0.7)
     chart_parser.set_defaults(func=chart_command)
 
     # UI command
@@ -356,7 +329,6 @@ Examples:
     ui_parser.add_argument("file", help="Path to screenshot")
     ui_parser.add_argument("--task", help="Custom analysis task")
     ui_parser.add_argument("--output", "-o", help="Output report path")
-    ui_parser.add_argument("--temperature", type=float, default=0.7)
     ui_parser.set_defaults(func=ui_command)
 
     args = parser.parse_args()

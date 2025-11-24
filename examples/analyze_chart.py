@@ -12,7 +12,7 @@ from src import VisionAgent
 def main():
     """Analyze a chart example."""
     # Initialize the agent
-    agent = VisionAgent(model="qwen3-vl:8b")
+    agent = VisionAgent()
 
     # Example chart path (replace with your actual chart)
     chart_path = "path/to/your/chart.png"

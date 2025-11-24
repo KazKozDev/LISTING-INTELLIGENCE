@@ -54,7 +54,7 @@ def analyze_scientific_graph(agent, graph_path):
 def main():
     """Custom analysis examples."""
     # Initialize the agent
-    agent = VisionAgent(model="qwen3-vl:8b")
+    agent = VisionAgent()
 
     print("Custom Analysis Examples")
     print("=" * 60)

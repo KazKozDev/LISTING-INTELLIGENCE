@@ -12,7 +12,7 @@ from src import VisionAgent
 def main():
     """Batch analysis example."""
     # Initialize the agent
-    agent = VisionAgent(model="qwen3-vl:8b")
+    agent = VisionAgent()
 
     # Example: Analyze all images in a directory
     image_directory = Path("path/to/your/images/")

@@ -97,46 +97,68 @@ def render_sidebar():
         st.markdown("### Configuration")
         st.markdown("---")
 
-        # Provider selection
-        provider_info = ProviderFactory.get_provider_info()
-        provider_options = list(provider_info.keys())
+        # Load current config from .env
+        from src.config import Config
+        default_config = Config()
 
-        provider = st.selectbox(
-            "LLM Provider",
-            options=provider_options,
-            format_func=lambda x: provider_info[x]["name"],
-            help="Select the AI provider for analysis"
+        st.markdown("**Current settings from .env file:**")
+        st.info(
+            f"Provider: {default_config.provider}\n\n"
+            f"Model: {default_config.model}\n\n"
+            f"Base URL: {default_config.base_url or 'Not set'}"
         )
 
-        # Provider-specific configuration
-        st.markdown(f"**{provider_info[provider]['name']} Configuration**")
+        st.markdown("---")
+        st.markdown("**Override settings (optional):**")
 
-        # Model selection
-        default_model = provider_info[provider]["default_model"]
-        model = st.text_input(
-            "Model",
-            value=default_model,
-            help="Model name or deployment ID"
-        )
+        # Allow override
+        use_custom = st.checkbox("Use custom settings", value=False)
 
-        # API Key (if required)
-        api_key = None
-        if provider_info[provider]["requires_api_key"]:
-            api_key = st.text_input(
-                "API Key",
-                type="password",
-                help="Your API key for authentication"
+        if use_custom:
+            # Provider selection
+            provider_info = ProviderFactory.get_provider_info()
+            provider_options = list(provider_info.keys())
+
+            provider = st.selectbox(
+                "LLM Provider",
+                options=provider_options,
+                index=provider_options.index(default_config.provider) if default_config.provider in provider_options else 0,
+                format_func=lambda x: provider_info[x]["name"],
+                help="Select the AI provider for analysis"
             )
 
-        # Base URL (if required)
-        base_url = None
-        if provider_info[provider]["requires_base_url"]:
-            default_url = provider_info[provider].get("default_base_url", "")
-            base_url = st.text_input(
-                "Base URL",
-                value=default_url,
-                help="API endpoint URL"
+            # Model input
+            model = st.text_input(
+                "Model",
+                value=default_config.model,
+                help="Model name or deployment ID"
             )
+
+            # API Key (if required)
+            api_key = None
+            if provider_info[provider]["requires_api_key"]:
+                api_key = st.text_input(
+                    "API Key",
+                    value=default_config.api_key or "",
+                    type="password",
+                    help="Your API key for authentication"
+                )
+
+            # Base URL (if required)
+            base_url = None
+            if provider_info[provider]["requires_base_url"]:
+                default_url = provider_info[provider].get("default_base_url", "")
+                base_url = st.text_input(
+                    "Base URL",
+                    value=default_config.base_url or default_url,
+                    help="API endpoint URL"
+                )
+        else:
+            # Use defaults from config
+            provider = default_config.provider
+            model = default_config.model
+            api_key = default_config.api_key
+            base_url = default_config.base_url
 
         st.markdown("---")
 
@@ -147,7 +169,7 @@ def render_sidebar():
             "Temperature",
             min_value=0.0,
             max_value=2.0,
-            value=0.7,
+            value=default_config.temperature,
             step=0.1,
             help="Controls randomness in generation"
         )
@@ -156,7 +178,7 @@ def render_sidebar():
             "Max Tokens",
             min_value=100,
             max_value=4096,
-            value=2048,
+            value=default_config.max_tokens,
             step=100,
             help="Maximum tokens to generate"
         )
@@ -167,12 +189,16 @@ def render_sidebar():
         if st.button("Test Connection", use_container_width=True):
             with st.spinner("Testing connection..."):
                 try:
-                    test_agent = VisionAgent(
-                        provider=provider,
-                        model=model,
-                        api_key=api_key,
-                        base_url=base_url
-                    )
+                    # Create temporary config for testing
+                    import os
+                    os.environ["LLM_PROVIDER"] = provider
+                    os.environ["LLM_MODEL"] = model
+                    if api_key:
+                        os.environ["LLM_API_KEY"] = api_key
+                    if base_url:
+                        os.environ["LLM_BASE_URL"] = base_url
+
+                    test_agent = VisionAgent()
                     if test_agent.provider.verify_connection():
                         st.success("Connection successful")
                     else:
@@ -264,65 +290,81 @@ def analyze_file(uploaded_file, task, config):
                 tmp_file.write(uploaded_file.getvalue())
                 tmp_path = Path(tmp_file.name)
 
-            # Initialize agent
-            agent = VisionAgent(
-                provider=config["provider"],
-                model=config["model"],
-                api_key=config["api_key"],
-                base_url=config["base_url"],
-            )
+            # Set environment variables temporarily if custom settings are used
+            import os
+            original_env = {}
+            try:
+                if config.get("provider"):
+                    original_env["LLM_PROVIDER"] = os.environ.get("LLM_PROVIDER")
+                    os.environ["LLM_PROVIDER"] = config["provider"]
+                if config.get("model"):
+                    original_env["LLM_MODEL"] = os.environ.get("LLM_MODEL")
+                    os.environ["LLM_MODEL"] = config["model"]
+                if config.get("api_key"):
+                    original_env["LLM_API_KEY"] = os.environ.get("LLM_API_KEY")
+                    os.environ["LLM_API_KEY"] = config["api_key"]
+                if config.get("base_url"):
+                    original_env["LLM_BASE_URL"] = os.environ.get("LLM_BASE_URL")
+                    os.environ["LLM_BASE_URL"] = config["base_url"]
+                if config.get("temperature"):
+                    original_env["TEMPERATURE"] = os.environ.get("TEMPERATURE")
+                    os.environ["TEMPERATURE"] = str(config["temperature"])
+                if config.get("max_tokens"):
+                    original_env["MAX_TOKENS"] = os.environ.get("MAX_TOKENS")
+                    os.environ["MAX_TOKENS"] = str(config["max_tokens"])
 
-            # Analyze based on file type
-            if tmp_path.suffix.lower() == ".pdf":
-                results = agent.analyze_pdf(
-                    tmp_path,
-                    task=task,
-                    temperature=config["temperature"],
-                    max_tokens=config["max_tokens"]
-                )
-            else:
-                result = agent.analyze_image(
-                    tmp_path,
-                    task=task,
-                    temperature=config["temperature"],
-                    max_tokens=config["max_tokens"]
-                )
-                results = [result]
+                # Initialize agent with config from environment
+                agent = VisionAgent()
 
-            # Store results
-            for result in results:
-                st.session_state.analysis_results.append({
-                    "filename": uploaded_file.name,
-                    "timestamp": datetime.now(),
-                    "result": result,
-                })
+                # Analyze based on file type
+                if tmp_path.suffix.lower() == ".pdf":
+                    results = agent.analyze_pdf(tmp_path, task=task)
+                else:
+                    result = agent.analyze_image(tmp_path, task=task)
+                    results = [result]
 
-            # Clean up
-            tmp_path.unlink()
+                # Store results
+                for result in results:
+                    st.session_state.analysis_results.append({
+                        "filename": uploaded_file.name,
+                        "timestamp": datetime.now(),
+                        "result": result,
+                    })
 
-            # Display results
-            st.markdown('<div class="success-box">Analysis completed successfully</div>', unsafe_allow_html=True)
+                # Clean up
+                tmp_path.unlink()
 
-            for idx, result in enumerate(results):
-                st.markdown(f'<div class="section-header">Result {idx + 1}</div>', unsafe_allow_html=True)
+                # Display results
+                st.markdown('<div class="success-box">Analysis completed successfully</div>', unsafe_allow_html=True)
 
-                # Metadata
-                col1, col2, col3, col4 = st.columns(4)
-                with col1:
-                    st.metric("Model", result.metadata.get("model", "N/A"))
-                with col2:
-                    st.metric("Provider", result.metadata.get("provider", "N/A"))
-                with col3:
-                    tokens = result.metadata.get("usage", {}).get("total_tokens", 0)
-                    st.metric("Tokens Used", f"{tokens:,}")
-                with col4:
-                    if "page" in result.metadata:
-                        st.metric("Page", result.metadata["page"])
+                for idx, result in enumerate(results):
+                    st.markdown(f'<div class="section-header">Result {idx + 1}</div>', unsafe_allow_html=True)
 
-                # Analysis result
-                st.markdown("**Analysis:**")
-                st.markdown(result.text)
-                st.markdown("---")
+                    # Metadata
+                    col1, col2, col3, col4 = st.columns(4)
+                    with col1:
+                        st.metric("Model", result.metadata.get("model", "N/A"))
+                    with col2:
+                        st.metric("Provider", result.metadata.get("provider", "N/A"))
+                    with col3:
+                        tokens = result.metadata.get("usage", {}).get("total_tokens", 0)
+                        st.metric("Tokens Used", f"{tokens:,}")
+                    with col4:
+                        if "page" in result.metadata:
+                            st.metric("Page", result.metadata["page"])
+
+                    # Analysis result
+                    st.markdown("**Analysis:**")
+                    st.markdown(result.text)
+                    st.markdown("---")
+
+            finally:
+                # Restore original environment variables
+                for key, value in original_env.items():
+                    if value is None:
+                        os.environ.pop(key, None)
+                    else:
+                        os.environ[key] = value
 
         except Exception as e:
             st.error(f"Error during analysis: {str(e)}")
@@ -360,71 +402,87 @@ def analyze_batch(uploaded_files, task, config):
     total_files = len(uploaded_files)
     completed = 0
 
+    # Set environment variables temporarily
+    import os
+    original_env = {}
     try:
-        # Initialize agent once
-        agent = VisionAgent(
-            provider=config["provider"],
-            model=config["model"],
-            api_key=config["api_key"],
-            base_url=config["base_url"],
-        )
+        if config.get("provider"):
+            original_env["LLM_PROVIDER"] = os.environ.get("LLM_PROVIDER")
+            os.environ["LLM_PROVIDER"] = config["provider"]
+        if config.get("model"):
+            original_env["LLM_MODEL"] = os.environ.get("LLM_MODEL")
+            os.environ["LLM_MODEL"] = config["model"]
+        if config.get("api_key"):
+            original_env["LLM_API_KEY"] = os.environ.get("LLM_API_KEY")
+            os.environ["LLM_API_KEY"] = config["api_key"]
+        if config.get("base_url"):
+            original_env["LLM_BASE_URL"] = os.environ.get("LLM_BASE_URL")
+            os.environ["LLM_BASE_URL"] = config["base_url"]
+        if config.get("temperature"):
+            original_env["TEMPERATURE"] = os.environ.get("TEMPERATURE")
+            os.environ["TEMPERATURE"] = str(config["temperature"])
+        if config.get("max_tokens"):
+            original_env["MAX_TOKENS"] = os.environ.get("MAX_TOKENS")
+            os.environ["MAX_TOKENS"] = str(config["max_tokens"])
 
-        for idx, uploaded_file in enumerate(uploaded_files):
-            status_text.text(f"Processing {uploaded_file.name} ({idx + 1}/{total_files})...")
+        try:
+            # Initialize agent once
+            agent = VisionAgent()
 
-            try:
-                # Save temporarily
-                with tempfile.NamedTemporaryFile(delete=False, suffix=Path(uploaded_file.name).suffix) as tmp_file:
-                    tmp_file.write(uploaded_file.getvalue())
-                    tmp_path = Path(tmp_file.name)
+            for idx, uploaded_file in enumerate(uploaded_files):
+                status_text.text(f"Processing {uploaded_file.name} ({idx + 1}/{total_files})...")
 
-                # Analyze
-                if tmp_path.suffix.lower() == ".pdf":
-                    results = agent.analyze_pdf(
-                        tmp_path,
-                        task=task,
-                        temperature=config["temperature"],
-                        max_tokens=config["max_tokens"]
-                    )
-                else:
-                    result = agent.analyze_image(
-                        tmp_path,
-                        task=task,
-                        temperature=config["temperature"],
-                        max_tokens=config["max_tokens"]
-                    )
-                    results = [result]
+                try:
+                    # Save temporarily
+                    with tempfile.NamedTemporaryFile(delete=False, suffix=Path(uploaded_file.name).suffix) as tmp_file:
+                        tmp_file.write(uploaded_file.getvalue())
+                        tmp_path = Path(tmp_file.name)
 
-                # Store results
-                for result in results:
-                    st.session_state.analysis_results.append({
-                        "filename": uploaded_file.name,
-                        "timestamp": datetime.now(),
-                        "result": result,
-                    })
+                    # Analyze
+                    if tmp_path.suffix.lower() == ".pdf":
+                        results = agent.analyze_pdf(tmp_path, task=task)
+                    else:
+                        result = agent.analyze_image(tmp_path, task=task)
+                        results = [result]
 
-                # Clean up
-                tmp_path.unlink()
-                completed += 1
+                    # Store results
+                    for result in results:
+                        st.session_state.analysis_results.append({
+                            "filename": uploaded_file.name,
+                            "timestamp": datetime.now(),
+                            "result": result,
+                        })
 
-            except Exception as e:
-                st.warning(f"Error processing {uploaded_file.name}: {str(e)}")
+                    # Clean up
+                    tmp_path.unlink()
+                    completed += 1
 
-            # Update progress
-            progress_bar.progress((idx + 1) / total_files)
+                except Exception as e:
+                    st.warning(f"Error processing {uploaded_file.name}: {str(e)}")
 
-        status_text.text("")
-        st.markdown(f'<div class="success-box">Batch analysis completed: {completed}/{total_files} files processed successfully</div>', unsafe_allow_html=True)
+                # Update progress
+                progress_bar.progress((idx + 1) / total_files)
 
-        # Generate report option
-        if st.button("Generate Report", use_container_width=True):
-            generate_report(agent)
+            status_text.text("")
+            st.markdown(f'<div class="success-box">Batch analysis completed: {completed}/{total_files} files processed successfully</div>', unsafe_allow_html=True)
 
-    except Exception as e:
-        st.error(f"Error during batch analysis: {str(e)}")
+            # Generate report option
+            if st.button("Generate Report", use_container_width=True):
+                generate_report()
+
+        except Exception as e:
+            st.error(f"Error during batch analysis: {str(e)}")
+
+    finally:
+        # Restore original environment variables
+        for key, value in original_env.items():
+            if value is None:
+                os.environ.pop(key, None)
+            else:
+                os.environ[key] = value
 
 
-def generate_report(agent):
+def generate_report():
     """Generate and download report."""
     try:
         results = [item["result"] for item in st.session_state.analysis_results]
@@ -433,6 +491,8 @@ def generate_report(agent):
             st.warning("No results to generate report from")
             return
 
+        # Create agent for report generation
+        agent = VisionAgent()
         report_path = agent.generate_report(
             results=results,
             title="Vision Agent Analysis Report"

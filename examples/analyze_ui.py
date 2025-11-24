@@ -12,7 +12,7 @@ from src import VisionAgent
 def main():
     """Analyze a UI screenshot example."""
     # Initialize the agent
-    agent = VisionAgent(model="qwen3-vl:8b")
+    agent = VisionAgent()
 
     # Example screenshot path (replace with your actual screenshot)
     screenshot_path = "path/to/your/screenshot.png"
