@@ -1,28 +1,57 @@
 # Vision Agent Analyst
 
-Multimodal AI agent for analyzing charts, UI screenshots, and PDFs using Ollama with qwen3-vl:8b model.
+Professional multimodal AI agent for analyzing charts, UI screenshots, and PDF documents. Built for business use with support for multiple LLM providers and a modern web interface.
 
 ## Features
 
-- 📊 **Chart Analysis**: Analyze data visualizations and extract insights
-- 🖼️ **Screenshot Analysis**: Understand UI elements and layouts
-- 📄 **PDF Processing**: Extract and analyze content from PDF documents
-- 📝 **Report Generation**: Create comprehensive markdown reports
-- 🤖 **Powered by Ollama**: Uses qwen3-vl:8b vision language model
+### Core Capabilities
 
-## Prerequisites
+- **Chart Analysis**: Extract insights from data visualizations and graphs
+- **UI Screenshot Analysis**: Evaluate user interfaces and design elements
+- **PDF Document Processing**: Analyze multi-page documents with page-by-page analysis
+- **Batch Processing**: Analyze multiple files efficiently
+- **Report Generation**: Create professional reports in Markdown and JSON formats
 
-1. **Install Ollama**: Download from [ollama.ai](https://ollama.ai)
-2. **Pull the model**:
-   ```bash
-   ollama pull qwen3-vl:8b
-   ```
+### LLM Provider Support
 
-## Installation
+- **Ollama**: Local deployment with models like qwen3-vl:8b
+- **OpenAI**: GPT-4 Vision and other vision-capable models
+- **Anthropic**: Claude 3 and Claude 3.5 models
+- **Google AI**: Gemini models
+- **Azure OpenAI**: Enterprise-grade deployment
+
+### Interfaces
+
+- **Web UI**: Professional Streamlit-based interface for business users
+- **CLI**: Command-line interface for automation and scripting
+- **Python API**: Direct integration into your applications
+
+## Quick Start
+
+### Prerequisites
+
+Choose one of the following LLM providers:
+
+#### Option 1: Ollama (Local, Free)
+```bash
+# Install Ollama
+# Visit: https://ollama.ai
+
+# Pull a vision model
+ollama pull qwen3-vl:8b
+```
+
+#### Option 2: Cloud Providers
+- OpenAI API key
+- Anthropic API key
+- Google AI API key
+- Azure OpenAI deployment
+
+### Installation
 
 ```bash
 # Clone the repository
-git clone <your-repo-url>
+git clone https://github.com/KazKozDev/vision-agent-analyst.git
 cd vision-agent-analyst
 
 # Create virtual environment
@@ -31,33 +60,100 @@ source venv/bin/activate  # On Windows: venv\Scripts\activate
 
 # Install dependencies
 pip install -r requirements.txt
+
+# Configure environment
+cp .env.example .env
+# Edit .env with your provider settings
+```
+
+### Configuration
+
+Edit `.env` to configure your LLM provider:
+
+```env
+# For Ollama (local)
+LLM_PROVIDER=ollama
+LLM_MODEL=qwen3-vl:8b
+LLM_BASE_URL=http://localhost:11434
+
+# For OpenAI
+LLM_PROVIDER=openai
+LLM_MODEL=gpt-4o
+LLM_API_KEY=your-api-key
+
+# For Anthropic
+LLM_PROVIDER=anthropic
+LLM_MODEL=claude-3-5-sonnet-20241022
+LLM_API_KEY=your-api-key
+
+# For Google AI
+LLM_PROVIDER=google
+LLM_MODEL=gemini-1.5-pro
+LLM_API_KEY=your-api-key
+
+# For Azure OpenAI
+LLM_PROVIDER=azure
+LLM_MODEL=your-deployment-name
+LLM_API_KEY=your-api-key
+LLM_BASE_URL=https://your-resource.openai.azure.com
 ```
 
 ## Usage
+
+### Web Interface (Recommended)
+
+```bash
+streamlit run app.py
+```
+
+Access the professional web interface at `http://localhost:8501`
+
+Features:
+- Provider selection and configuration
+- Real-time file upload and analysis
+- Batch processing
+- Analysis history
+- Report generation and download
 
 ### Command Line Interface
 
 ```bash
 # Analyze a single image
-python main.py analyze image.png --task "Describe this chart"
+python main.py analyze chart.png --task "Analyze this chart"
 
 # Analyze a PDF
-python main.py analyze document.pdf --task "Summarize this document"
+python main.py analyze document.pdf
 
 # Batch analysis
-python main.py batch images/ --output reports/
+python main.py batch images/ --output report.md
 
 # Interactive mode
 python main.py interactive
+
+# Chart-specific analysis
+python main.py chart sales_data.png
+
+# UI screenshot analysis
+python main.py ui app_screenshot.png
 ```
 
 ### Python API
 
 ```python
-from vision_agent import VisionAgent
+from src import VisionAgent
 
-# Initialize agent
-agent = VisionAgent(model="qwen3-vl:8b")
+# Initialize with Ollama
+agent = VisionAgent(
+    provider="ollama",
+    model="qwen3-vl:8b"
+)
+
+# Or with OpenAI
+agent = VisionAgent(
+    provider="openai",
+    model="gpt-4o",
+    api_key="your-api-key"
+)
 
 # Analyze an image
 result = agent.analyze_image(
@@ -66,10 +162,10 @@ result = agent.analyze_image(
 )
 
 print(result.text)
-print(result.report)
+print(f"Tokens used: {result.metadata['usage']['total_tokens']}")
 
 # Analyze a PDF
-pdf_results = agent.analyze_pdf(
+results = agent.analyze_pdf(
     "document.pdf",
     task="Summarize key findings"
 )
@@ -77,19 +173,9 @@ pdf_results = agent.analyze_pdf(
 # Generate report
 agent.generate_report(
     results=[result],
-    output_path="report.md"
+    output_path="report.md",
+    title="Analysis Report"
 )
-```
-
-## Configuration
-
-Create a `.env` file for configuration:
-
-```env
-OLLAMA_HOST=http://localhost:11434
-OLLAMA_MODEL=qwen3-vl:8b
-MAX_TOKENS=2048
-TEMPERATURE=0.7
 ```
 
 ## Project Structure
@@ -97,118 +183,131 @@ TEMPERATURE=0.7
 ```
 vision-agent-analyst/
 ├── src/
-│   ├── __init__.py
-│   ├── ollama_client.py    # Ollama API integration
-│   ├── vision_agent.py     # Main agent logic
-│   ├── pdf_processor.py    # PDF handling
-│   ├── report_generator.py # Report creation
-│   └── config.py           # Configuration
-├── examples/
-│   ├── analyze_chart.py
-│   ├── analyze_ui.py
-│   └── analyze_pdf.py
-├── main.py                 # CLI entry point
-├── requirements.txt
-└── README.md
+│   ├── providers/              # LLM provider implementations
+│   │   ├── base.py             # Base provider interface
+│   │   ├── ollama_provider.py  # Ollama integration
+│   │   ├── openai_provider.py  # OpenAI integration
+│   │   ├── anthropic_provider.py
+│   │   ├── google_provider.py
+│   │   ├── azure_provider.py
+│   │   └── factory.py          # Provider factory
+│   ├── config.py               # Configuration management
+│   ├── vision_agent.py         # Main agent logic
+│   ├── pdf_processor.py        # PDF handling
+│   └── report_generator.py     # Report creation
+├── examples/                   # Usage examples
+├── app.py                      # Streamlit web UI
+├── main.py                     # CLI interface
+├── requirements.txt            # Python dependencies
+├── Dockerfile                  # Docker configuration
+├── docker-compose.yml          # Docker Compose setup
+└── .env.example                # Environment template
 ```
 
-## Examples
+## Docker Deployment
 
-### Analyzing a Chart
+### Using Docker Compose
 
-```python
-from vision_agent import VisionAgent
+```bash
+# Start all services
+docker-compose up -d
 
-agent = VisionAgent()
-result = agent.analyze_image(
-    "sales_chart.png",
-    task="Analyze this sales chart and identify trends"
-)
+# Access web UI at http://localhost:8501
 ```
 
-### Analyzing UI Screenshots
+### Using Docker
 
-```python
-result = agent.analyze_image(
-    "app_screenshot.png",
-    task="Describe the UI elements and suggest improvements"
-)
-```
+```bash
+# Build image
+docker build -t vision-agent-analyst .
 
-### Processing PDFs
-
-```python
-results = agent.analyze_pdf(
-    "report.pdf",
-    task="Extract key metrics and findings"
-)
+# Run container
+docker run -p 8501:8501 \
+  -e LLM_PROVIDER=openai \
+  -e LLM_API_KEY=your-key \
+  vision-agent-analyst
 ```
 
 ## Advanced Usage
 
-### Custom Prompts
+### Switching Providers at Runtime
 
 ```python
-custom_task = """
-Analyze this image and provide:
-1. Main elements identified
-2. Data insights
-3. Recommendations
+# Start with Ollama
+agent = VisionAgent(provider="ollama")
+
+# Analyze with OpenAI
+result = agent.analyze_image(
+    "image.png",
+    task="Analyze this",
+    provider="openai",
+    model="gpt-4o",
+    api_key="your-key"
+)
+```
+
+### Custom Analysis Prompts
+
+```python
+custom_prompt = """
+Analyze this business dashboard and provide:
+1. Key performance indicators visible
+2. Trend analysis
+3. Areas of concern
+4. Strategic recommendations
 """
 
-result = agent.analyze_image("image.png", task=custom_task)
+result = agent.analyze_image("dashboard.png", task=custom_prompt)
 ```
 
-### Batch Processing
+### Batch Processing with Different Providers
 
 ```python
-import os
-from pathlib import Path
+files = ["chart1.png", "chart2.png", "report.pdf"]
 
-image_dir = Path("images/")
-results = []
-
-for img_path in image_dir.glob("*.png"):
-    result = agent.analyze_image(
-        str(img_path),
-        task="Analyze this image"
-    )
-    results.append(result)
-
-agent.generate_report(results, "batch_report.md")
+results = agent.batch_analyze(
+    file_paths=files,
+    task="Extract key business metrics",
+    temperature=0.5,
+    max_tokens=1500
+)
 ```
 
-## Troubleshooting
+## Provider Comparison
 
-### Ollama Connection Issues
-
-```bash
-# Check if Ollama is running
-ollama list
-
-# Start Ollama service
-ollama serve
-```
-
-### Model Not Found
-
-```bash
-# Pull the required model
-ollama pull qwen3-vl:8b
-
-# Verify installation
-ollama list | grep qwen3-vl
-```
+| Provider   | Vision Support | Local | API Key | Cost      | Best For                |
+|-----------|---------------|-------|---------|-----------|-------------------------|
+| Ollama    | Yes           | Yes   | No      | Free      | Development, privacy    |
+| OpenAI    | Yes           | No    | Yes     | Pay-per-use | Production, accuracy |
+| Anthropic | Yes           | No    | Yes     | Pay-per-use | Long documents         |
+| Google AI | Yes           | No    | Yes     | Pay-per-use | Multimodal tasks       |
+| Azure     | Yes           | No    | Yes     | Enterprise | Corporate deployments  |
 
 ## Contributing
 
-Contributions are welcome! Please feel free to submit a Pull Request.
+We welcome contributions! Please see [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines.
+
+## Security
+
+For security concerns, please see [SECURITY.md](SECURITY.md).
 
 ## License
 
-MIT License
+This project is licensed under the MIT License - see [LICENSE](LICENSE) for details.
+
+## Changelog
+
+See [CHANGELOG.md](CHANGELOG.md) for version history and changes.
+
+## Support
+
+- Documentation: [README.md](README.md), [QUICKSTART.md](QUICKSTART.md)
+- Issues: [GitHub Issues](https://github.com/KazKozDev/vision-agent-analyst/issues)
+- Discussions: [GitHub Discussions](https://github.com/KazKozDev/vision-agent-analyst/discussions)
 
 ## Acknowledgments
 
-- Powered by [Ollama](https://ollama.ai)
-- Uses Qwen3-VL multimodal model
+- Powered by multiple LLM providers
+- Built with Streamlit for the web interface
+- PDF processing with PyMuPDF
+- Thanks to all contributors

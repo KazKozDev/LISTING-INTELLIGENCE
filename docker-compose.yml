@@ -1,0 +1,31 @@
+version: '3.8'
+
+services:
+  vision-agent:
+    build: .
+    ports:
+      - "8501:8501"
+    environment:
+      - LLM_PROVIDER=${LLM_PROVIDER:-ollama}
+      - LLM_MODEL=${LLM_MODEL:-}
+      - LLM_API_KEY=${LLM_API_KEY:-}
+      - LLM_BASE_URL=${LLM_BASE_URL:-}
+      - MAX_TOKENS=${MAX_TOKENS:-2048}
+      - TEMPERATURE=${TEMPERATURE:-0.7}
+    volumes:
+      - ./outputs:/app/outputs
+    env_file:
+      - .env
+    restart: unless-stopped
+
+  # Optional: Ollama service
+  ollama:
+    image: ollama/ollama:latest
+    ports:
+      - "11434:11434"
+    volumes:
+      - ollama_data:/root/.ollama
+    restart: unless-stopped
+
+volumes:
+  ollama_data:

@@ -7,7 +7,8 @@ from pathlib import Path
 from typing import List, Union, Optional, Dict, Any
 
 from .config import Config
-from .ollama_client import OllamaClient
+from .providers.factory import ProviderFactory
+from .providers.base import BaseLLMProvider
 from .pdf_processor import PDFProcessor
 from .report_generator import ReportGenerator
 
@@ -50,23 +51,48 @@ class VisionAgent:
 
     def __init__(
         self,
-        model: str = "qwen3-vl:8b",
-        config: Optional[Config] = None
+        provider: Optional[str] = None,
+        model: Optional[str] = None,
+        api_key: Optional[str] = None,
+        base_url: Optional[str] = None,
+        config: Optional[Config] = None,
+        **kwargs
     ):
         """Initialize Vision Agent.
 
         Args:
-            model: Ollama model name.
-            config: Configuration object.
+            provider: LLM provider name (ollama, openai, anthropic, google, azure)
+            model: Model name. If None, uses default from config
+            api_key: API key for provider (if required)
+            base_url: Base URL for provider (if applicable)
+            config: Configuration object
+            **kwargs: Additional provider-specific configuration
         """
         self.config = config or Config()
-        self.config.ollama_model = model
 
-        self.client = OllamaClient(self.config)
+        # Use provided values or fall back to config
+        provider = provider or self.config.provider
+        model = model or self.config.model
+        api_key = api_key or self.config.api_key
+        base_url = base_url or self.config.base_url
+
+        # Merge additional config
+        provider_config = self.config.get_provider_config()
+        provider_config.update(kwargs)
+
+        # Create provider instance
+        self.provider: BaseLLMProvider = ProviderFactory.create(
+            provider_name=provider,
+            model=model,
+            api_key=api_key,
+            base_url=base_url,
+            **provider_config
+        )
+
         self.pdf_processor = PDFProcessor(self.config)
         self.report_generator = ReportGenerator(self.config)
 
-        logger.info(f"Initialized VisionAgent with model: {model}")
+        logger.info(f"Initialized VisionAgent with {provider} provider, model: {model}")
 
     def analyze_image(
         self,
@@ -97,22 +123,33 @@ class VisionAgent:
 
         logger.info(f"Analyzing image: {image_path}")
 
-        # Call Ollama to analyze the image
-        response = self.client.analyze_image(image_path, task, **kwargs)
+        # Extract parameters
+        temperature = kwargs.pop("temperature", self.config.temperature)
+        max_tokens = kwargs.pop("max_tokens", self.config.max_tokens)
+
+        # Call provider to analyze the image
+        response = self.provider.analyze_image(
+            image_path=image_path,
+            prompt=task,
+            temperature=temperature,
+            max_tokens=max_tokens,
+            **kwargs
+        )
 
         result = AnalysisResult(
             file_path=image_path,
             file_type="image",
             task=task,
-            text=response["text"],
+            text=response.text,
             metadata={
-                "model": response["model"],
-                "eval_count": response.get("eval_count", 0),
-                "duration_ms": response.get("total_duration", 0) / 1_000_000,
+                "model": response.model,
+                "usage": response.usage,
+                "provider": self.provider.provider_name,
+                **response.metadata
             }
         )
 
-        logger.info(f"Analysis completed in {result.metadata['duration_ms']:.2f}ms")
+        logger.info(f"Analysis completed. Tokens used: {response.usage.get('total_tokens', 0)}")
         return result
 
     def analyze_chart(
@@ -203,24 +240,35 @@ class VisionAgent:
 
         results = []
 
+        # Extract parameters
+        temperature = kwargs.pop("temperature", self.config.temperature)
+        max_tokens = kwargs.pop("max_tokens", self.config.max_tokens)
+
         for page_num, image_path in page_images:
             logger.info(f"Analyzing page {page_num}...")
 
             page_task = f"[Page {page_num}] {task}"
 
             try:
-                response = self.client.analyze_image(image_path, page_task, **kwargs)
+                response = self.provider.analyze_image(
+                    image_path=image_path,
+                    prompt=page_task,
+                    temperature=temperature,
+                    max_tokens=max_tokens,
+                    **kwargs
+                )
 
                 result = AnalysisResult(
                     file_path=pdf_path,
                     file_type="pdf",
                     task=page_task,
-                    text=response["text"],
+                    text=response.text,
                     metadata={
                         "page": page_num,
-                        "model": response["model"],
-                        "eval_count": response.get("eval_count", 0),
-                        "duration_ms": response.get("total_duration", 0) / 1_000_000,
+                        "model": response.model,
+                        "usage": response.usage,
+                        "provider": self.provider.provider_name,
+                        **response.metadata
                     }
                 )
 
