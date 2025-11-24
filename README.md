@@ -273,14 +273,10 @@ results = agent.batch_analyze(
 )
 ```
 
-## Provider Comparison
+---
 
-| Provider   | Vision Support | Local | API Key | Cost      | Best For                |
-|-----------|---------------|-------|---------|-----------|-------------------------|
-| Ollama    | Yes           | Yes   | No      | Free      | Development, privacy    |
-| OpenAI    | Yes           | No    | Yes     | Pay-per-use | Production, accuracy |
-| Anthropic | Yes           | No    | Yes     | Pay-per-use | Long documents         |
-| Google AI | Yes           | No    | Yes     | Pay-per-use | Multimodal tasks       |
-| Azure     | Yes           | No    | Yes     | Enterprise | Corporate deployments  |
+If you like this project, please give it a star ⭐
 
+For questions, feedback, or support, reach out to:
 
+[Artem KK](https://www.linkedin.com/in/kazkozdev/) | MIT [LICENSE](LICENSE)
