@@ -283,31 +283,4 @@ results = agent.batch_analyze(
 | Google AI | Yes           | No    | Yes     | Pay-per-use | Multimodal tasks       |
 | Azure     | Yes           | No    | Yes     | Enterprise | Corporate deployments  |
 
-## Contributing
 
-We welcome contributions! Please see [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines.
-
-## Security
-
-For security concerns, please see [SECURITY.md](SECURITY.md).
-
-## License
-
-This project is licensed under the MIT License - see [LICENSE](LICENSE) for details.
-
-## Changelog
-
-See [CHANGELOG.md](CHANGELOG.md) for version history and changes.
-
-## Support
-
-- Documentation: [README.md](README.md), [QUICKSTART.md](QUICKSTART.md)
-- Issues: [GitHub Issues](https://github.com/KazKozDev/vision-agent-analyst/issues)
-- Discussions: [GitHub Discussions](https://github.com/KazKozDev/vision-agent-analyst/discussions)
-
-## Acknowledgments
-
-- Powered by multiple LLM providers
-- Built with Streamlit for the web interface
-- PDF processing with PyMuPDF
-- Thanks to all contributors
