@@ -60,12 +60,9 @@ class Config:
         """Get configuration for LLM provider.
 
         Returns:
-            Dictionary with provider configuration
+            Dictionary with provider configuration (excluding model, api_key, base_url)
         """
         config = {
-            "model": self.model,
-            "api_key": self.api_key,
-            "base_url": self.base_url,
             "max_image_size": self.max_image_size,
         }
 
