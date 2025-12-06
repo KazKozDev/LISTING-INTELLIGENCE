@@ -59,9 +59,3 @@ The easiest way to start both backend and frontend:
 
 Access the interface at: `http://localhost:5173`
 
-## Features
-
-- **Multimodal**: Analyze Images (Charts, UI) and PDFs (with page-by-page analysis).
-- **Multi-Provider**: Switch between local (Ollama) and cloud (GPT-4, Claude 3.5, Gemini).
-- **History**: Save and export analysis reports (Markdown/CSV).
-- **Templates**: Pre-built prompts for Finance, Medical, E-commerce, etc.
