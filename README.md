@@ -2,6 +2,20 @@
 
 Professional multimodal AI agent for analyzing charts, UI screenshots, and PDF documents. Built with React and FastAPI.
 
+## Who is this for?
+
+- **Business Analysts**: Extract insights from charts, financial reports, and invoices automatically.
+- **Developers & Designers**: Review UI screenshots for accessibility, UX improvements, and code generation.
+- **E-commerce Managers**: Batch analyze product images for descriptions, tagging, and quality control.
+- **Privacy-Conscious Teams**: Run powerful analysis locally using Ollama without sending sensitive data to the cloud.
+
+## Key Benefits
+
+- 🚀 **Automation**: Process hundreds of documents/images in minutes.
+- 🔒 **Privacy**: Full support for local execution (Ollama) ensures data sovereignty.
+- 📊 **Multimodal**: Handles PDFs, Charts, and UI Screenshots seamlessly.
+- 📝 **Professional Reports**: Generates structured Markdown/CSV reports tailored for business use.
+
 ## Prerequisites
 
 - **Required**: [Ollama](https://ollama.ai) with `qwen3-vl:8b` model (Recommended for local use)
