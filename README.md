@@ -1,6 +1,5 @@
 # Vision Agent Analyst
 ### Visual intelligence. Unlocked.
-👁️
 
 ---
 
@@ -8,6 +7,8 @@
 Vision Agent Analyst changes the game. It doesn't just scan credentials or OCR text; it *understands* visual context. Charts, invoices, medical scans, UI designs—transformed into structured, actionable insights in seconds.
 
 It is **private by design**, **limitlessly adaptable**, and **built for speed**.
+
+<img width="1350" height="911" alt="Screenshot 2025-12-07 at 00 41 37" src="https://github.com/user-attachments/assets/bbddc559-4f57-421b-8b95-745ca91da475" />
 
 ---
 
