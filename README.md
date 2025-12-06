@@ -9,6 +9,9 @@ Professional multimodal AI agent for analyzing charts, UI screenshots, and PDF d
 - **E-commerce Managers**: Batch analyze product images for descriptions, tagging, and quality control.
 - **Privacy-Conscious Teams**: Run powerful analysis locally using Ollama without sending sensitive data to the cloud.
 
+<img width="1532" height="972" alt="Screenshot 2025-12-06 at 13 47 59" src="https://github.com/user-attachments/assets/910f27df-62a3-45be-af0c-fbb367789d82" />
+
+
 ## Key Benefits
 
 - 🚀 **Automation**: Process hundreds of documents/images in minutes.
