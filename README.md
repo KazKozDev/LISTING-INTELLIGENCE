@@ -70,3 +70,10 @@ git clone https://github.com/KazKozDev/vision-agent-analyst.git
 Stop guessing. Start knowing.
 
 
+---
+
+If you like this project, please give it a star ⭐
+
+For questions, feedback, or support, reach out to:
+
+[Artem KK](https://www.linkedin.com/in/kazkozdev/) | MIT [LICENSE](LICENSE) 
