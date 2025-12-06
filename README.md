@@ -1,102 +1,71 @@
 # Vision Agent Analyst
+### Visual intelligence. Unlocked.
+👁️
 
-Vision Agent Analyst is a multimodal AI application designed to automate the analysis of visual data including financial charts, user interface screenshots, and multi-page PDF documents. By leveraging advanced Large Language Models (LLMs) through a unified interface, it enables businesses to extract structured insights, generate detailed reports, and perform quality assurance tasks without manual intervention.
+---
 
-The application is built on a modern architecture combining a FastAPI backend for robust processing and a React frontend for an intuitive user experience. It supports both privacy-focused local execution via Ollama and scalable cloud-based analysis through major providers such as OpenAI, Anthropic, and Google.
+**Traditional data tools go blind when they see an image.**
+Vision Agent Analyst changes the game. It doesn't just scan credentials or OCR text; it *understands* visual context. Charts, invoices, medical scans, UI designs—transformed into structured, actionable insights in seconds.
 
-<img width="1532" height="972" alt="Screenshot 2025-12-06 at 13 47 59" src="https://github.com/user-attachments/assets/aa0942cb-0472-4dec-a033-113e4f39934c" />
+It is **private by design**, **limitlessly adaptable**, and **built for speed**.
 
-## Features
+---
 
-- **Multimodal Analysis**: Capabilities to process and interpret complex visual inputs, including data visualizations, application interfaces, and scanned documents.
-- **Multi-Provider Support**: Seamless integration with Ollama for local inference and cloud APIs (OpenAI, Anthropic, Google Gemini, Azure OpenAI) for enhanced performance.
-- **Document Processing**: Specialized handling for PDF documents, performing page-by-page analysis to extract text and visual context.
-- **Export Capabilities**: Generation of structured outputs in Markdown and CSV formats for easy integration with downstream workflows.
-- **Template System**: Pre-configured analysis templates for specific domains such as Finance, Medical, E-commerce, and UI/UX design.
-- **Detailed Audit Logging**: Comprehensive logging of API interactions and analysis steps for debugging and compliance.
+### Why It Matters
+Data is no longer just rows and columns. It's visual.
 
-## Prerequisites
+*   **See the Unseen**: Extract trends from chart images that don't have underlying data.
+*   **Privacy First**: Run completely offline with **Ollama**. Your sensitive financial or medical data never leaves your machine.
+*   **Hybrid Power**: Need genius-level reasoning? Switch to **GPT-4o** or **Claude 3.5 Sonnet** instantly.
 
-Ensure the following dependencies are installed on the host system:
+Think of it as the **Bloomberg Terminal for your visual assets**—powerful, precise, and immediate.
 
-- **Python**: Version 3.11 or higher
-- **Node.js**: Version 18 or higher (for the frontend interface)
-- **Ollama** (Optional): For local model execution. The `qwen3-vl:8b` model is recommended.
+---
 
-## Installation
+### How It Works
 
-Clone the repository and set up the environment using the following steps:
+1.  **Ingest**: Drag and drop any visual file—PDFs, PNGs, or entire directories.
+2.  **Analyze**: Choose from **50+ expert templates** (Finance, E-commerce, Medical, UX). The agent applies domain-specific reasoning.
+3.  **Export**: Receive clean **JSON**, structured **CSV**, or executive **PDF reports**.
 
-1. **Clone the repository**
-   ```bash
-   git clone https://github.com/KazKozDev/vision-agent-analyst.git
-   cd vision-agent-analyst
-   ```
+---
 
-2. **Setup Backend**
-   Initialize the Python virtual environment and install dependencies.
-   ```bash
-   python -m venv venv
-   source venv/bin/activate
-   pip install -r requirements.txt
-   ```
+### Core Competencies
 
-3. **Setup Frontend**
-   Install the required Node.js packages.
-   ```bash
-   cd frontend
-   npm install
-   cd ..
-   ```
+*   **Batch Intelligence**: Analyze 100 competitor screenshots or 500 invoices in one go.
+*   **Model Agnostic**: Seamlessly switch between Local (Ollama) and Cloud (OpenAI, Anthropic, Gemini).
+*   **Deep Reasoning**: Goes beyond "what it says" to "what it means."
 
-## Configuration
+---
 
-The application is configured via environment variables. Copy the example configuration file to begin.
+### The "Hero" Workflow
+**Scenario**: You are a Product Manager auditing 50 mobile app screens for accessibility.
 
-```bash
-cp .env.example .env
-```
+** The Old Way**: Manual inspection against WCAG guidelines. 4 hours.
+** The Vision Agent Way**:
+> 1. Select **"UI/UX / Accessibility Audit"** template.
+> 2. Drag folder of screenshots.
+> 3. Receive a prioritized **CSV** of violations and fixes.
+> **Time: 5 minutes.**
 
-Edit the `.env` file to define your preferred LLM provider and credentials.
+---
 
-### Configuration Variables
+### Getting Started
 
-| Variable | Description |
-|----------|-------------|
-| `LLM_PROVIDER` | Specifies the LLM provider (ollama, openai, anthropic, google, azure). Default: `ollama` |
-| `LLM_MODEL` | The specific model identifier (e.g., `qwen3-vl:8b`, `gpt-4o`). |
-| `LLM_BASE_URL` | Base URL for the API (required for Ollama and Azure). |
-| `OPENAI_API_KEY` | API key for OpenAI (required if provider is openai). |
-| `ANTHROPIC_API_KEY` | API key for Anthropic (required if provider is anthropic). |
-
-## Usage
-
-### Starting the Application
-
-Use the provided startup script to launch both the backend API and the frontend interface simultaneously.
+**Prerequisites**: `Python 3.10+`, `Node.js 18+`.
 
 ```bash
+# 1. Clone the repository
+git clone https://github.com/KazKozDev/vision-agent-analyst.git
+
+# 2. Launch the engine
 ./start.command
+
+# 3. Access the studio
+# Opens automatically at http://localhost:5173
 ```
 
-The web interface will automatically open at `http://localhost:5173`.
+### Next Steps
+Stop guessing. Start knowing.
 
-### Manual Startup
-
-Alternatively, services can be started individually.
-
-**Backend API**:
-```bash
-source venv/bin/activate
-uvicorn api.main:app --reload --port 8000
-```
-
-**Frontend Interface**:
-```bash
-cd frontend
-npm run dev
-```
-
-## License
-
-This project is licensed under the MIT License.
+[**Read the Docs**](docs/UTILITY_SUMMARY.md) | [**View Implementation Guide**](docs/IMPLEMENTATION_GUIDE.md)
