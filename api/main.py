@@ -18,6 +18,10 @@ sys.path.insert(0, str(Path(__file__).parent.parent))
 
 from src import VisionAgent
 from config import Config
+from src.utils.logger import setup_logging
+
+# Setup logging
+setup_logging(Path("config/logging_config.yaml"))
 
 app = FastAPI(
     title="Vision Agent Analyst API",
@@ -42,6 +46,7 @@ class AnalysisResponse(BaseModel):
     analysis: str
     metadata: dict
     timestamp: str
+    prompt: Optional[str] = None
 
 
 class ConfigResponse(BaseModel):
@@ -162,7 +167,8 @@ async def analyze_file(
             filename=file.filename,
             analysis=analysis_text,
             metadata=metadata,
-            timestamp=datetime.now().isoformat()
+            timestamp=datetime.now().isoformat(),
+            prompt=prompt
         )
         
     except Exception as e:

@@ -2,6 +2,7 @@
 
 import base64
 import logging
+import json
 from pathlib import Path
 from typing import Union, Optional
 
@@ -90,16 +91,23 @@ class OllamaProvider(BaseLLMProvider):
         max_tokens: int = 2048,
         **kwargs
     ) -> ProviderResponse:
-        """Analyze image with Ollama."""
+        """Analyze image with Ollama using Chat API."""
         if not self.supports_vision:
             raise ValueError(f"Model {self.model} does not support vision")
 
         image_data = self._encode_image(image_path)
 
+        messages = [
+            {
+                "role": "user",
+                "content": prompt,
+                "images": [image_data]
+            }
+        ]
+
         payload = {
             "model": self.model,
-            "prompt": prompt,
-            "images": [image_data],
+            "messages": messages,
             "stream": False,
             "options": {
                 "temperature": temperature,
@@ -108,12 +116,31 @@ class OllamaProvider(BaseLLMProvider):
         }
 
         try:
-            response = requests.post(self.api_url, json=payload, timeout=120)
+            if logger.isEnabledFor(logging.DEBUG):
+                # Create detailed debug log with truncated images
+                debug_payload = payload.copy()
+                if "messages" in debug_payload:
+                    debug_msgs = []
+                    for m in debug_payload["messages"]:
+                        dm = m.copy()
+                        if "images" in dm:
+                            dm["images"] = [f"<base64: {len(img)} chars>" for img in dm["images"]]
+                        debug_msgs.append(dm)
+                    debug_payload["messages"] = debug_msgs
+                logger.debug(f"Ollama Chat Request: {json.dumps(debug_payload, default=str)}")
+
+            response = requests.post(f"{self.base_url}/api/chat", json=payload, timeout=120)
+            
+            if logger.isEnabledFor(logging.DEBUG):
+                logger.debug(f"Ollama Response Status: {response.status_code}")
+                # Log first 1000 chars of response
+                logger.debug(f"Ollama Response Body: {response.text[:1000]}")
+
             response.raise_for_status()
             result = response.json()
 
             return ProviderResponse(
-                text=result.get("response", ""),
+                text=result.get("message", {}).get("content", ""),
                 model=result.get("model", self.model),
                 usage={
                     "prompt_tokens": result.get("prompt_eval_count", 0),

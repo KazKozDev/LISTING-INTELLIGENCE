@@ -41,6 +41,7 @@ interface AnalysisResult {
   analysis: string
   metadata: Record<string, unknown>
   timestamp: string
+  prompt?: string
 }
 
 interface HistoryItem extends AnalysisResult {
@@ -241,8 +242,9 @@ function App() {
   const exportCSV = (data: AnalysisResult) => {
     // properly escape double quotes for CSV format by doubling them
     const safeAnalysis = (data.analysis || '').replace(/"/g, '""')
+    const safePrompt = (data.prompt || '').replace(/"/g, '""')
 
-    const csv = `Filename,Timestamp,Analysis,Model,Provider,Tokens\n"${data.filename}","${data.timestamp}","${safeAnalysis}","${data.metadata.model || ''}","${data.metadata.provider || ''}","${(data.metadata.usage as { total_tokens?: number })?.total_tokens || 0}"`
+    const csv = `Filename,Timestamp,Task,Analysis,Model,Provider,Tokens\n"${data.filename}","${data.timestamp}","${safePrompt}","${safeAnalysis}","${data.metadata.model || ''}","${data.metadata.provider || ''}","${(data.metadata.usage as { total_tokens?: number })?.total_tokens || 0}"`
     const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' })
     const url = URL.createObjectURL(blob)
     const a = document.createElement('a')
@@ -261,11 +263,12 @@ function App() {
   }
 
   const exportAllCSV = () => {
-    let csv = 'Filename,Timestamp,Analysis,Model,Provider,Tokens\n'
+    let csv = 'Filename,Timestamp,Task,Analysis,Model,Provider,Tokens\n'
     history.forEach(item => {
       // properly escape double quotes for CSV format by doubling them
       const safeAnalysis = (item.analysis || '').replace(/"/g, '""')
-      csv += `"${item.filename}","${item.timestamp}","${safeAnalysis}","${item.metadata.model || ''}","${item.metadata.provider || ''}","${(item.metadata.usage as { total_tokens?: number })?.total_tokens || 0}"\n`
+      const safePrompt = (item.prompt || '').replace(/"/g, '""')
+      csv += `"${item.filename}","${item.timestamp}","${safePrompt}","${safeAnalysis}","${item.metadata.model || ''}","${item.metadata.provider || ''}","${(item.metadata.usage as { total_tokens?: number })?.total_tokens || 0}"\n`
     })
     const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' })
     const url = URL.createObjectURL(blob)
@@ -277,12 +280,15 @@ function App() {
 
   const exportMarkdown = (data: AnalysisResult) => {
     const md = `# Analysis Report: ${data.filename}
+
+## Report Summary
 *Date:* ${new Date(data.timestamp).toLocaleString()}
+*Task:* ${data.prompt || 'N/A'}
 *Model:* ${data.metadata.model || 'N/A'}
 *Provider:* ${data.metadata.provider || 'N/A'}
 *Tokens:* ${(data.metadata.usage as { total_tokens?: number })?.total_tokens || 0}
 
-## Analysis Result
+## Detailed Analysis
 ${data.analysis}
 `
     const blob = new Blob([md], { type: 'text/markdown;charset=utf-8;' })
@@ -302,7 +308,10 @@ ${data.analysis}
     history.forEach((item, index) => {
       md += `---
 ## ${index + 1}. ${item.filename}
+
+### Report Summary
 *Date:* ${new Date(item.timestamp).toLocaleString()}
+*Task:* ${item.prompt || 'N/A'}
 *Model:* ${item.metadata.model || 'N/A'}
 
 ### Analysis

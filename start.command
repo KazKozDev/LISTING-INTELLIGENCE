@@ -1,51 +1,43 @@
 #!/bin/bash
-
-# Vision Agent Analyst - React + FastAPI Launcher
-# Double-click this file to start the app
-
 cd "$(dirname "$0")"
 
-echo "🔄 Stopping existing processes..."
-pkill -f "uvicorn api.main" 2>/dev/null
-pkill -f "npm run dev" 2>/dev/null
-lsof -ti:8000 | xargs kill -9 2>/dev/null
-lsof -ti:5173 | xargs kill -9 2>/dev/null
+echo "🚀 Starting Vision Agent Analyst (New Architecture)..."
 
-sleep 1
+# Check if venv exists
+if [ -d "venv" ]; then
+    source venv/bin/activate
+else
+    echo "⚠️  Virtual environment not found. Please run 'python -m venv venv' and install requirements."
+fi
 
-echo "📦 Installing Python dependencies..."
-pip install -q fastapi uvicorn python-multipart
+# Function to kill processes on exit
+cleanup() {
+    echo "🛑 Shutting down services..."
+    kill $BACKEND_PID 2>/dev/null
+    kill $FRONTEND_PID 2>/dev/null
+    exit
+}
 
-echo ""
-echo "🚀 Starting FastAPI backend on port 8000..."
-python -m uvicorn api.main:app --host 0.0.0.0 --port 8000 --reload &
+trap cleanup EXIT INT
+
+# Start Backend
+echo "Starting FastAPI Backend..."
+python -m uvicorn api.main:app --reload --port 8000 &
 BACKEND_PID=$!
 
-sleep 2
-
-echo "🎨 Starting React frontend on port 5173..."
-cd frontend && npm run dev &
+# Start Frontend
+echo "Starting React Frontend..."
+cd frontend
+npm run dev -- --host &
 FRONTEND_PID=$!
 
-cd ..
+# Wait for services to initialize
+echo "⏳ Waiting for services to start..."
+sleep 5
 
-sleep 3
-
-echo ""
-echo "🌐 Opening browser..."
+# Open Browser
+echo "🌐 Opening Browser..."
 open http://localhost:5173
 
-echo ""
-echo "╔════════════════════════════════════════════════╗"
-echo "║  ✅ Vision Agent Analyst is running!           ║"
-echo "╠════════════════════════════════════════════════╣"
-echo "║  🎨 Frontend: http://localhost:5173            ║"
-echo "║  🔌 Backend:  http://localhost:8000            ║"
-echo "║  📚 API Docs: http://localhost:8000/docs       ║"
-echo "╚════════════════════════════════════════════════╝"
-echo ""
-echo "Press Ctrl+C to stop both servers."
-echo ""
-
-# Wait for either process to exit
-wait $BACKEND_PID $FRONTEND_PID
+echo "✅ App is running! Press Ctrl+C to stop."
+wait
