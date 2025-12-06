@@ -1,332 +1,50 @@
 # Vision Agent Analyst
 
-Professional multimodal AI agent for analyzing charts, UI screenshots, and PDF documents. Built for business use with support for multiple LLM providers and a modern web interface.
+Professional multimodal AI agent for analyzing charts, UI screenshots, and PDF documents. Built with React and FastAPI.
 
-## Features
+## Prerequisites
 
-### Core Capabilities
+- **Required**: [Ollama](https://ollama.ai) with `qwen3-vl:8b` model (Recommended for local use)
+  ```bash
+  ollama pull qwen3-vl:8b
+  ```
+- **Optional**: API keys for OpenAI, Anthropic, Google Gemini (if using cloud providers).
 
-- **Chart Analysis**: Extract insights from data visualizations and graphs
-- **UI Screenshot Analysis**: Evaluate user interfaces and design elements
-- **PDF Document Processing**: Analyze multi-page documents with page-by-page analysis
-- **Batch Processing**: Analyze multiple files efficiently
-- **Industry-Specific Templates**: Pre-built prompts for E-commerce, Finance, Medical, Real Estate, Marketing, Logistics, and Education
-- **Multi-Format Export**: Export results as JSON, CSV, Markdown, and PDF
-- **Report Generation**: Create professional reports in multiple formats
-
-### LLM Provider Support
-
-- **Ollama**: Local deployment with models like qwen3-vl:8b
-- **OpenAI**: GPT-4 Vision and other vision-capable models
-- **Anthropic**: Claude 3 and Claude 3.5 models
-- **Google AI**: Gemini models
-- **Azure OpenAI**: Enterprise-grade deployment
-
-### Interfaces
-
-- **Web UI**: Professional Streamlit-based interface for business users
-- **CLI**: Command-line interface for automation and scripting
-- **Python API**: Direct integration into your applications
-
-## Quick Start
-
-### Prerequisites
-
-Choose one of the following LLM providers:
-
-#### Option 1: Ollama (Local, Free)
-```bash
-# Install Ollama
-# Visit: https://ollama.ai
-
-# Pull a vision model
-ollama pull qwen3-vl:8b
-```
-
-#### Option 2: Cloud Providers
-- OpenAI API key
-- Anthropic API key
-- Google AI API key
-- Azure OpenAI deployment
-
-### Installation
+## Installation
 
 ```bash
-# Clone the repository
+# Clone
 git clone https://github.com/KazKozDev/vision-agent-analyst.git
 cd vision-agent-analyst
 
-# Create virtual environment
+# Setup Backend (Python)
 python -m venv venv
-source venv/bin/activate  # On Windows: venv\Scripts\activate
-
-# Install dependencies
+source venv/bin/activate
 pip install -r requirements.txt
 
-# Configure environment
+# Setup Frontend (React)
+cd frontend
+npm install
+cd ..
+
+# Configuration
 cp .env.example .env
-# Edit .env with your provider settings
+# Edit .env to set LLM_PROVIDER (ollama/openai/anthropic) and API keys
 ```
 
-### Configuration
+## Running the App
 
-Edit `.env` to configure your LLM provider:
-
-```env
-# For Ollama (local)
-LLM_PROVIDER=ollama
-LLM_MODEL=qwen3-vl:8b
-LLM_BASE_URL=http://localhost:11434
-
-# For OpenAI
-LLM_PROVIDER=openai
-LLM_MODEL=gpt-4o
-LLM_API_KEY=your-api-key
-
-# For Anthropic
-LLM_PROVIDER=anthropic
-LLM_MODEL=claude-3-5-sonnet-20241022
-LLM_API_KEY=your-api-key
-
-# For Google AI
-LLM_PROVIDER=google
-LLM_MODEL=gemini-1.5-pro
-LLM_API_KEY=your-api-key
-
-# For Azure OpenAI
-LLM_PROVIDER=azure
-LLM_MODEL=your-deployment-name
-LLM_API_KEY=your-api-key
-LLM_BASE_URL=https://your-resource.openai.azure.com
-```
-
-## Usage
-
-### Web Interface (Recommended)
+The easiest way to start both backend and frontend:
 
 ```bash
-streamlit run app.py
+./start.command
 ```
 
-Access the professional web interface at `http://localhost:8501`
+Access the interface at: `http://localhost:5173`
 
-Features:
-- Provider selection and configuration
-- Real-time file upload and analysis
-- Batch processing
-- Analysis history
-- Report generation and download
+## Features
 
-### Command Line Interface
-
-```bash
-# Analyze a single image
-python main.py analyze chart.png --task "Analyze this chart"
-
-# Analyze a PDF
-python main.py analyze document.pdf
-
-# Batch analysis
-python main.py batch images/ --output report.md
-
-# Interactive mode
-python main.py interactive
-
-# Chart-specific analysis
-python main.py chart sales_data.png
-
-# UI screenshot analysis
-python main.py ui app_screenshot.png
-```
-
-### Python API
-
-```python
-from src import VisionAgent
-
-# Initialize with Ollama
-agent = VisionAgent(
-    provider="ollama",
-    model="qwen3-vl:8b"
-)
-
-# Or with OpenAI
-agent = VisionAgent(
-    provider="openai",
-    model="gpt-4o",
-    api_key="your-api-key"
-)
-
-# Analyze an image
-result = agent.analyze_image(
-    "chart.png",
-    task="What insights can you extract from this chart?"
-)
-
-print(result.text)
-print(f"Tokens used: {result.metadata['usage']['total_tokens']}")
-
-# Analyze a PDF
-results = agent.analyze_pdf(
-    "document.pdf",
-    task="Summarize key findings"
-)
-
-# Generate report
-agent.generate_report(
-    results=[result],
-    output_path="report.md",
-    title="Analysis Report"
-)
-
-# Generate beautiful PDF report
-pdf_path = agent.report_generator.generate_pdf(
-    results=[result],
-    title="Analysis Report",
-    output_path="report.pdf"
-)
-
-# Or get PDF as bytes (for web downloads)
-pdf_bytes = agent.report_generator.generate_pdf_bytes(
-    results=[result],
-    title="Analysis Report"
-)
-```
-
-### PDF Export Features
-
-The PDF export functionality creates professionally formatted reports with:
-
-- **Title Page**: Professional cover with report metadata
-- **Table of Contents**: Easy navigation through analyzed files
-- **Formatted Results**: Color-coded sections with proper typography
-- **Metadata Tables**: Structured information about each analysis
-- **Page Numbers**: Automatic pagination with headers and footers
-- **Custom Styling**: Professional color scheme and layout
-
-```python
-# Export analysis results to PDF
-from src import VisionAgent
-
-agent = VisionAgent()
-
-# Analyze files
-results = agent.analyze_pdf("document.pdf", task="Analyze content")
-
-# Generate beautiful PDF report
-pdf_path = agent.report_generator.generate_pdf(
-    results=results,
-    title="Document Analysis Report",
-    include_metadata=True
-)
-
-print(f"PDF report saved to: {pdf_path}")
-```
-
-## Project Structure
-
-```
-vision-agent-analyst/
-├── src/
-│   ├── providers/              # LLM provider implementations
-│   │   ├── base.py             # Base provider interface
-│   │   ├── ollama_provider.py  # Ollama integration
-│   │   ├── openai_provider.py  # OpenAI integration
-│   │   ├── anthropic_provider.py
-│   │   ├── google_provider.py
-│   │   ├── azure_provider.py
-│   │   └── factory.py          # Provider factory
-│   ├── config.py               # Configuration management
-│   ├── vision_agent.py         # Main agent logic
-│   ├── pdf_processor.py        # PDF handling
-│   ├── report_generator.py     # Report creation
-│   └── pdf_exporter.py         # Beautiful PDF export
-├── examples/                   # Usage examples
-│   ├── analyze_chart.py
-│   ├── analyze_pdf.py
-│   ├── batch_analysis.py
-│   └── pdf_export_example.py   # PDF export demo
-├── app.py                      # Streamlit web UI
-├── main.py                     # CLI interface
-├── requirements.txt            # Python dependencies
-├── Dockerfile                  # Docker configuration
-├── docker-compose.yml          # Docker Compose setup
-└── .env.example                # Environment template
-```
-
-## Docker Deployment
-
-### Using Docker Compose
-
-```bash
-# Start all services
-docker-compose up -d
-
-# Access web UI at http://localhost:8501
-```
-
-### Using Docker
-
-```bash
-# Build image
-docker build -t vision-agent-analyst .
-
-# Run container
-docker run -p 8501:8501 \
-  -e LLM_PROVIDER=openai \
-  -e LLM_API_KEY=your-key \
-  vision-agent-analyst
-```
-
-## Advanced Usage
-
-### Switching Providers at Runtime
-
-```python
-# Start with Ollama
-agent = VisionAgent(provider="ollama")
-
-# Analyze with OpenAI
-result = agent.analyze_image(
-    "image.png",
-    task="Analyze this",
-    provider="openai",
-    model="gpt-4o",
-    api_key="your-key"
-)
-```
-
-### Custom Analysis Prompts
-
-```python
-custom_prompt = """
-Analyze this business dashboard and provide:
-1. Key performance indicators visible
-2. Trend analysis
-3. Areas of concern
-4. Strategic recommendations
-"""
-
-result = agent.analyze_image("dashboard.png", task=custom_prompt)
-```
-
-### Batch Processing with Different Providers
-
-```python
-files = ["chart1.png", "chart2.png", "report.pdf"]
-
-results = agent.batch_analyze(
-    file_paths=files,
-    task="Extract key business metrics",
-    temperature=0.5,
-    max_tokens=1500
-)
-```
-
----
-
-If you like this project, please give it a star ⭐
-
-For questions, feedback, or support, reach out to:
-
-[Artem KK](https://www.linkedin.com/in/kazkozdev/) | MIT [LICENSE](LICENSE)
+- **Multimodal**: Analyze Images (Charts, UI) and PDFs (with page-by-page analysis).
+- **Multi-Provider**: Switch between local (Ollama) and cloud (GPT-4, Claude 3.5, Gemini).
+- **History**: Save and export analysis reports (Markdown/CSV).
+- **Templates**: Pre-built prompts for Finance, Medical, E-commerce, etc.
