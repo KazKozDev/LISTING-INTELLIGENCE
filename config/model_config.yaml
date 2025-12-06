@@ -1,0 +1,43 @@
+models:
+  default: ollama
+  
+  ollama:
+    model_name: qwen3-vl:8b
+    host: http://localhost:11434
+    max_tokens: 2048
+    temperature: 0.7
+    
+  openai:
+    model_name: gpt-4o
+    max_tokens: 2048
+    temperature: 0.7
+    
+  anthropic:
+    model_name: claude-3-5-sonnet-20241022
+    max_tokens: 2048
+    temperature: 0.7
+    
+  google:
+    model_name: gemini-1.5-pro
+    max_tokens: 2048
+    temperature: 0.7
+    
+  azure:
+    model_name: gpt-4o
+    api_version: 2024-02-01
+    max_tokens: 2048
+    temperature: 0.7
+
+rate_limits:
+  requests_per_minute: 60
+  tokens_per_minute: 100000
+
+cache:
+  enabled: true
+  ttl_seconds: 3600
+
+output:
+  dir: outputs
+  format: markdown
+  max_image_size: [1920, 1080]
+  pdf_dpi: 150

@@ -1,42 +1,51 @@
 # Changelog
 
-All notable changes to this project will be documented in this file.
-
-The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
-and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+All notable changes to Vision Agent Analyst.
 
 ## [Unreleased]
 
 ### Added
-- Multi-provider LLM support (Ollama, OpenAI, Anthropic, Google, Azure)
-- Professional business web UI with Streamlit
-- Provider abstraction layer for easy provider switching
-- Comprehensive configuration system with environment variables
-- Support for multiple vision-capable models
-- Batch processing capabilities
-- Analysis history tracking
-- Report generation in Markdown and JSON formats
-- CLI interface with multiple commands
-- Interactive analysis mode
-- Specialized analysis for charts and UI screenshots
-- PDF document analysis with page-by-page processing
+- **Industry-Specific Templates**: 7 pre-built analysis templates
+  - E-commerce Product Analysis
+  - Financial Chart Analysis
+  - Medical Image Review
+  - Real Estate Floor Plan Analysis
+  - Marketing Creative Analysis
+  - Logistics Document Analysis
+  - Educational Content Analysis
+- **Multi-Format Export**: Export results as JSON, CSV, and PDF
+  - Single result export (3 formats)
+  - Batch export for all analysis history
+  - Structured data extraction
+- **CleanMyMac-inspired UI**: Modern, premium design
+  - Gradient headers and buttons
+  - Rounded corners and glassmorphism effects
+  - Improved typography and spacing
+- **Documentation**: Comprehensive guides
+  - Industry Templates Guide
+  - Export Formats Guide
+  - Quick Start Guide
+  - New Features Summary
 
 ### Changed
-- Refactored codebase to use provider abstraction
-- Improved configuration management
-- Enhanced error handling and logging
+- Simplified UI layout (collapsed sidebar by default)
+- Improved file upload interface
+- Enhanced analysis result display
+- Updated README with new features
 
-## [0.1.0] - 2024-11-24
+### Technical
+- Added `src/utils/export.py` for export utilities
+- Extended `config/prompts.yaml` with industry templates
+- Updated Streamlit theme configuration
+- Improved project structure per GenAI standards
+
+## [0.1.0] - Initial Release
 
 ### Added
-- Initial release
-- Basic Ollama integration with qwen3-vl:8b
-- Image analysis capabilities
-- PDF processing
-- Report generation
+- Multi-provider LLM support (Ollama, OpenAI, Anthropic, Google, Azure)
+- Image and PDF analysis capabilities
+- Batch processing
+- Report generation (Markdown, PDF)
+- Web UI (Streamlit)
 - CLI interface
-- Example scripts
-- Comprehensive documentation
-
-[Unreleased]: https://github.com/KazKozDev/vision-agent-analyst/compare/v0.1.0...HEAD
-[0.1.0]: https://github.com/KazKozDev/vision-agent-analyst/releases/tag/v0.1.0
+- Docker support

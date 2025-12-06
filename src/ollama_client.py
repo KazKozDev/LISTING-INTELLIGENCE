@@ -8,7 +8,7 @@ from typing import Union, Optional, Dict, Any
 import requests
 from PIL import Image
 
-from .config import Config
+from config import Config
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)

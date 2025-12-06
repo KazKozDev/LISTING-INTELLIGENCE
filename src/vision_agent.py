@@ -6,9 +6,9 @@ from datetime import datetime
 from pathlib import Path
 from typing import List, Union, Optional, Dict, Any
 
-from .config import Config
-from .providers.factory import ProviderFactory
-from .providers.base import BaseLLMProvider
+from config import Config
+from src.llm.factory import ProviderFactory
+from src.llm.base import BaseLLMProvider
 from .pdf_processor import PDFProcessor
 from .report_generator import ReportGenerator
 

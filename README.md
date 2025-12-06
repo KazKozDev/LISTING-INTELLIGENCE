@@ -10,7 +10,9 @@ Professional multimodal AI agent for analyzing charts, UI screenshots, and PDF d
 - **UI Screenshot Analysis**: Evaluate user interfaces and design elements
 - **PDF Document Processing**: Analyze multi-page documents with page-by-page analysis
 - **Batch Processing**: Analyze multiple files efficiently
-- **Report Generation**: Create professional reports in Markdown and JSON formats
+- **Industry-Specific Templates**: Pre-built prompts for E-commerce, Finance, Medical, Real Estate, Marketing, Logistics, and Education
+- **Multi-Format Export**: Export results as JSON, CSV, Markdown, and PDF
+- **Report Generation**: Create professional reports in multiple formats
 
 ### LLM Provider Support
 
@@ -176,6 +178,49 @@ agent.generate_report(
     output_path="report.md",
     title="Analysis Report"
 )
+
+# Generate beautiful PDF report
+pdf_path = agent.report_generator.generate_pdf(
+    results=[result],
+    title="Analysis Report",
+    output_path="report.pdf"
+)
+
+# Or get PDF as bytes (for web downloads)
+pdf_bytes = agent.report_generator.generate_pdf_bytes(
+    results=[result],
+    title="Analysis Report"
+)
+```
+
+### PDF Export Features
+
+The PDF export functionality creates professionally formatted reports with:
+
+- **Title Page**: Professional cover with report metadata
+- **Table of Contents**: Easy navigation through analyzed files
+- **Formatted Results**: Color-coded sections with proper typography
+- **Metadata Tables**: Structured information about each analysis
+- **Page Numbers**: Automatic pagination with headers and footers
+- **Custom Styling**: Professional color scheme and layout
+
+```python
+# Export analysis results to PDF
+from src import VisionAgent
+
+agent = VisionAgent()
+
+# Analyze files
+results = agent.analyze_pdf("document.pdf", task="Analyze content")
+
+# Generate beautiful PDF report
+pdf_path = agent.report_generator.generate_pdf(
+    results=results,
+    title="Document Analysis Report",
+    include_metadata=True
+)
+
+print(f"PDF report saved to: {pdf_path}")
 ```
 
 ## Project Structure
@@ -194,8 +239,13 @@ vision-agent-analyst/
 │   ├── config.py               # Configuration management
 │   ├── vision_agent.py         # Main agent logic
 │   ├── pdf_processor.py        # PDF handling
-│   └── report_generator.py     # Report creation
+│   ├── report_generator.py     # Report creation
+│   └── pdf_exporter.py         # Beautiful PDF export
 ├── examples/                   # Usage examples
+│   ├── analyze_chart.py
+│   ├── analyze_pdf.py
+│   ├── batch_analysis.py
+│   └── pdf_export_example.py   # PDF export demo
 ├── app.py                      # Streamlit web UI
 ├── main.py                     # CLI interface
 ├── requirements.txt            # Python dependencies

@@ -5,7 +5,14 @@ from datetime import datetime
 from pathlib import Path
 from typing import List, Optional, Dict, Any
 
-from .config import Config
+from config import Config
+
+try:
+    from .pdf_exporter import PDFExporter
+    PDF_EXPORT_AVAILABLE = True
+except ImportError:
+    PDF_EXPORT_AVAILABLE = False
+    PDFExporter = None
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -242,3 +249,82 @@ class ReportGenerator:
 
         logger.info(f"JSON report generated: {output_path}")
         return output_path
+
+    def generate_pdf(
+        self,
+        results: List[Any],
+        output_path: Optional[Path] = None,
+        title: str = "Vision Agent Analysis Report",
+        include_metadata: bool = True,
+        **kwargs
+    ) -> Path:
+        """Generate PDF report.
+
+        Args:
+            results: List of AnalysisResult objects.
+            output_path: Optional output path.
+            title: Report title.
+            include_metadata: Whether to include metadata.
+            **kwargs: Additional parameters.
+
+        Returns:
+            Path to the generated PDF file.
+
+        Raises:
+            ImportError: If reportlab is not installed.
+        """
+        if not PDF_EXPORT_AVAILABLE:
+            raise ImportError(
+                "PDF export requires reportlab. "
+                "Install it with: pip install reportlab"
+            )
+
+        if output_path is None:
+            timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+            output_path = self.config.output_dir / f"report_{timestamp}.pdf"
+        else:
+            output_path = Path(output_path)
+
+        exporter = PDFExporter()
+        return exporter.export(
+            results=results,
+            output_path=output_path,
+            title=title,
+            include_metadata=include_metadata,
+            **kwargs
+        )
+
+    def generate_pdf_bytes(
+        self,
+        results: List[Any],
+        title: str = "Vision Agent Analysis Report",
+        include_metadata: bool = True,
+        **kwargs
+    ) -> bytes:
+        """Generate PDF report as bytes.
+
+        Args:
+            results: List of AnalysisResult objects.
+            title: Report title.
+            include_metadata: Whether to include metadata.
+            **kwargs: Additional parameters.
+
+        Returns:
+            PDF content as bytes.
+
+        Raises:
+            ImportError: If reportlab is not installed.
+        """
+        if not PDF_EXPORT_AVAILABLE:
+            raise ImportError(
+                "PDF export requires reportlab. "
+                "Install it with: pip install reportlab"
+            )
+
+        exporter = PDFExporter()
+        return exporter.export_to_bytes(
+            results=results,
+            title=title,
+            include_metadata=include_metadata,
+            **kwargs
+        )

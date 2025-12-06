@@ -10,74 +10,254 @@ from datetime import datetime
 import json
 
 from src import VisionAgent
-from src.providers.factory import ProviderFactory
-from src.config import Config
+from src.llm.factory import ProviderFactory
+from config import Config
 
 # Page configuration
 st.set_page_config(
     page_title="Vision Agent Analyst",
     page_icon="📊",
     layout="wide",
-    initial_sidebar_state="expanded",
+    initial_sidebar_state="collapsed",
 )
 
-# Custom CSS for professional business styling
+# CleanMyMac-inspired CSS
 st.markdown("""
 <style>
+    /* Typography - SF Pro style */
+    html, body, [class*="css"] {
+        font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI", sans-serif;
+        -webkit-font-smoothing: antialiased;
+    }
+    
+    /* Main background */
+    .stApp {
+        background: #f5f7fa;
+    }
+    
+    /* Hide Streamlit branding and toolbar */
+    #MainMenu {visibility: hidden !important;}
+    footer {visibility: hidden !important;}
+    header {visibility: hidden !important;}
+    
+    /* Remove ALL padding and margins */
+    .main .block-container {
+        padding-top: 0 !important;
+        padding-bottom: 1rem !important;
+        padding-left: 1rem !important;
+        padding-right: 1rem !important;
+        margin-top: 0 !important;
+        max-width: 100% !important;
+    }
+    
+    /* Remove padding from all parent containers */
+    section.main > div {
+        padding-top: 0 !important;
+        padding-bottom: 0 !important;
+    }
+    
+    section.main {
+        padding-top: 0 !important;
+    }
+    
+    div[data-testid="stAppViewContainer"] {
+        padding-top: 0 !important;
+    }
+    
+    div[data-testid="stHeader"] {
+        display: none !important;
+        height: 0 !important;
+    }
+    
+    /* Force remove ALL spacing */
+    .main > div:first-child {
+        padding-top: 0 !important;
+        margin-top: -3rem !important;
+    }
+    
+    .stApp > header {
+        display: none !important;
+    }
+    
+    div[data-testid="stToolbar"] {
+        display: none !important;
+    }
+    
+    div[data-testid="stDecoration"] {
+        display: none !important;
+    }
+    
+    /* Compact spacing between elements */
+    .stSelectbox, .stTextInput, .stTextArea {
+        margin-bottom: 0.25rem !important;
+    }
+    
+    div[data-testid="stVerticalBlock"] > div {
+        gap: 0.5rem !important;
+    }
+    
+    /* Compact file uploader */
+    [data-testid="stFileUploader"] {
+        background: white;
+        border-radius: 12px;
+        padding: 1rem;
+        border: 2px dashed #e2e8f0;
+        transition: all 0.2s ease;
+    }
+    
+    [data-testid="stFileUploader"]:hover {
+        border-color: #667eea;
+        background: #fafbff;
+    }
+    
+    [data-testid="stFileUploader"] section {
+        padding: 0.5rem !important;
+    }
+    
+    [data-testid="stFileUploader"] small {
+        display: none;
+    }
+    
+    /* Headers */
     .main-header {
         font-size: 2.5rem;
-        font-weight: 600;
-        color: #1f2937;
-        margin-bottom: 0.5rem;
+        font-weight: 700;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        margin-bottom: 0.25rem;
+        letter-spacing: -0.02em;
+        margin-top: -11rem;
     }
+    
     .sub-header {
-        font-size: 1.1rem;
-        color: #6b7280;
-        margin-bottom: 2rem;
+        font-size: 1.125rem;
+        color: #8b92a7;
+        font-weight: 400;
+        margin-bottom: 1.5rem;
+        margin-top: 0;
     }
-    .metric-card {
-        background-color: #f9fafb;
-        padding: 1.5rem;
-        border-radius: 0.5rem;
-        border: 1px solid #e5e7eb;
+
+    /* Cards */
+    div[data-testid="stMetricValue"] {
+        font-size: 2rem;
+        font-weight: 700;
+        color: #2d3748;
     }
-    .section-header {
-        font-size: 1.5rem;
-        font-weight: 600;
-        color: #374151;
-        margin: 2rem 0 1rem 0;
-        border-bottom: 2px solid #3b82f6;
-        padding-bottom: 0.5rem;
+
+    /* File uploader */
+    [data-testid="stFileUploader"] {
+        background: white;
+        border-radius: 16px;
+        padding: 2rem;
+        border: 2px dashed #e2e8f0;
+        transition: all 0.3s ease;
     }
-    .info-box {
-        background-color: #eff6ff;
-        border-left: 4px solid #3b82f6;
-        padding: 1rem;
-        margin: 1rem 0;
+    
+    [data-testid="stFileUploader"]:hover {
+        border-color: #667eea;
+        background: #fafbff;
     }
-    .success-box {
-        background-color: #f0fdf4;
-        border-left: 4px solid #10b981;
-        padding: 1rem;
-        margin: 1rem 0;
-    }
-    .warning-box {
-        background-color: #fffbeb;
-        border-left: 4px solid #f59e0b;
-        padding: 1rem;
-        margin: 1rem 0;
-    }
+
+    /* Buttons */
     .stButton>button {
-        width: 100%;
-        background-color: #3b82f6;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
         color: white;
+        font-weight: 600;
+        border-radius: 12px;
+        border: none;
+        padding: 0.75rem 2rem;
+        font-size: 1rem;
+        box-shadow: 0 4px 14px 0 rgba(102, 126, 234, 0.39);
+        transition: all 0.3s ease;
+    }
+    
+    .stButton>button:hover {
+        box-shadow: 0 6px 20px rgba(102, 126, 234, 0.5);
+        transform: translateY(-2px);
+    }
+    
+    .stButton>button:active {
+        transform: translateY(0);
+    }
+
+    /* Tabs */
+    .stTabs [data-baseweb="tab-list"] {
+        gap: 0.5rem;
+        background: white;
+        padding: 0.5rem;
+        border-radius: 12px;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+    }
+
+    .stTabs [data-baseweb="tab"] {
+        background: transparent;
+        border-radius: 8px;
+        padding: 0.75rem 1.5rem;
         font-weight: 500;
-        padding: 0.5rem 1rem;
-        border-radius: 0.375rem;
+        color: #718096;
         border: none;
     }
-    .stButton>button:hover {
-        background-color: #2563eb;
+
+    .stTabs [aria-selected="true"] {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white !important;
+    }
+
+    /* Info boxes */
+    .info-box { 
+        background: linear-gradient(135deg, #e0e7ff 0%, #f3e8ff 100%);
+        color: #5a67d8;
+        border-radius: 12px;
+        padding: 1rem 1.5rem;
+        border: none;
+        font-weight: 500;
+    }
+    
+    .success-box { 
+        background: linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%);
+        color: #047857;
+        border-radius: 12px;
+        padding: 1rem 1.5rem;
+        border: none;
+        font-weight: 500;
+    }
+    
+    .warning-box { 
+        background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+        color: #92400e;
+        border-radius: 12px;
+        padding: 1rem 1.5rem;
+        border: none;
+        font-weight: 500;
+    }
+
+    /* Metrics container */
+    [data-testid="stMetricValue"] {
+        background: white;
+        border-radius: 12px;
+        padding: 1rem;
+    }
+
+    /* Selectbox & inputs */
+    .stSelectbox, .stTextArea, .stTextInput {
+        border-radius: 10px;
+    }
+
+    /* Expander */
+    .streamlit-expanderHeader {
+        background: white;
+        border-radius: 12px;
+        font-weight: 600;
+        color: #2d3748;
+    }
+
+    /* Divider */
+    hr {
+        margin: 1.5rem 0;
+        border: none;
+        height: 1px;
+        background: #e2e8f0;
     }
 </style>
 """, unsafe_allow_html=True)
@@ -91,138 +271,42 @@ def init_session_state():
         st.session_state.agent = None
 
 
-def render_sidebar():
-    """Render sidebar with configuration options."""
-    with st.sidebar:
-        st.markdown("### Configuration")
-        st.markdown("---")
-
-        # Load current config from .env
-        from src.config import Config
-        default_config = Config()
-
-        st.markdown("**Current settings from .env file:**")
-        st.info(
-            f"Provider: {default_config.provider}\n\n"
-            f"Model: {default_config.model}\n\n"
-            f"Base URL: {default_config.base_url or 'Not set'}"
-        )
-
-        st.markdown("---")
-        st.markdown("**Override settings (optional):**")
-
-        # Allow override
-        use_custom = st.checkbox("Use custom settings", value=False)
-
-        if use_custom:
-            # Provider selection
-            provider_info = ProviderFactory.get_provider_info()
-            provider_options = list(provider_info.keys())
-
-            provider = st.selectbox(
-                "LLM Provider",
-                options=provider_options,
-                index=provider_options.index(default_config.provider) if default_config.provider in provider_options else 0,
-                format_func=lambda x: provider_info[x]["name"],
-                help="Select the AI provider for analysis"
-            )
-
-            # Model input
-            model = st.text_input(
-                "Model",
-                value=default_config.model,
-                help="Model name or deployment ID"
-            )
-
-            # API Key (if required)
-            api_key = None
-            if provider_info[provider]["requires_api_key"]:
-                api_key = st.text_input(
-                    "API Key",
-                    value=default_config.api_key or "",
-                    type="password",
-                    help="Your API key for authentication"
-                )
-
-            # Base URL (if required)
-            base_url = None
-            if provider_info[provider]["requires_base_url"]:
-                default_url = provider_info[provider].get("default_base_url", "")
-                base_url = st.text_input(
-                    "Base URL",
-                    value=default_config.base_url or default_url,
-                    help="API endpoint URL"
-                )
-        else:
-            # Use defaults from config
-            provider = default_config.provider
-            model = default_config.model
-            api_key = default_config.api_key
-            base_url = default_config.base_url
-
-        st.markdown("---")
-
-        # Model parameters
-        st.markdown("### Model Parameters")
-
-        temperature = st.slider(
-            "Temperature",
-            min_value=0.0,
-            max_value=2.0,
-            value=default_config.temperature,
-            step=0.1,
-            help="Controls randomness in generation"
-        )
-
-        max_tokens = st.number_input(
-            "Max Tokens",
-            min_value=100,
-            max_value=4096,
-            value=default_config.max_tokens,
-            step=100,
-            help="Maximum tokens to generate"
-        )
-
-        st.markdown("---")
-
-        # Connection test
-        if st.button("Test Connection", use_container_width=True):
-            with st.spinner("Testing connection..."):
-                try:
-                    # Create temporary config for testing
-                    import os
-                    os.environ["LLM_PROVIDER"] = provider
-                    os.environ["LLM_MODEL"] = model
-                    if api_key:
-                        os.environ["LLM_API_KEY"] = api_key
-                    if base_url:
-                        os.environ["LLM_BASE_URL"] = base_url
-
-                    test_agent = VisionAgent()
-                    if test_agent.provider.verify_connection():
-                        st.success("Connection successful")
-                    else:
-                        st.error("Connection failed")
-                except Exception as e:
-                    st.error(f"Error: {str(e)}")
-
-        return {
-            "provider": provider,
-            "model": model,
-            "api_key": api_key,
-            "base_url": base_url,
-            "temperature": temperature,
-            "max_tokens": max_tokens,
-        }
+def get_config():
+    """Get configuration from environment or session state."""
+    from config import Config
+    default_config = Config()
+    
+    return {
+        "provider": default_config.provider,
+        "model": default_config.model,
+        "api_key": default_config.api_key,
+        "base_url": default_config.base_url,
+        "temperature": default_config.temperature,
+        "max_tokens": default_config.max_tokens,
+    }
 
 
 def render_header():
-    """Render main header."""
-    st.markdown('<div class="main-header">Vision Agent Analyst</div>', unsafe_allow_html=True)
-    st.markdown(
-        '<div class="sub-header">Professional multimodal analysis for charts, UI screenshots, and documents</div>',
-        unsafe_allow_html=True
-    )
+    """Render compact header."""
+    from config import Config
+    default_config = Config()
+    
+    st.markdown(f'''
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
+            <div>
+                <span class="main-header">Vision Agent Analyst</span>
+                <span style="color: #8b92a7; margin-left: 1rem; font-size: 0.9rem;">Charts • UI • Documents</span>
+            </div>
+            <div style="text-align: right; font-size: 0.85rem; color: #64748b;">
+                <span style="background: #f1f5f9; padding: 0.25rem 0.75rem; border-radius: 20px; margin-left: 0.5rem;">
+                    🔌 {default_config.provider}
+                </span>
+                <span style="background: #f1f5f9; padding: 0.25rem 0.75rem; border-radius: 20px; margin-left: 0.5rem;">
+                    🤖 {default_config.model}
+                </span>
+            </div>
+        </div>
+    ''', unsafe_allow_html=True)
 
 
 def render_analysis_interface(config):
@@ -241,43 +325,73 @@ def render_analysis_interface(config):
 
 def render_single_file_analysis(config):
     """Render single file analysis interface."""
-    st.markdown('<div class="section-header">Single File Analysis</div>', unsafe_allow_html=True)
-
-    col1, col2 = st.columns([2, 1])
-
-    with col1:
+    
+    # Load templates from config FIRST
+    from config import Config
+    cfg = Config()
+    industry_templates = cfg.prompts_config.get("industry_templates", {})
+    industry_keys = list(industry_templates.keys())
+    industry_names = [industry_templates[k]["name"] for k in industry_keys]
+    
+    # Compact layout: uploader and options side by side
+    col_upload, col_options = st.columns([2, 1])
+    
+    with col_upload:
         uploaded_file = st.file_uploader(
-            "Upload File",
+            "📁 Drop file here",
             type=["png", "jpg", "jpeg", "pdf", "gif", "bmp", "webp"],
-            help="Supported formats: Images (PNG, JPG, GIF, BMP, WebP) and PDF documents"
+            help="Images or PDF",
+            label_visibility="collapsed"
         )
-
-    with col2:
-        analysis_type = st.selectbox(
-            "Analysis Type",
-            options=["General", "Chart", "UI Screenshot", "Custom"],
-            help="Select predefined analysis type or create custom prompt"
+    
+    with col_options:
+        analysis_category = st.selectbox(
+            "Category",
+            options=["Basic", "Industry"],
+            label_visibility="collapsed"
         )
-
-    # Custom prompt
-    if analysis_type == "Custom":
-        task = st.text_area(
-            "Custom Prompt",
-            height=150,
-            placeholder="Enter your custom analysis prompt..."
-        )
+        
+        if analysis_category == "Basic":
+            basic_options = ["General", "Chart", "UI", "Custom"]
+            analysis_type = st.selectbox(
+                "Type",
+                options=basic_options,
+                label_visibility="collapsed"
+            )
+            selected_name = None
+        else:
+            selected_name = st.selectbox(
+                "Industry",
+                options=industry_names,
+                label_visibility="collapsed"
+            )
+            analysis_type = "industry"
+    
+    # Get task based on selection
+    if analysis_category == "Basic":
+        if analysis_type == "Custom":
+            task = st.text_input("✏️ Custom prompt", placeholder="Enter your analysis prompt...")
+        else:
+            task_templates = {
+                "General": "Analyze this file and provide insights.",
+                "Chart": cfg.prompts_config.get("templates", {}).get("analyze_chart", "Analyze this chart."),
+                "UI": cfg.prompts_config.get("templates", {}).get("analyze_ui", "Analyze this UI."),
+            }
+            task = task_templates.get(analysis_type, "")
     else:
-        task_templates = {
-            "General": "Analyze this file and provide detailed insights.",
-            "Chart": "Analyze this chart and provide: 1) Chart type, 2) Key data points and trends, 3) Notable patterns, 4) Insights and conclusions, 5) Recommendations",
-            "UI Screenshot": "Analyze this UI and provide: 1) Main UI elements, 2) Layout assessment, 3) UX observations, 4) Accessibility considerations, 5) Improvement suggestions",
-        }
-        task = task_templates.get(analysis_type, "")
-        st.text_area("Analysis Prompt", value=task, height=100, disabled=True)
-
+        selected_key = industry_keys[industry_names.index(selected_name)]
+        task = industry_templates[selected_key]["prompt"]
+        # Show industry description
+        st.info(f"📋 {industry_templates[selected_key]['description']}")
+    
+    # Show current prompt (truncated)
+    if task and analysis_type != "Custom":
+        with st.expander("📝 View Prompt", expanded=False):
+            st.text(task[:500] + "..." if len(task) > 500 else task)
+    
     # Analyze button
     if uploaded_file and task:
-        if st.button("Analyze File", use_container_width=True, type="primary"):
+        if st.button("🚀 Analyze", type="primary", use_container_width=True):
             analyze_file(uploaded_file, task, config)
 
 
@@ -356,6 +470,61 @@ def analyze_file(uploaded_file, task, config):
                     # Analysis result
                     st.markdown("**Analysis:**")
                     st.markdown(result.text)
+                    
+                    # Export options
+                    st.markdown("**Export:**")
+                    col_export1, col_export2, col_export3 = st.columns(3)
+                    
+                    with col_export1:
+                        # JSON export
+                        import json
+                        json_data = {
+                            "filename": uploaded_file.name,
+                            "timestamp": datetime.now().isoformat(),
+                            "task": result.task,
+                            "analysis": result.text,
+                            "metadata": result.metadata
+                        }
+                        st.download_button(
+                            label="📄 JSON",
+                            data=json.dumps(json_data, indent=2, ensure_ascii=False),
+                            file_name=f"analysis_{uploaded_file.name}_{datetime.now().strftime('%Y%m%d_%H%M%S')}.json",
+                            mime="application/json",
+                            key=f"json_download_{idx}"
+                        )
+                    
+                    with col_export2:
+                        # CSV export
+                        import io
+                        csv_buffer = io.StringIO()
+                        csv_buffer.write("Filename,Timestamp,Task,Analysis,Model,Provider,Tokens\n")
+                        csv_buffer.write(f'"{uploaded_file.name}","{datetime.now().isoformat()}","{result.task}","{result.text.replace(chr(34), chr(39))}","{result.metadata.get("model", "")}","{result.metadata.get("provider", "")}","{result.metadata.get("usage", {}).get("total_tokens", 0)}"\n')
+                        
+                        st.download_button(
+                            label="📊 CSV",
+                            data=csv_buffer.getvalue(),
+                            file_name=f"analysis_{uploaded_file.name}_{datetime.now().strftime('%Y%m%d_%H%M%S')}.csv",
+                            mime="text/csv",
+                            key=f"csv_download_{idx}"
+                        )
+                    
+                    with col_export3:
+                        # PDF export
+                        try:
+                            pdf_bytes = agent.report_generator.generate_pdf_bytes(
+                                results=[result],
+                                title=f"Analysis: {uploaded_file.name}"
+                            )
+                            st.download_button(
+                                label="📕 PDF",
+                                data=pdf_bytes,
+                                file_name=f"analysis_{uploaded_file.name}_{datetime.now().strftime('%Y%m%d_%H%M%S')}.pdf",
+                                mime="application/pdf",
+                                key=f"pdf_download_{idx}"
+                            )
+                        except ImportError:
+                            st.info("PDF export requires reportlab")
+                    
                     st.markdown("---")
 
             finally:
@@ -372,9 +541,6 @@ def analyze_file(uploaded_file, task, config):
 
 def render_batch_analysis(config):
     """Render batch analysis interface."""
-    st.markdown('<div class="section-header">Batch Analysis</div>', unsafe_allow_html=True)
-
-    st.markdown('<div class="info-box">Upload multiple files for batch processing. All files will be analyzed with the same prompt.</div>', unsafe_allow_html=True)
 
     uploaded_files = st.file_uploader(
         "Upload Multiple Files",
@@ -386,11 +552,11 @@ def render_batch_analysis(config):
     task = st.text_area(
         "Analysis Prompt",
         value="Analyze this file and provide key insights.",
-        height=100
+        height=80
     )
 
     if uploaded_files and task:
-        if st.button("Analyze Batch", use_container_width=True, type="primary"):
+        if st.button("Analyze Batch", type="primary"):
             analyze_batch(uploaded_files, task, config)
 
 
@@ -493,21 +659,44 @@ def generate_report():
 
         # Create agent for report generation
         agent = VisionAgent()
-        report_path = agent.generate_report(
-            results=results,
-            title="Vision Agent Analysis Report"
-        )
+        
+        col1, col2 = st.columns(2)
+        
+        with col1:
+            # Markdown report
+            report_path = agent.generate_report(
+                results=results,
+                title="Vision Agent Analysis Report"
+            )
 
-        with open(report_path, "r") as f:
-            report_content = f.read()
+            with open(report_path, "r") as f:
+                report_content = f.read()
 
-        st.download_button(
-            label="Download Report (Markdown)",
-            data=report_content,
-            file_name=f"report_{datetime.now().strftime('%Y%m%d_%H%M%S')}.md",
-            mime="text/markdown",
-            use_container_width=True
-        )
+            st.download_button(
+                label="📄 Download Report (Markdown)",
+                data=report_content,
+                file_name=f"report_{datetime.now().strftime('%Y%m%d_%H%M%S')}.md",
+                mime="text/markdown",
+                use_container_width=True
+            )
+        
+        with col2:
+            # PDF report
+            try:
+                pdf_bytes = agent.report_generator.generate_pdf_bytes(
+                    results=results,
+                    title="Vision Agent Analysis Report"
+                )
+
+                st.download_button(
+                    label="📕 Download Report (PDF)",
+                    data=pdf_bytes,
+                    file_name=f"report_{datetime.now().strftime('%Y%m%d_%H%M%S')}.pdf",
+                    mime="application/pdf",
+                    use_container_width=True
+                )
+            except ImportError:
+                st.info("PDF export requires reportlab. Install it with: pip install reportlab")
 
     except Exception as e:
         st.error(f"Error generating report: {str(e)}")
@@ -515,7 +704,6 @@ def generate_report():
 
 def render_analysis_history():
     """Render analysis history."""
-    st.markdown('<div class="section-header">Analysis History</div>', unsafe_allow_html=True)
 
     if not st.session_state.analysis_results:
         st.info("No analysis history yet. Start by analyzing some files.")
@@ -534,6 +722,59 @@ def render_analysis_history():
     with col3:
         unique_files = len(set(item["filename"] for item in st.session_state.analysis_results))
         st.metric("Unique Files", unique_files)
+
+    st.markdown("---")
+    
+    # Export all results
+    st.markdown("**Export All Results:**")
+    col_exp1, col_exp2, col_exp3 = st.columns(3)
+    
+    with col_exp1:
+        # JSON export all
+        import json
+        all_data = []
+        for item in st.session_state.analysis_results:
+            result = item["result"]
+            all_data.append({
+                "filename": item["filename"],
+                "timestamp": item["timestamp"].isoformat(),
+                "task": result.task,
+                "analysis": result.text,
+                "metadata": result.metadata
+            })
+        
+        st.download_button(
+            label="📄 Export All (JSON)",
+            data=json.dumps(all_data, indent=2, ensure_ascii=False),
+            file_name=f"all_analyses_{datetime.now().strftime('%Y%m%d_%H%M%S')}.json",
+            mime="application/json",
+            key="export_all_json"
+        )
+    
+    with col_exp2:
+        # CSV export all
+        import io
+        csv_buffer = io.StringIO()
+        csv_buffer.write("Filename,Timestamp,Task,Analysis,Model,Provider,Tokens\n")
+        for item in st.session_state.analysis_results:
+            result = item["result"]
+            csv_buffer.write(
+                f'"{item["filename"]}","{item["timestamp"].isoformat()}","{result.task}","{result.text.replace(chr(34), chr(39))}","{result.metadata.get("model", "")}","{result.metadata.get("provider", "")}","{result.metadata.get("usage", {}).get("total_tokens", 0)}"\n'
+            )
+        
+        st.download_button(
+            label="📊 Export All (CSV)",
+            data=csv_buffer.getvalue(),
+            file_name=f"all_analyses_{datetime.now().strftime('%Y%m%d_%H%M%S')}.csv",
+            mime="text/csv",
+            key="export_all_csv"
+        )
+    
+    with col_exp3:
+        # Clear history
+        if st.button("🗑️ Clear History"):
+            st.session_state.analysis_results = []
+            st.rerun()
 
     st.markdown("---")
 
@@ -562,7 +803,7 @@ def main():
 
     # Render UI
     render_header()
-    config = render_sidebar()
+    config = get_config()
     render_analysis_interface(config)
 
 

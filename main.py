@@ -8,7 +8,7 @@ from pathlib import Path
 from typing import List
 
 from src import VisionAgent
-from src.config import Config
+from config import Config
 
 logging.basicConfig(
     level=logging.INFO,

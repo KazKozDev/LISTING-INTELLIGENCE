@@ -6,7 +6,7 @@ from typing import List, Tuple, Optional
 
 import fitz  # PyMuPDF
 
-from .config import Config
+from config import Config
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)

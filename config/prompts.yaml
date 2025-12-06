@@ -1,0 +1,631 @@
+system_prompts:
+  default: |
+    You are a helpful assistant.
+    
+  analyst: |
+    You are a professional Vision Agent Analyst.
+    Provide detailed, structured insights from images and documents.
+
+templates:
+  analyze_image: |
+    Analyze this image and provide detailed insights.
+    
+  analyze_chart: |
+    Analyze this chart/visualization and provide:
+    1. Chart type and what it represents
+    2. Key data points and trends
+    3. Notable patterns or anomalies
+    4. Insights and conclusions
+    5. Any recommendations based on the data
+    
+  analyze_ui: |
+    Analyze this UI screenshot and provide:
+    1. Main UI elements and their purpose
+    2. Layout and design assessment
+    3. User experience observations
+    4. Accessibility considerations
+    5. Suggestions for improvement
+
+# Industry-specific templates
+industry_templates:
+  # Charts
+  chart_sales:
+    name: "Sales Performance"
+    description: "Analyze sales revenue, growth, and regional performance"
+    prompt: |
+      **Role**: Senior Data Analyst
+      **Task**: Analyze the provided sales chart visualization.
+      
+      **Analysis Steps**:
+      1. **Identify Metrics**: List primary KPIs (Revenue, Profit, Units) and time periods showing.
+      2. **Trend Analysis**: Determine the overall growth trajectory (CAGR if interpretable) and seasonality.
+      3. **Breakdown**: Compare performance across visible segments (Regions, Products, Channels).
+      4. **Anomalies**: Highlight any significant outliers, dips, or spikes.
+      
+      **Output Format**:
+      - **Executive Summary**: 1-2 sentences.
+      - **Key Metrics**: Bullet points with values.
+      - **Regional/Segment Performance**: Comparison table.
+      - **Recommendations**: 3 actionable strategies to improve performance.
+  chart_market:
+    name: "Market Trends"
+    description: "Identify market shifts, consumer behavior, and forecasting"
+    prompt: |
+      **Role**: Market Strategy Consultant
+      **Task**: Interpret the market trend chart to forecast future movements.
+      
+      **Analysis Steps**:
+      1. **Macro Trends**: Identify the dominant long-term direction.
+      2. ** inflection Points**: Pinpoint critical shifts in consumer behavior or market volume.
+      3. **Forecasting**: Based on the visual trajectory, predict the likely next phase (Growth, Stagnation, Decline).
+      
+      **Output Format**:
+      - **Trend Overview**: Description of the market phase.
+      - **Drivers**: What appears to be driving the trend?
+      - **Forecast**: Prediction for the next time period.
+      - **Strategic Pivot**: Suggest one major strategic adjustment.
+  chart_competition:
+    name: "Competitive Comparison"
+    description: "Benchmark against competitors on key metrics"
+    prompt: |
+      **Role**: Competitive Intelligence Analyst
+      **Task**: Benchmark the subject company against competitors shown in the chart.
+      
+      **Analysis Steps**:
+      1. **Rankings**: Establish who is the market leader and laggard.
+      2. **Gap Analysis**: Calculate the visual delta between the subject and the leader.
+      3. **Metric Comparison**: Compare on specific axes (e.g., Price vs. Quality, Share vs. Growth).
+      
+      **Output Format**:
+      - **Leaderboard**: Ranked list.
+      - **Gap Analysis**: Detailed comparison.
+      - **Differentiation Opportunity**: Where can the subject win?
+  chart_kpi:
+    name: "KPI Dashboard"
+    description: "Executive summary of key performance indicators"
+    prompt: |
+      **Role**: Chief of Staff / Executive Analyst
+      **Task**: Synthesize the "Health of the Business" from the dashboard screenshot.
+      
+      **Analysis Steps**:
+      1. **Status Check**: Categorize metrics into Green (On Track), Yellow (Warining), Red (Critical).
+      2. **Correlation**: Identify if a drop in one metric (e.g., Traffic) correlates with another (e.g., Sales).
+      3. **Priority**: Determine the single most important metric to address immediately.
+      
+      **Output Format**:
+      - **Health Score**: Overall rating (1-10).
+      - **Critical Alerts**: list of "Red" metrics.
+      - **Synthesis**: Brief paragraph for the CEO.
+  chart_funnel:
+    name: "Funnel Analysis"
+    description: "Analyze conversion rates and drop-off points"
+    prompt: |
+      **Role**: CRO (Conversion Rate Optimization) Specialist
+      **Task**: Analyze the conversion funnel to identify leaks.
+      
+      **Analysis Steps**:
+      1. **Stage Analysis**: Calculate drop-off rates between each stage.
+      2. **Bottleneck ID**: Identify the stage with the highest percentage loss.
+      3. **Hypothesis**: Formulate a reason for the drop-off (e.g., "Checkout friction", "Pricing shock").
+      
+      **Output Format**:
+      - **Funnel Table**: Stage | Volume | Conversion Rate.
+      - **Primary Bottleneck**: The specific leakage point.
+      - **Optimization Plan**: 3 hypothesis-driven experiments to run.
+  chart_swot:
+    name: "SWOT Visualization"
+    description: "Strategic analysis of Strengths, Weaknesses, Opportunities, Threats"
+    prompt: |
+      **Role**: Business Strategist
+      **Task**: Synthesize the strategic position from the SWOT visual.
+      
+      **Analysis Steps**:
+      1. **Internal Factors**: Evaluate the balance between Strengths and Weaknesses.
+      2. **External Factors**: Assess the urgency of Opportunities vs. Threats.
+      3. **Cross-Strategy**: Suggest "Max-Max" (Use Strength to Seize Opportunity) or "Min-Min" strategies.
+      
+      **Output Format**:
+      - **Strategic Position**: Summary (e.g., "Defensive", "Aggressive Growth").
+      - **Top 3 Priorities**: Actionable initiatives.
+      - **Risk Mitigation**: Plan for the biggest Threat.
+
+  # UI Review
+  ui_landing:
+    name: "Landing Page Conversion"
+    description: "Audit landing page for CRO and messaging clarity"
+    prompt: |
+      **Role**: Landing Page Optimization Expert
+      **Task**: Audit the landing page design for maximum conversion.
+      
+      **Focus Areas**:
+      1. **Above the Fold**: Is the Value Proposition clear within 5 seconds?
+      2. **CTA**: Evaluation of button color, placement, and copy urgency.
+      3. **Trust**: Presence of social proof (logos, testimonials).
+      
+      **Output**:
+      - **First Impression Score**: 1-10.
+      - **Friction Points**: List of confusing elements.
+      - **CRO Checklist**: 3 specific changes to increase signups/sales.
+  ui_mobile:
+    name: "Mobile App UX"
+    description: "Evaluate mobile interface patterns and touch targets"
+    prompt: |
+      **Role**: Senior Mobile UX Designer
+      **Task**: Review mobile app screen for usability and guidelines compliance.
+      
+      **Checklist**:
+      - **Thumb Zone**: Are interactable elements within easy reach?
+      - **Hit Targets**: Are buttons at least 44x44px visual equivalents?
+      - **Readability**: Is text legible on small screens?
+      
+      **Output**:
+      - **Usability Audit**: Pass/Fail for key heuristic.
+      - **UX Violations**: Specific interface errors.
+      - **Refinement**: Suggestions to improve the mobile experience.
+  ui_dashboard:
+    name: "Dashboard Usability"
+    description: "Assess information density and data readability"
+    prompt: |
+      **Role**: Data Visualization Architect
+      **Task**: critique the dashboard information architecture.
+      
+      **Focus Areas**:
+      - **Cognitive Load**: Is the dashboard too cluttered?
+      - **Hierarchy**: Do the most important numbers stand out?
+      - **Chart Choice**: Are the right visualizations used for the data types?
+      
+      **Output**:
+      - **Clutter Score**: High/Medium/Low.
+      - **IA Critique**: Analysis of groupings and layout.
+      - **Redesign**: 3 bullet points on how to clean up the interface.
+  ui_checkout:
+    name: "E-commerce Checkout"
+    description: "Identify friction points in payment flows"
+    prompt: |
+      **Role**: E-commerce UX Researcher
+      **Task**: Analyze the checkout flow for abandonment risks.
+      
+      **Focus Areas**:
+      - **Form Length**: Are there unnecessary fields?
+      - **Trust Signals**: Are security badges/guarantees visible?
+      - **Price Transparency**: Are hidden costs avoided?
+      
+      **Output**:
+      - **Friction Assessment**: Identification of blockers.
+      - **Trust Analysis**: How secure does it feel?
+      - **Conversion Boosters**: Suggestions (e.g., "Add Guest Checkout").
+  ui_saas:
+    name: "SaaS Interface"
+    description: "Review workflow efficiency and feature discoverability"
+    prompt: |
+      **Role**: Product Designer (SaaS)
+      **Task**: Evaluate the SaaS interface for workflow efficiency.
+      
+      **Focus Areas**:
+      - **Onboarding**: Are empty states or guides visible?
+      - **Discoverability**: Can a user find the main action easily?
+      - **Layout**: Is the sidebar/navigation logical?
+      
+      **Output**:
+      - **Efficiency Review**: Assessment of click-depth.
+      - **Onboarding**: Status check.
+      - **Feature Highlight**: Suggestions to improve feature adoption.
+  ui_accessibility:
+    name: "Accessibility Audit"
+    description: "Check contrast, hierarchy, and WCAG compliance"
+    prompt: |
+      **Role**: Accessibility (a11y) Specialist
+      **Task**: Perform a visual audit against WCAG 2.1 principles.
+      
+      **Checklist**:
+      1. **Contrast**: Identify low-contrast text/backgrounds.
+      2. **Hierarchy**: Is the heading structure visually logical?
+      3. **Color Reliance**: is information conveyed by color alone?
+      
+      **Output**:
+      - **Violation Report**: List of likely accessibility failures.
+      - **Contrast Check**: Areas needing darker text.
+      - **Remediation**: Steps to fix the issues.
+
+  # Documents
+  doc_contract:
+    name: "Legal Contract"
+    description: "Review clauses, obligations, and risk factors"
+    prompt: |
+      **Role**: Legal Contract Reader (AI Assistant)
+      **Disclaimer**: NOT legal advice. For review assistance only.
+      **Task**: Extract and summarize key legal terms.
+      
+      **Extraction List**:
+      1. **Parties**: Who is involved?
+      2. **Obligations**: strict deliverables/payments.
+      3. **Term & Termination**: Dates and exit clauses.
+      4. **Liability**: Indemnification and liability caps.
+      
+      **Output**:
+      - Structured Summary (Markdown).
+      - **Risk Flag**: Highlight unusual or aggressive clauses.
+  doc_technical:
+    name: "Technical Spec"
+    description: "Extract requirements and technical constraints"
+    prompt: |
+      **Role**: Technical Product Manager
+      **Task**: Convert this spec document into a requirements list.
+      
+      **Output Structure**:
+      - **System Architecture**: High-level overview.
+      - **Functional Requirements**: Numbered list (Must-Haves).
+      - **Non-Functional Requirements**: Scalability, Security, Performance.
+      - **API/Data**: Endpoints or models defined.
+  doc_policy:
+    name: "Company Policy"
+    description: "Summarize compliance rules and employee guidelines"
+    prompt: |
+      **Role**: HR Compliance Officer
+      **Task**: Summarize the key rules from this policy document.
+      
+      **Output Structure**:
+      - **Policy Scope**: Who does this apply to?
+      - **Key Rules**: Bulleted list of "Do's" and "Don'ts".
+      - **Penalties**: Consequences of non-compliance.
+      - **Effective Date**: timeline of enforcement.
+  doc_resume:
+    name: "Resume Screening"
+    description: "Evaluate candidate skills against job requirements"
+    prompt: |
+      **Role**: Senior Technical Recruiter
+      **Task**: Screen the resume and parse key data.
+      
+      **Output Format (JSON-like)**:
+      - **Candidate Name**: String
+      - **Years of Exp**: Number (Estimate)
+      - **Top Skills**: List[String]
+      - **Hard/Soft Skills**: Categorization.
+      - **Red Flags**: Gaps, short tenures, or typos.
+      - **Summary**: Professional profile summary.
+
+  doc_research:
+    name: "Research Paper"
+    description: "Summarize methodology, results, and conclusions"
+    prompt: |
+      **Role**: Academic Researcher
+      **Task**: Synthesize the research paper page.
+      
+      **Analysis Steps**:
+      1. **Problem**: What question are the authors answering?
+      2. **Methodology**: How did they study it? (Sample size, technique).
+      3. **Results**: What is the core finding?
+      
+      **Output**:
+      - **Abstract Summary**: Plain English explanation.
+      - **Key Metrics**: Statistical significance/results.
+      - **Validity Check**: Any limitations noted?
+  doc_minutes:
+    name: "Meeting Minutes"
+    description: "Extract action items, decisions, and owners"
+    prompt: |
+      **Role**: Project Manager Assistant
+      **Task**: Structure unstructured meeting notes.
+      
+      **Output Format**:
+      ### Decisions Recorded
+      - [Decision 1]
+      
+      ### Action Items
+      | Task | Owner | Due Date |
+      |------|-------|----------|
+      | ...  | ...   | ...      |
+      
+      ### Open Questions
+      - List of unresolved topics.
+
+  # Ecommerce
+  ecommerce_listing:
+    name: "Product Listing"
+    description: "Optimize title, images, and description for conversion"
+    prompt: |
+      **Role**: E-commerce SEO Expert
+      **Task**: Audit the product listing for search visibility and conversion.
+      
+      **Analysis**:
+      1. **SEO**: Are keywords present in the Title/Bullets?
+      2. **CRO**: Is the main image high-quality on white background?
+      3. **Copy**: Are benefits sold, not just features?
+      
+      **Output**:
+      - **Listing Grade**: A-F.
+      - **Missing Keywords**: Suggestions.
+      - **Optimization Plan**: 3 steps to improve rank/sales.
+  ecommerce_price:
+    name: "Competitor Pricing"
+    description: "Compare pricing strategies and value propositions"
+    prompt: |
+      **Role**: Pricing Strategist
+      **Task**: Deconstruct the pricing strategy shown.
+      
+      **Focus**:
+      - **Positioning**: Discount, Premium, or Penetration pricing?
+      - **Architecture**: Good/Better/Best tiering?
+      - **Psychology**: Anchoring, decoy pricing, or charm pricing (.99).
+      
+      **Output**:
+      - **Strategy ID**: Name the strategy.
+      - **Value Comparison**: Price vs. Feature set.
+      - **Recommendation**: How should we price against this?
+  ecommerce_sentiment:
+    name: "Review Analysis"
+    description: "Analyze customer sentiment and recurring issues"
+    prompt: |
+      **Role**: Customer Experience (CX) Lead
+      **Task**: Analyze the visual text of customer reviews.
+      
+      **Analysis**:
+      1. **Themes**: Group feedback into Quality, Shipping, Service, Price.
+      2. **Sentiment**: Overall Positive/Neutral/Negative ratio.
+      
+      **Output**:
+      - **Sentiment Score**: % Positive.
+      - **Top Praise**: What people love.
+      - **Top Complaints**: What needs fixing immediately.
+      - **Action**: One operational change to reduce tickets.
+  ecommerce_packaging:
+    name: "Packaging Design"
+    description: "Evaluate shelf appeal and unboxing experience"
+    prompt: |
+      **Role**: Brand Packaging Designer
+      **Task**: Critique the packaging design.
+      
+      **Criteria**:
+      1. **Shelf Impact**: Does it stand out?
+      2. **Hierarchy**: Is the product name/benefit clear?
+      3. **Sustainability**: Any visible eco-claims?
+      
+      **Output**:
+      - **Design Critique**: Strengths/Weaknesses.
+      - **Unboxing feel**: Premium vs. Basic.
+      - **Improvement**: Tweaks for better perceived value.
+  ecommerce_search:
+    name: "Visual Search SEO"
+    description: "Optimize images for visual search visibility"
+    prompt: |
+      **Role**: Visual Search Optimization Specialist
+      **Task**: Ensure the image is optimized for Google/Pinterest Lens.
+      
+      **Checklist**:
+      - **Object Clarity**: Is the subject isolated?
+      - **Contrast**: Is edge detection easy?
+      - **Context**: Is the product shown in use?
+      
+      **Output**:
+      - **Machine Vision Confidence**: High/Low estimate.
+      - **Labeling**: Suggested Alt-Text and Filename.
+      - **Optimization**: How to make it more "readable" by AI.
+  ecommerce_inventory:
+    name: "Inventory Check"
+    description: "Visually estimate stock levels and shelf arrangement"
+    prompt: |
+      **Role**: Retail Operations Manager
+      **Task**: Audit the shelf or stockroom image.
+      
+      **Tasks**:
+      1. **Count**: Estimate Facings/Stock depth.
+      2. **Planogram**: Is the arrangement tidy and compliant?
+      3. **Out-of-Stocks**: Identify holes on the shelf.
+      
+      **Output**:
+      - **Stock Estimate**: Numbers.
+      - **Compliance**: Yes/No.
+      - **Restock Alert**: List of items needing replenishment.
+
+  # Finance
+  finance_candles:
+    name: "Candlestick Pattern"
+    description: "Identify bullish/bearish patterns in trading charts"
+    prompt: |
+      **Role**: Technical Market Technician (CMT)
+      **Task**: Identify technical patterns in the candlestick chart.
+      
+      **Analysis**:
+      1. **Pattern ID**: Doji, Hammer, Engulfing, Head & Shoulders.
+      2. **Support/Resistance**: Key price levels.
+      3. **Indicators**: RSI/MACD divergence (if visible).
+      
+      **Output**:
+      - **Pattern Name**: Defined pattern.
+      - **Signal**: Bullish/Bearish/Neutral.
+      - **Probability**: Confidence in the setup.
+      - **Trade Setup**: Potential Entry/Stop/Target.
+  finance_invoice:
+    name: "Financial Invoice"
+    description: "Extract line items, tax, and vendor details"
+    prompt: |
+      **Role**: AP (Accounts Payable) Automation Bot
+      **Task**: Perform structured OCR extraction from this invoice.
+      
+      **Output Format**:
+      Please output the data as a clean Markdown Table:
+      | Description | Qty | Unit Price | Total |
+      |-------------|-----|------------|-------|
+      | ...         | ... | ...        | ...   |
+      
+      **Header Fields**:
+      - **Vendor**:
+      - **Invoice #**:
+      - **Date**:
+      - **Total Amount**:
+      - **Tax/VAT**:
+  finance_balance:
+    name: "Balance Sheet"
+    description: "Assess assets, liabilities, and liquidity ratios"
+    prompt: |
+      **Role**: Financial Analyst (CFA)
+      **Task**: Assess company solvency from the Balance Sheet.
+      
+      **Calculations**:
+      1. **Current Ratio**: Current Assets / Current Liabilities.
+      2. **Debt/Equity**: Total Liabilities / Shareholders Equity.
+      
+      **Output**:
+      - **Liquidity Check**: Is the company solvent?
+      - **Leverage Check**: Is debt too high?
+      - **Summary**: Financial position strength (Strong/Stable/Weak).
+  finance_cashflow:
+    name: "Cash Flow"
+    description: "Analyze operating, investing, and financing flows"
+    prompt: |
+      **Role**: FP&A Manager
+      **Task**: Analyze the Cash Flow Statement.
+      
+      **Focus**:
+      - **OCF**: Is Operating Cash Flow positive?
+      - **Burn Rate**: If negative, how fast are they spending?
+      - **Capex**: Are they investing in growth?
+      
+      **Output**:
+      - **Cash Position**: Analysis of inflows vs outflows.
+      - **Sustainability**: Can they sustain this operations rate?
+      - **Red Flags**: Unusual financing or investing activities.
+  finance_crypto:
+    name: "Crypto Analysis"
+    description: "Tokenomics and on-chain metrics visualization"
+    prompt: |
+      **Role**: Crypto Research Analyst
+      **Task**: Analyze the provided crypto dashboard/chart.
+      
+      **Analysis**:
+      1. **Price Action**: Technical trend.
+      2. **On-Chain**: Volume, Active Addresses, TVL (if shown).
+      3. **Market Sentiment**: Greed/Fear indicators.
+      
+      **Output**:
+      - **Asset Outlook**: Bullish/Bearish.
+      - **Key Support**: Price floor.
+      - **Tokenomics Note**: Inflation/Unlock risks if visible.
+  finance_portfolio:
+    name: "Portfolio Allocation"
+    description: "Review asset diversification and risk exposure"
+    prompt: |
+      **Role**: Wealth Manager / Portfolio Manager
+      **Task**: Review portfolio diversification.
+      
+      **Analysis**:
+      1. **Asset Mix**: Stocks vs. Bonds vs. Alts.
+      2. **Concentration**: Is too much weight in one sector/stock?
+      3. **Risk Profile**: Conservative, Moderate, or Aggressive?
+      
+      **Output**:
+      - **Allocation Summary**: Breakdown.
+      - **Risk Assessment**: High/Low.
+      - **Rebalancing**: Suggestions to optimize the Sharpe ratio (reduce risk/increase return).
+  finance_tax:
+    name: "Tax Document"
+    description: "OCR for W-2, 1099, and receipts"
+    prompt: |
+      **Role**: Tax Preparation Assistant
+      **Task**: Extract data for tax filing.
+      
+      **Extraction**:
+      - **Form Details**: Form Number, Year.
+      - **Payer/Employer**: EIN, Name, Address.
+      - **Amounts**: Wages, Withholding, Tips, etc.
+      
+      **Output**:
+      - **JSON Format**: Key-Value pairs for structured ingestion.
+      - **Verification**: Check if math sums up correctly.
+
+  # Medical
+  medical_mri:
+    name: "MRI Scan"
+    description: "Brain/spine structure analysis (Education Only)"
+    prompt: |
+      **Role**: Radiology Resident (Educational)
+      **Task**: Describe the MRI anatomy.
+      
+      **Analysis**:
+      - **Sequence**: T1, T2, or FLAIR?
+      - **Plane**: Axial, Sagittal, Coronal.
+      - **Anatomy**: Identify normal structures vs. potential abnormalities.
+      
+      **Output**:
+      - **Technique**: Description of the scan.
+      - **Findings**: Descriptive list of observations.
+      - **Impression**: Summary for educational review.
+  medical_xray:
+    name: "Chest X-Ray"
+    description: "Lung and heart visualization (Education Only)"
+    prompt: |
+      **Role**: Medical Student (Educational)
+      **Task**: Systematic review of CXR.
+      
+      **Method (ABCDE)**:
+      - **A**irway: Trachea midline?
+      - **B**reathing: Lung fields clear?
+      - **C**irculation: Heart size/borders?
+      - **D**iaphragm: Costophrenic angles?
+      - **E**verything else: Bones/Lines.
+      
+      **Output**:
+      - **Structured Report**: Following the ABCDE method.
+      - **Key Observation**: Main visual finding.
+  medical_ultrasound:
+    name: "Ultrasound"
+    description: "Soft tissue and organ imaging (Education Only)"
+    prompt: |
+      **Role**: Sonography Student (Educational)
+      **Task**: Describe the ultrasound findings.
+      
+      **Analysis**:
+      - **Organ**: Identify the target (Liver, Kidney, Heart).
+      - **Echogenicity**: Hyperechoic, Hypoechoic, Anechoic.
+      - **Doppler**: Flow direction/velocity (if color shown).
+      
+      **Output**:
+      - **Scan Description**: Technical description.
+      - **Anatomical Markers**: Labeled structures.
+      - **Educational Note**: Clinical correlation.
+  medical_dental:
+    name: "Dental Radiograph"
+    description: "Teeth and bone health check (Education Only)"
+    prompt: |
+      **Role**: Dental Student (Educational)
+      **Task**: Analyze the Bitewing/Periapical X-Ray.
+      
+      **Analysis**:
+      1. **Restorations**: Existing fillings/crowns.
+      2. **Caries**: Interproximal shadows.
+      3. **Bone Level**: Signs of periodontal bone loss.
+      
+      **Output**:
+      - **Tooth Charting**: Teeth numbers approx.
+      - **Findings**: List of clinical observations.
+  medical_histo:
+    name: "Histopathology"
+    description: "Cellular structure microscope view (Education Only)"
+    prompt: |
+      **Role**: Pathology Resident (Educational)
+      **Task**: Analyze the tissue slide.
+      
+      **Analysis**:
+      - **Tissue Type**: Epithelial, Connective, Muscle, Nervous.
+      - **Architecture**: Normal vs. Disordered growth.
+      - **Cellular Features**: Nucleus size, atypia, mitosis.
+      
+      **Output**:
+      - **Microscopic Description**: Detailed visual report.
+      - **Differential**: Potential tissue origins.
+  medical_ecg:
+    name: "ECG Strip"
+    description: "Heart rhythm analysis (Education Only)"
+    prompt: |
+      **Role**: Cardiology Fellow (Educational)
+      **Task**: Interpret the 12-lead or Rhythm strip.
+      
+      **Steps**:
+      1. **Rate**: BPM calculation.
+      2. **Rhythm**: Regular/Irregular (Sinus?).
+      3. **Axis/Intervals**: PR, QRS, QT duration.
+      4. **Morphology**: ST elevation/depression.
+      
+      **Output**:
+      - **Interpretation**: Systematic breakdown.
+      - **Diagnosis**: educational rhythm identification (e.g., "NSR", "Afib").
