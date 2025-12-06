@@ -68,4 +68,4 @@ git clone https://github.com/KazKozDev/vision-agent-analyst.git
 ### Next Steps
 Stop guessing. Start knowing.
 
-[**Read the Docs**](docs/UTILITY_SUMMARY.md) | [**View Implementation Guide**](docs/IMPLEMENTATION_GUIDE.md)
+
