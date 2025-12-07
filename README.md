@@ -5,7 +5,6 @@ Visual intelligence. Unlocked.
 
 </div>
 
----
 
 **Traditional data tools go blind when they see an image.**
 Vision Agent Analyst changes the game. It doesn't just scan credentials or OCR text; it *understands* visual context. Charts, invoices, medical scans, UI designs—transformed into structured, actionable insights in seconds.
