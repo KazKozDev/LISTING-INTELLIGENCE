@@ -1,5 +1,9 @@
-# Vision Agent Analyst
-### Visual intelligence. Unlocked.
+<div align="center">
+
+<b>Vision Agent Analyst</b> </br></br>
+Visual intelligence. Unlocked.
+
+</div>
 
 ---
 
