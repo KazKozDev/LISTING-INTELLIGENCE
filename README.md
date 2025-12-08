@@ -20,7 +20,6 @@ Data is no longer just rows and columns. It's visual.
 
 *   **See the Unseen**: Extract trends from chart images that don't have underlying data.
 *   **Privacy First**: Run completely offline with **Ollama**. Your sensitive financial or medical data never leaves your machine.
-*   **Hybrid Power**: Need genius-level reasoning? Switch to **GPT-4o** or **Claude 3.5 Sonnet** instantly.
 
 Think of it as the **Bloomberg Terminal for your visual assets**—powerful, precise, and immediate.
 
