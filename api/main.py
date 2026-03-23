@@ -95,6 +95,24 @@ def get_agent() -> VisionAgent:
     return _agent
 
 
+def resolve_agent(
+    provider: Optional[str] = None,
+    model: Optional[str] = None,
+    api_key: Optional[str] = None,
+) -> VisionAgent:
+    """Return agent with optional overrides, or fallback to default."""
+    if provider or model or api_key:
+        overrides: dict = {}
+        if provider:
+            overrides["provider"] = provider
+        if model:
+            overrides["model"] = model
+        if api_key:
+            overrides["api_key"] = api_key
+        return VisionAgent(config=Config(**overrides))
+    return get_agent()
+
+
 @app.get("/")
 def root():
     """Root endpoint."""
@@ -113,46 +131,6 @@ def get_config():
     )
 
 
-@app.get("/api/templates")
-def get_templates():
-    """Get available analysis templates."""
-    config = _config or Config()
-
-    basic = [
-        {
-            "key": "general",
-            "name": "General",
-            "description": "General file analysis",
-            "prompt": "Analyze this file and provide detailed insights.",
-        },
-        {
-            "key": "chart",
-            "name": "Chart Analysis",
-            "description": "Analyze charts and graphs",
-            "prompt": config.prompts_config.get("templates", {}).get("analyze_chart", ""),
-        },
-        {
-            "key": "ui",
-            "name": "UI Screenshot",
-            "description": "Analyze UI/UX design",
-            "prompt": config.prompts_config.get("templates", {}).get("analyze_ui", ""),
-        },
-    ]
-
-    industry_templates = config.prompts_config.get("industry_templates", {})
-    industry = [
-        {
-            "key": key,
-            "name": value["name"],
-            "description": value["description"],
-            "prompt": value["prompt"],
-        }
-        for key, value in industry_templates.items()
-    ]
-
-    return {"basic": basic, "industry": industry}
-
-
 @app.post("/api/analyze", response_model=AnalysisResponse)
 async def analyze_file(
     file: UploadFile = File(...),
@@ -160,6 +138,7 @@ async def analyze_file(
     template_key: Optional[str] = Form(None),
     provider: Optional[str] = Form(None),
     model: Optional[str] = Form(None),
+    api_key: Optional[str] = Form(None),
 ):
     """Analyze uploaded file."""
     try:
@@ -170,16 +149,7 @@ async def analyze_file(
             tmp.write(content)
             tmp_path = Path(tmp.name)
 
-        # Use override config or singleton agent
-        if provider or model:
-            config_overrides = {}
-            if provider:
-                config_overrides["provider"] = provider
-            if model:
-                config_overrides["model"] = model
-            agent = VisionAgent(config=Config(**config_overrides))
-        else:
-            agent = get_agent()
+        agent = resolve_agent(provider, model, api_key)
 
         if suffix.lower() == ".pdf":
             results = agent.analyze_pdf(tmp_path, task=prompt)
@@ -266,10 +236,13 @@ def get_marketplaces():
 async def analyze_product(
     file: UploadFile = File(...),
     marketplace: str = Form("general"),
+    provider: Optional[str] = Form(None),
+    model: Optional[str] = Form(None),
+    api_key: Optional[str] = Form(None),
 ):
     """Analyze a product photo for e-commerce optimization."""
     try:
-        agent = get_agent()
+        agent = resolve_agent(provider, model, api_key)
         analyzer = ProductAnalyzer(agent)
 
         suffix = Path(file.filename).suffix
@@ -307,10 +280,13 @@ async def analyze_product(
 async def compliance_check(
     file: UploadFile = File(...),
     marketplace: str = Form(...),
+    provider: Optional[str] = Form(None),
+    model: Optional[str] = Form(None),
+    api_key: Optional[str] = Form(None),
 ):
     """Check product photo compliance with marketplace rules."""
     try:
-        agent = get_agent()
+        agent = resolve_agent(provider, model, api_key)
         analyzer = ProductAnalyzer(agent)
 
         suffix = Path(file.filename).suffix
@@ -351,10 +327,13 @@ async def generate_seo(
     file: UploadFile = File(...),
     marketplace: str = Form("general"),
     keywords: str = Form(""),
+    provider: Optional[str] = Form(None),
+    model: Optional[str] = Form(None),
+    api_key: Optional[str] = Form(None),
 ):
     """Generate SEO-optimized listing content from product image."""
     try:
-        agent = get_agent()
+        agent = resolve_agent(provider, model, api_key)
         seo = SEOGenerator(agent)
 
         suffix = Path(file.filename).suffix
@@ -392,10 +371,13 @@ async def generate_seo(
 async def batch_analyze_products(
     files: list[UploadFile] = File(...),
     marketplace: str = Form("general"),
+    provider: Optional[str] = Form(None),
+    model: Optional[str] = Form(None),
+    api_key: Optional[str] = Form(None),
 ):
     """Batch analyze multiple product images."""
     try:
-        agent = get_agent()
+        agent = resolve_agent(provider, model, api_key)
         batch = BatchProcessor(agent)
 
         tmp_paths = []
@@ -449,10 +431,13 @@ async def compare_products(
     product_image: UploadFile = File(...),
     competitor_image: UploadFile = File(...),
     marketplace: str = Form("general"),
+    provider: Optional[str] = Form(None),
+    model: Optional[str] = Form(None),
+    api_key: Optional[str] = Form(None),
 ):
     """Compare product photo with competitor's listing."""
     try:
-        agent = get_agent()
+        agent = resolve_agent(provider, model, api_key)
         analyzer = ProductAnalyzer(agent)
 
         suffix1 = Path(product_image.filename).suffix
@@ -497,10 +482,13 @@ async def compare_products(
 @app.post("/api/ecommerce/suggest-improvements")
 async def suggest_improvements(
     file: UploadFile = File(...),
+    provider: Optional[str] = Form(None),
+    model: Optional[str] = Form(None),
+    api_key: Optional[str] = Form(None),
 ):
     """Suggest photo improvements for better conversion."""
     try:
-        agent = get_agent()
+        agent = resolve_agent(provider, model, api_key)
         analyzer = ProductAnalyzer(agent)
 
         suffix = Path(file.filename).suffix
@@ -536,10 +524,13 @@ async def suggest_improvements(
 @app.post("/api/ecommerce/extract-attributes")
 async def extract_attributes(
     file: UploadFile = File(...),
+    provider: Optional[str] = Form(None),
+    model: Optional[str] = Form(None),
+    api_key: Optional[str] = Form(None),
 ):
     """Extract product attributes from photo."""
     try:
-        agent = get_agent()
+        agent = resolve_agent(provider, model, api_key)
         analyzer = ProductAnalyzer(agent)
 
         suffix = Path(file.filename).suffix

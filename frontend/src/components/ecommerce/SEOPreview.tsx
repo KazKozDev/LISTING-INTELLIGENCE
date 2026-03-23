@@ -1,6 +1,7 @@
 import { useState, useCallback } from 'react'
 import { ScanSearch, Cloud, File, Tag, Copy, Check, Zap, ShoppingCart, List, Search } from 'lucide-react'
 import { api } from '../../api/client'
+import { saveToHistory } from '../../hooks/useHistory'
 import { MarketplaceSelector } from './MarketplaceSelector'
 
 function formatFileSize(bytes: number) {
@@ -84,6 +85,7 @@ export function SEOPreview() {
     try {
       const data = await api.generateSeo(file, marketplace, keywords)
       setResult({ seo_content: data.seo_content, tokens_used: data.tokens_used })
+      saveToHistory({ success: true, filename: data.filename, analysis: data.seo_content, metadata: data.metadata, timestamp: data.timestamp, tokens_used: data.tokens_used })
     } catch (err) {
       setError(err instanceof Error ? err.message : 'SEO generation failed')
     } finally {

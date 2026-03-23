@@ -12,6 +12,16 @@ function loadHistory(): HistoryItem[] {
   }
 }
 
+/** Standalone save — callable from any component without the hook */
+export function saveToHistory(result: AnalysisResult) {
+  const item: HistoryItem = {
+    ...result,
+    id: Date.now().toString() + Math.random().toString(36),
+  }
+  const prev = loadHistory()
+  localStorage.setItem(STORAGE_KEY, JSON.stringify([item, ...prev]))
+}
+
 export function useHistory() {
   const [history, setHistory] = useState<HistoryItem[]>(loadHistory)
 

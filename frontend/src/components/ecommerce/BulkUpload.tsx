@@ -1,6 +1,7 @@
 import { useState, useCallback, useRef } from 'react'
 import { ScanSearch, Upload, FileSpreadsheet, Package, CheckCircle, XCircle, Zap } from 'lucide-react'
 import { api } from '../../api/client'
+import { saveToHistory } from '../../hooks/useHistory'
 import { MarketplaceSelector } from './MarketplaceSelector'
 
 interface BatchResult {
@@ -63,6 +64,9 @@ export function BulkUpload() {
       setProgress({ current: files.length, total: files.length })
       setResults(data.results)
       setCsvData(data.csv_data)
+      data.results.filter(r => r.success).forEach(r => {
+        saveToHistory({ success: true, filename: r.filename, analysis: r.analysis, metadata: r.metadata, timestamp: data.timestamp, tokens_used: 0 })
+      })
     } catch (err) {
       clearInterval(interval)
       setError(err instanceof Error ? err.message : 'Batch analysis failed')

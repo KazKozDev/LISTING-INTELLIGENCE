@@ -135,13 +135,12 @@ Ollama is the default — no API key needed, everything stays on your machine.
 
 ## API
 
-14 REST endpoints + WebSocket for real-time progress.
+13 REST endpoints + WebSocket for real-time progress.
 
 | Method | Endpoint | Purpose |
 |--------|---------|---------|
 | `GET` | `/` | Root status |
 | `GET` | `/api/config` | Current LLM provider configuration |
-| `GET` | `/api/templates` | Available analysis templates |
 | `POST` | `/api/analyze` | Universal file analysis (image or PDF) |
 | `GET` | `/api/health` | Provider connectivity status |
 | `GET` | `/api/usage` | Token usage statistics |
@@ -180,8 +179,8 @@ Interactive docs at [http://localhost:8000/docs](http://localhost:8000/docs) whe
 Frontend (React 19 + TypeScript + Vite)    Backend (FastAPI + Python 3.10+)
 ┌──────────────────────────────┐     ┌──────────────────────────────────┐
 │  8 E-commerce Components    │     │  VisionAgent (core engine)       │
-│  9 Core Components          │     │  ProductAnalyzer / SEOGenerator  │
-│  6 Custom Hooks             │────▶│  BatchProcessor                  │
+│  6 Core Components          │     │  ProductAnalyzer / SEOGenerator  │
+│  2 Custom Hooks             │────▶│  BatchProcessor                  │
 │  Typed API Client           │     │  LLM Factory (5 providers)       │
 │  Error Boundaries           │     │  Cache / RateLimiter / Tokens    │
 └──────────────────────────────┘     └──────────────┬───────────────────┘
@@ -204,7 +203,7 @@ Frontend (React 19 + TypeScript + Vite)    Backend (FastAPI + Python 3.10+)
 ```
 vision-agent-analyst/
 ├── api/                          # FastAPI backend
-│   ├── main.py                   # 14 endpoints + WebSocket + middleware
+│   ├── main.py                   # 13 endpoints + WebSocket + middleware
 │   └── schemas.py                # Pydantic v2 request/response models
 ├── src/
 │   ├── vision_agent.py           # Core analysis engine with caching
@@ -222,15 +221,14 @@ vision-agent-analyst/
 │   │   └── azure_provider.py
 │   └── utils/                    # Cache, RateLimiter, TokenCounter, CostTracker
 ├── frontend/src/
-│   ├── components/               # 9 core + 8 e-commerce UI components
+│   ├── components/               # 6 core + 8 e-commerce UI components
 │   │   └── ecommerce/            # ProductAnalysis, SEOPreview, ComplianceReport,
 │   │                             # CompetitorCompare, BulkUpload, EcommerceTools,
 │   │                             # MarketplaceSelector, ExportCSV
-│   ├── hooks/                    # useAnalysis, useHistory, useConfig, useWebSocket,
-│   │                             # useProductAnalysis, useBulkUpload
+│   ├── hooks/                    # useHistory, useConfig
 │   └── api/                      # Typed API client + TypeScript interfaces
 ├── config/                       # prompts.yaml, model_config.yaml, logging
-├── tests/                        # 81 tests (all mocked, no API keys needed)
+├── tests/                        # 80 tests (all mocked, no API keys needed)
 │   └── fixtures/                 # Test images + PDF
 ├── docs/                         # API.md, ECOMMERCE_GUIDE.md, QUICKSTART.md
 ├── examples/                     # Python usage examples
@@ -263,7 +261,7 @@ Configuration uses Pydantic BaseSettings — values come from `.env`, environmen
 
 ```bash
 pytest tests/ -v
-# 81 tests passed — VisionAgent, providers, API, PDF processor,
+# 80 tests passed — VisionAgent, providers, API, PDF processor,
 # cache, rate limiter, export, config, cost tracker
 ```
 

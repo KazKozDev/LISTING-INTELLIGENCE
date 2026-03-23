@@ -1,10 +1,3 @@
-export interface Template {
-  key: string
-  name: string
-  description: string
-  prompt: string
-}
-
 export interface Config {
   provider: string
   model: string

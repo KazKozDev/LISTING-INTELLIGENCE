@@ -4,6 +4,7 @@ import {
   MessageSquare, BoxIcon, Search, ClipboardList, Zap, Copy, Check
 } from 'lucide-react'
 import { api } from '../../api/client'
+import { saveToHistory } from '../../hooks/useHistory'
 
 function formatFileSize(bytes: number) {
   if (bytes < 1024) return bytes + ' B'
@@ -103,19 +104,25 @@ export function EcommerceTools() {
     setLoading(true)
     setError(null)
     try {
+      let analysisText = ''
+      let tokens = 0
       if (selectedTool.id === 'improvements') {
         const data = await api.suggestImprovements(file)
-        setResult(data.analysis)
-        setTokensUsed(data.tokens_used)
+        analysisText = data.analysis
+        tokens = data.tokens_used
       } else if (selectedTool.id === 'attributes') {
         const data = await api.extractAttributes(file)
-        setResult(data.attributes)
-        setTokensUsed(data.tokens_used)
+        analysisText = data.attributes
+        tokens = data.tokens_used
       } else if ('templateKey' in selectedTool && selectedTool.templateKey) {
-        // Use generic analyze endpoint with the template
         const data = await api.analyze(file, '', { templateKey: selectedTool.templateKey })
-        setResult(data.analysis)
-        setTokensUsed(data.tokens_used || 0)
+        analysisText = data.analysis
+        tokens = data.tokens_used || 0
+      }
+      setResult(analysisText)
+      setTokensUsed(tokens)
+      if (analysisText) {
+        saveToHistory({ success: true, filename: file.name, analysis: analysisText, metadata: { tool: selectedTool.name }, timestamp: new Date().toISOString(), tokens_used: tokens })
       }
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Analysis failed')

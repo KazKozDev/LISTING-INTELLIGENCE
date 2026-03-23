@@ -1,6 +1,7 @@
 import { useState, useCallback } from 'react'
 import { ScanSearch, Cloud, File, ShieldCheck, ShieldX, CheckCircle, XCircle, AlertTriangle, Info, Star, Copy, Check, Zap } from 'lucide-react'
 import { api } from '../../api/client'
+import { saveToHistory } from '../../hooks/useHistory'
 import { MarketplaceSelector } from './MarketplaceSelector'
 
 function formatFileSize(bytes: number) {
@@ -88,6 +89,7 @@ export function ComplianceReport() {
     try {
       const data = await api.checkCompliance(file, marketplace)
       setResult({ analysis: data.analysis, marketplace: data.marketplace, tokens_used: data.tokens_used })
+      saveToHistory({ success: true, filename: data.filename, analysis: data.analysis, metadata: data.metadata, timestamp: data.timestamp, tokens_used: data.tokens_used })
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Compliance check failed')
     } finally {

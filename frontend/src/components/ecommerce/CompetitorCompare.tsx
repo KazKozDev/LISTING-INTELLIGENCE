@@ -1,6 +1,7 @@
 import { useState, useCallback } from 'react'
 import { ScanSearch, Cloud, File, GitCompareArrows, ThumbsUp, ThumbsDown, Target, Zap, Copy, Check } from 'lucide-react'
 import { api } from '../../api/client'
+import { saveToHistory } from '../../hooks/useHistory'
 import { MarketplaceSelector } from './MarketplaceSelector'
 
 function formatFileSize(bytes: number) {
@@ -77,6 +78,7 @@ export function CompetitorCompare() {
     try {
       const data = await api.compareProducts(productFile, competitorFile, marketplace)
       setResult({ analysis: data.analysis, tokens_used: data.tokens_used })
+      saveToHistory({ success: true, filename: `${data.product_filename} vs ${data.competitor_filename}`, analysis: data.analysis, metadata: data.metadata, timestamp: data.timestamp, tokens_used: data.tokens_used })
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Comparison failed')
     } finally {

@@ -1,6 +1,7 @@
 import { useState, useCallback } from 'react'
 import { ScanSearch, Cloud, File, ShoppingCart, Lightbulb, Star, Tag, Zap, Copy, Check } from 'lucide-react'
 import { api } from '../../api/client'
+import { saveToHistory } from '../../hooks/useHistory'
 import { MarketplaceSelector } from './MarketplaceSelector'
 
 function formatFileSize(bytes: number) {
@@ -88,6 +89,7 @@ export function ProductAnalysis() {
     try {
       const data = await api.analyzeProduct(file, marketplace)
       setResult({ analysis: data.analysis, tokens_used: data.tokens_used })
+      saveToHistory({ success: true, filename: data.filename, analysis: data.analysis, metadata: data.metadata, timestamp: data.timestamp, tokens_used: data.tokens_used })
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Analysis failed')
     } finally {

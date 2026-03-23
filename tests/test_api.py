@@ -55,7 +55,7 @@ def client():
         api_module._config.model = "test-model"
         api_module._config.temperature = 0.7
         api_module._config.max_tokens = 2048
-        api_module._config.prompts_config = {"templates": {}, "industry_templates": {}}
+        api_module._config.prompts_config = {"industry_templates": {}}
 
         yield TestClient(api_module.app, raise_server_exceptions=False)
 
@@ -78,16 +78,6 @@ class TestConfigEndpoint:
         assert "model" in data
         assert "temperature" in data
         assert "max_tokens" in data
-
-
-class TestTemplatesEndpoint:
-    def test_get_templates(self, client):
-        response = client.get("/api/templates")
-        assert response.status_code == 200
-        data = response.json()
-        assert "basic" in data
-        assert "industry" in data
-        assert isinstance(data["basic"], list)
 
 
 class TestAnalyzeEndpoint:
