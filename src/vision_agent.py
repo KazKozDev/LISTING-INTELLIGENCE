@@ -1,5 +1,6 @@
 """Main Vision Agent for multimodal analysis."""
 
+import hashlib
 import logging
 from dataclasses import dataclass
 from datetime import datetime
@@ -11,6 +12,9 @@ from src.llm.factory import ProviderFactory
 from src.llm.base import BaseLLMProvider
 from .pdf_processor import PDFProcessor
 from .report_generator import ReportGenerator
+from .utils.cache import Cache
+from .utils.rate_limiter import RateLimiter
+from .utils.token_counter import TokenCounter
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -82,6 +86,21 @@ class VisionAgent:
         self.pdf_processor = PDFProcessor(self.config)
         self.report_generator = ReportGenerator(self.config)
 
+        # Initialize utilities
+        cache_config = self.config.model_config.get("cache", {})
+        cache_enabled = cache_config.get("enabled", True)
+        cache_ttl = cache_config.get("ttl_seconds", 3600)
+        self.cache = Cache(
+            cache_dir=self.config.output_dir / ".cache",
+            ttl_seconds=cache_ttl,
+        ) if cache_enabled else None
+
+        rate_config = self.config.model_config.get("rate_limits", {})
+        rpm = rate_config.get("requests_per_minute", 60)
+        self.rate_limiter = RateLimiter(requests_per_minute=rpm)
+
+        self.token_counter = TokenCounter(model=self.config.model)
+
         logger.info(
             f"Initialized VisionAgent: provider={self.config.provider}, "
             f"model={self.config.model}"
@@ -120,6 +139,23 @@ class VisionAgent:
         temperature = kwargs.pop("temperature", self.config.temperature)
         max_tokens = kwargs.pop("max_tokens", self.config.max_tokens)
 
+        # Check cache
+        cache_key_data = f"{image_path}:{task}:{self.config.model}"
+        if self.cache:
+            cached = self.cache.get(cache_key_data, self.config.model)
+            if cached:
+                logger.info("Cache hit — returning cached result")
+                return AnalysisResult(
+                    file_path=image_path,
+                    file_type="image",
+                    task=task,
+                    text=cached["text"],
+                    metadata=cached["metadata"],
+                )
+
+        # Rate limit
+        self.rate_limiter.acquire()
+
         # Call provider to analyze the image
         response = self.provider.analyze_image(
             image_path=image_path,
@@ -128,6 +164,8 @@ class VisionAgent:
             max_tokens=max_tokens,
             **kwargs
         )
+
+        total_tokens = response.usage.get("total_tokens", 0)
 
         result = AnalysisResult(
             file_path=image_path,
@@ -138,11 +176,20 @@ class VisionAgent:
                 "model": response.model,
                 "usage": response.usage,
                 "provider": self.provider.provider_name,
-                **response.metadata
-            }
+                "prompt_tokens": self.token_counter.count(task),
+                **response.metadata,
+            },
         )
 
-        logger.info(f"Analysis completed. Tokens used: {response.usage.get('total_tokens', 0)}")
+        # Store in cache
+        if self.cache:
+            self.cache.set(
+                cache_key_data,
+                self.config.model,
+                {"text": response.text, "metadata": result.metadata},
+            )
+
+        logger.info(f"Analysis completed. Tokens used: {total_tokens}")
         return result
 
     def analyze_chart(

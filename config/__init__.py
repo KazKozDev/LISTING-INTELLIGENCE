@@ -2,10 +2,11 @@
 
 import os
 import yaml
-from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Optional, Dict, Any
+from typing import Optional, Dict, Any, Tuple
 
+from pydantic_settings import BaseSettings
+from pydantic import Field, model_validator
 from dotenv import load_dotenv
 
 # Load environment variables
@@ -15,57 +16,63 @@ CONFIG_DIR = Path(__file__).parent
 MODEL_CONFIG_PATH = CONFIG_DIR / "model_config.yaml"
 PROMPTS_CONFIG_PATH = CONFIG_DIR / "prompts.yaml"
 
+
 def load_yaml_config(path: Path) -> Dict[str, Any]:
     if path.exists():
         with open(path, "r") as f:
-            return yaml.safe_load(f)
+            return yaml.safe_load(f) or {}
     return {}
 
-@dataclass
-class Config:
-    """Application configuration."""
+
+class Config(BaseSettings):
+    """Application configuration with Pydantic validation."""
 
     # LLM Provider settings
-    provider: str = os.getenv("LLM_PROVIDER", "ollama")
-    model: str = os.getenv("LLM_MODEL", "")
-    api_key: Optional[str] = os.getenv("LLM_API_KEY", None)
-    base_url: Optional[str] = os.getenv("LLM_BASE_URL", None)
+    provider: str = Field(default="ollama", alias="LLM_PROVIDER")
+    model: str = Field(default="", alias="LLM_MODEL")
+    api_key: Optional[str] = Field(default=None, alias="LLM_API_KEY")
+    base_url: Optional[str] = Field(default=None, alias="LLM_BASE_URL")
 
     # Backward compatibility - Ollama settings
-    ollama_host: str = os.getenv("OLLAMA_HOST", "http://localhost:11434")
-    ollama_model: str = os.getenv("OLLAMA_MODEL", "qwen3-vl:8b")
+    ollama_host: str = Field(default="http://localhost:11434", alias="OLLAMA_HOST")
+    ollama_model: str = Field(default="qwen3-vl:8b", alias="OLLAMA_MODEL")
 
     # Model parameters
-    max_tokens: int = int(os.getenv("MAX_TOKENS", "2048"))
-    temperature: float = float(os.getenv("TEMPERATURE", "0.7"))
+    max_tokens: int = Field(default=2048, alias="MAX_TOKENS")
+    temperature: float = Field(default=0.7, alias="TEMPERATURE")
 
     # Output settings
-    output_dir: Path = Path(os.getenv("OUTPUT_DIR", "outputs"))
-    report_format: str = os.getenv("REPORT_FORMAT", "markdown")
+    output_dir: Path = Field(default=Path("outputs"), alias="OUTPUT_DIR")
+    report_format: str = Field(default="markdown", alias="REPORT_FORMAT")
 
     # Processing settings
-    max_image_size: tuple = (1920, 1080)
+    max_image_size: Tuple[int, int] = (1920, 1080)
     pdf_dpi: int = 150
 
-    # Loaded configs
-    model_config: Dict = field(default_factory=dict)
-    prompts_config: Dict = field(default_factory=dict)
+    # Loaded configs (not from env)
+    model_config_data: Dict[str, Any] = Field(default_factory=dict, exclude=True)
+    prompts_config: Dict[str, Any] = Field(default_factory=dict, exclude=True)
 
-    def __post_init__(self):
+    model_config = {
+        "populate_by_name": True,
+        "env_prefix": "",
+        "extra": "ignore",
+    }
+
+    @model_validator(mode="after")
+    def _post_init(self) -> "Config":
         """Ensure output directory exists and set defaults."""
         self.output_dir.mkdir(parents=True, exist_ok=True)
-        
+
         # Load YAML configs
-        self.model_config = load_yaml_config(MODEL_CONFIG_PATH)
+        self.model_config_data = load_yaml_config(MODEL_CONFIG_PATH)
         self.prompts_config = load_yaml_config(PROMPTS_CONFIG_PATH)
 
         # Set default model if not specified, using model_config
         if not self.model:
-            # Try to get from yaml
-            provider_config = self.model_config.get("models", {}).get(self.provider, {})
-            self.model = provider_config.get("model_name", "")
-            
-            # Fallback to hardcoded defaults if yaml fails
+            provider_cfg = self.model_config_data.get("models", {}).get(self.provider, {})
+            self.model = provider_cfg.get("model_name", "")
+
             if not self.model:
                 default_models = {
                     "ollama": self.ollama_model,
@@ -80,17 +87,14 @@ class Config:
         if self.provider == "ollama" and not self.base_url:
             self.base_url = self.ollama_host
 
-    def get_provider_config(self) -> dict:
-        """Get configuration for LLM provider.
+        return self
 
-        Returns:
-            Dictionary with provider configuration (excluding model, api_key, base_url)
-        """
+    def get_provider_config(self) -> dict:
+        """Get configuration for LLM provider."""
         config = {
             "max_image_size": self.max_image_size,
         }
 
-        # Add Azure-specific config
         if self.provider == "azure":
             config["api_version"] = os.getenv("AZURE_API_VERSION", "2024-02-01")
 

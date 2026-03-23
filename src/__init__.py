@@ -1,14 +1,13 @@
-"""Vision Agent Analyst - Multimodal analysis with Ollama."""
+"""Vision Agent Analyst - AI-powered visual analysis for e-commerce and beyond."""
 
 from .vision_agent import VisionAgent
-from .ollama_client import OllamaClient
 from .pdf_processor import PDFProcessor
 from .report_generator import ReportGenerator
 
 try:
     from .pdf_exporter import PDFExporter
-    __all__ = ["VisionAgent", "OllamaClient", "PDFProcessor", "ReportGenerator", "PDFExporter"]
+    __all__ = ["VisionAgent", "PDFProcessor", "ReportGenerator", "PDFExporter"]
 except ImportError:
-    __all__ = ["VisionAgent", "OllamaClient", "PDFProcessor", "ReportGenerator"]
+    __all__ = ["VisionAgent", "PDFProcessor", "ReportGenerator"]
 
-__version__ = "0.1.0"
+__version__ = "0.2.0"
