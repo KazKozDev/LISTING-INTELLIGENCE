@@ -9,7 +9,7 @@ Turn product photos into marketplace-ready listings — SEO titles, descriptions
 [![CI](https://github.com/KazKozDev/vision-agent-analyst/actions/workflows/ci.yml/badge.svg)](https://github.com/KazKozDev/vision-agent-analyst/actions)
 [![Python 3.10+](https://img.shields.io/badge/python-3.10+-blue.svg)](https://www.python.org/downloads/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
-[![Tests](https://img.shields.io/badge/tests-81%20passed-brightgreen.svg)](#tests)
+[![Tests](https://img.shields.io/badge/tests-passing-brightgreen.svg)](#tests)
 
 </div>
 
@@ -35,19 +35,22 @@ All of this runs **locally with Ollama** — your product data never leaves your
 
 ## Quick Start
 
-**Requirements:** Python 3.10+, Node.js 18+
+**Prerequisites:** Python 3.10+, Node.js 18+, [Ollama](https://ollama.com/) (default LLM provider)
 
 ```bash
-# Clone and setup
+# 1. Install Ollama and pull a vision model
+ollama pull qwen3-vl:8b
+
+# 2. Clone and setup
 git clone https://github.com/KazKozDev/vision-agent-analyst.git
 cd vision-agent-analyst
 cp .env.example .env
 
-# Backend
+# 3. Backend
 pip install -e ".[dev]"
 uvicorn api.main:app --reload --port 8000
 
-# Frontend (new terminal)
+# 4. Frontend (new terminal)
 cd frontend && npm install && npm run dev
 ```
 
@@ -118,13 +121,13 @@ Marketplace rules are shown inline in the UI when you select a platform.
 
 Switch between 5 providers by changing one environment variable:
 
-```env
-LLM_PROVIDER=ollama          # Local, free, private
-LLM_PROVIDER=openai          # GPT-4o
-LLM_PROVIDER=anthropic       # Claude 3.5 Sonnet
-LLM_PROVIDER=google          # Gemini 1.5 Pro
-LLM_PROVIDER=azure           # Azure OpenAI
-```
+| Provider | `LLM_PROVIDER` | API Key Required |
+|----------|----------------|------------------|
+| Ollama | `ollama` | No (local) |
+| OpenAI | `openai` | Yes |
+| Anthropic | `anthropic` | Yes |
+| Google Gemini | `google` | Yes |
+| Azure OpenAI | `azure` | Yes |
 
 Ollama is the default — no API key needed, everything stays on your machine.
 
@@ -132,11 +135,17 @@ Ollama is the default — no API key needed, everything stays on your machine.
 
 ## API
 
-11 REST endpoints + WebSocket for real-time progress.
+14 REST endpoints + WebSocket for real-time progress.
 
 | Method | Endpoint | Purpose |
 |--------|---------|---------|
+| `GET` | `/` | Root status |
+| `GET` | `/api/config` | Current LLM provider configuration |
+| `GET` | `/api/templates` | Available analysis templates |
 | `POST` | `/api/analyze` | Universal file analysis (image or PDF) |
+| `GET` | `/api/health` | Provider connectivity status |
+| `GET` | `/api/usage` | Token usage statistics |
+| `GET` | `/api/ecommerce/marketplaces` | Marketplace rules and requirements |
 | `POST` | `/api/ecommerce/analyze-product` | Product photo analysis |
 | `POST` | `/api/ecommerce/compliance-check` | Marketplace compliance verification |
 | `POST` | `/api/ecommerce/generate-seo` | SEO content generation |
@@ -144,10 +153,22 @@ Ollama is the default — no API key needed, everything stays on your machine.
 | `POST` | `/api/ecommerce/compare` | Competitor photo comparison |
 | `POST` | `/api/ecommerce/suggest-improvements` | Photo improvement suggestions |
 | `POST` | `/api/ecommerce/extract-attributes` | Product attribute extraction |
-| `GET` | `/api/ecommerce/marketplaces` | Marketplace rules and requirements |
-| `GET` | `/api/health` | Provider connectivity status |
-| `GET` | `/api/usage` | Token usage statistics |
 | `WS` | `/api/ws/batch-progress` | Real-time batch processing progress |
+
+**Quick example:**
+
+```bash
+# Analyze a product photo
+curl -X POST http://localhost:8000/api/ecommerce/analyze-product \
+  -F "file=@product.jpg" \
+  -F "marketplace=amazon"
+
+# Generate SEO listing
+curl -X POST http://localhost:8000/api/ecommerce/generate-seo \
+  -F "file=@product.jpg" \
+  -F "marketplace=wildberries" \
+  -F "keywords=wireless,bluetooth,headphones"
+```
 
 Interactive docs at [http://localhost:8000/docs](http://localhost:8000/docs) when server is running. Full reference in [docs/API.md](docs/API.md).
 
@@ -174,7 +195,7 @@ Frontend (React 19 + TypeScript + Vite)    Backend (FastAPI + Python 3.10+)
 
 **Backend patterns:** Factory pattern for LLM providers, Pydantic v2 BaseSettings for configuration, file-based caching with TTL, token-bucket rate limiting, structured JSON logging, cost tracking per provider.
 
-**Frontend patterns:** Component extraction from monolith (App.tsx < 220 lines), custom hooks for state management, centralized API client with full TypeScript types, drag-and-drop file upload, parsed LLM response rendering.
+**Frontend patterns:** Custom hooks for state management, centralized API client with full TypeScript types, drag-and-drop file upload, parsed LLM response rendering.
 
 ---
 
@@ -183,7 +204,7 @@ Frontend (React 19 + TypeScript + Vite)    Backend (FastAPI + Python 3.10+)
 ```
 vision-agent-analyst/
 ├── api/                          # FastAPI backend
-│   ├── main.py                   # 11 endpoints + WebSocket + middleware
+│   ├── main.py                   # 14 endpoints + WebSocket + middleware
 │   └── schemas.py                # Pydantic v2 request/response models
 ├── src/
 │   ├── vision_agent.py           # Core analysis engine with caching
@@ -268,28 +289,27 @@ pytest tests/ --cov=src --cov=api --cov=config --cov-report=term-missing
 
 ## Contributing
 
-```bash
-# Install dev dependencies
-pip install -e ".[dev]"
+1. Fork the repo and create a branch from `main`
+2. Install dependencies:
+   ```bash
+   pip install -e ".[dev]"
+   cd frontend && npm install
+   ```
+3. Make your changes
+4. Make sure everything passes before pushing:
+   ```bash
+   black --check src/ api/ tests/
+   ruff check src/ api/ tests/
+   pytest tests/ -v
+   cd frontend && npm run build
+   ```
+5. Open a Pull Request
 
-# Run linters
-black --check src/ api/ tests/
-ruff check src/ api/ tests/
-
-# Run tests
-pytest tests/ -v
-
-# Build frontend
-cd frontend && npm run build
-```
-
-CI pipeline runs lint, test, frontend build, and Docker build on every push.
+CI runs lint, tests, frontend build, and Docker build automatically on every PR.
 
 ---
 
 <div align="center">
-
-Stop writing descriptions by hand. Let the photo speak for itself.
 
 [Artem KK](https://www.linkedin.com/in/kazkozdev/) | MIT [LICENSE](LICENSE)
 
