@@ -1,20 +1,20 @@
 # Listing Intelligence
 
-AI-assisted listing analysis platform for e-commerce product images, listings, charts, and PDF documents.
+Full-stack AI application for marketplace listing intelligence, compliance review, competitor analysis, and deterministic image operations.
 
 ## Highlights
 
 - React + FastAPI application for image-first listing workflows
 - Marketplace-aware product analysis, SEO generation, and competitor comparison
 - Compliance review with deterministic fix suggestions and image repair tools
-- Export-oriented backend with JSON, CSV, Markdown, and PDF reporting support
+- Typed API, usage tracking, caching, rate limiting, and export-oriented reporting
 - Works with local and hosted model providers, including Ollama, OpenAI, Anthropic, Google, and Azure
 
 ## Overview
 
-Listing Intelligence is built for evaluating sellable product imagery and turning that analysis into marketplace-ready outputs. The repository combines multimodal analysis with deterministic computer-vision tools so the workflow does not stop at "describe this image" and can continue into compliance review, quality checks, OCR, object detection, and controlled image fixes.
+Listing Intelligence is built for evaluating sellable product imagery and turning that analysis into marketplace-ready outputs. It combines multimodal LLM analysis with deterministic computer-vision workflows so the system can move from interpretation into operational tasks such as compliance review, quality checks, OCR, object detection, and controlled image correction.
 
-The current app is centered on e-commerce use cases. From the frontend you can analyze a product image, review marketplace compliance, launch Fix Studio for corrective edits, compare against a competitor image, run batch analysis, and inspect usage or history. The backend also exposes generic image and PDF analysis endpoints for broader visual-analysis tasks.
+The current app is centered on e-commerce use cases. From the frontend you can analyze a product image, review marketplace compliance, launch Fix Studio for corrective edits, compare against a competitor image, run batch analysis, and inspect usage or history. Under the hood, the repository reflects product-shaped engineering concerns rather than a single-model demo: multi-provider routing, typed API schemas, caching, token accounting, rate limiting, CI, and Dockerized local deployment.
 
 ## Features
 
@@ -28,6 +28,14 @@ The current app is centered on e-commerce use cases. From the frontend you can a
 - Deterministic inventory-style analysis using object detection and OCR
 - Provider overrides for model, API key, and base URL from the UI or API
 - Report export and usage tracking
+
+## Tech Stack
+
+- React 19, TypeScript, and Vite for the frontend application
+- FastAPI and Pydantic for the backend and typed API contracts
+- Multimodal provider routing across Ollama, OpenAI, Anthropic, Google, and Azure
+- OCR, object detection, quality scoring, relighting, upscaling, outpainting, and inpainting pipelines
+- Pytest, Playwright, GitHub Actions, and Docker for validation and local deployment
 
 ## Quick Start
 
@@ -73,6 +81,26 @@ Default ports:
 
 - Backend: `8000`
 - Frontend: `3000`
+
+## Usage
+
+### Analyze a product image
+
+1. Open Product Workspace.
+2. Upload a product image.
+3. Select the marketplace.
+4. Run the full analysis flow to generate listing-oriented output, quality observations, and structured results.
+
+### Review compliance and fix the image
+
+1. Open Compliance.
+2. Upload an image and select the marketplace.
+3. Review the verdict, score, and issues.
+4. Launch Fix Studio to apply deterministic corrections such as relighting, outpainting, upscaling, or text removal.
+
+### Review a listing source
+
+Use the backend listing-analysis endpoint when you need to review a listing URL or pasted listing text against the same marketplace-oriented workflow.
 
 ## Configuration
 
@@ -129,6 +157,8 @@ npm run build
 npm run test:e2e
 ```
 
+CI is configured in GitHub Actions for backend linting, type checking, tests, frontend lint/build, and Docker image builds.
+
 ## Documentation
 
 - [docs/QUICKSTART.md](docs/QUICKSTART.md)
@@ -137,6 +167,13 @@ npm run test:e2e
 - [docs/EXPORT_GUIDE.md](docs/EXPORT_GUIDE.md)
 - [docs/INDUSTRY_TEMPLATES.md](docs/INDUSTRY_TEMPLATES.md)
 
-## License
+---
 
-This project is available under the PolyForm Noncommercial 1.0.0 license. Commercial use requires a separate license from the author. See [LICENSE](LICENSE) and [COMMERCIAL-LICENSE.md](COMMERCIAL-LICENSE.md).
+PolyForm Noncommercial 1.0.0 - see [LICENSE](LICENSE) and [COMMERCIAL-LICENSE.md](COMMERCIAL-LICENSE.md)
+
+If you like this project, please give it a star
+
+For questions, feedback, or support, reach out to:
+
+[LinkedIn](https://www.linkedin.com/in/kazkozdev/)
+[Email](mailto:kazkozdev@gmail.com)
