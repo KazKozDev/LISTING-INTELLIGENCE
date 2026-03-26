@@ -1,1 +1,1 @@
-"""Example scripts for Vision Agent Analyst."""
+"""Example scripts for Listing Intelligence."""

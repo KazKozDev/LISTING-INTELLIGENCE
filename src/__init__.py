@@ -1,4 +1,4 @@
-"""Vision Agent Analyst.
+"""Listing Intelligence.
 
 AI-powered visual analysis for e-commerce and beyond.
 """

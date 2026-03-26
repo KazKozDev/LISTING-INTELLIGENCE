@@ -364,7 +364,7 @@ class VisionAgent:
         self,
         results: list[AnalysisResult],
         output_path: str | Path | None = None,
-        title: str = "Vision Agent Analysis Report",
+        title: str = "Listing Intelligence Report",
         **kwargs
     ) -> Path:
         """Generate a report from analysis results.

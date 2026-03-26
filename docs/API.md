@@ -1,273 +1,249 @@
 # API Reference
 
-Vision Agent Analyst REST API. Base URL: `http://localhost:8000`
+Listing Intelligence REST API.
 
-Interactive docs available at `/docs` (Swagger UI) and `/redoc` (ReDoc) when server is running.
+Base URL for local development:
 
----
+```text
+http://localhost:8000
+```
 
-## General Endpoints
+Interactive docs are available at:
+
+- `/docs`
+- `/redoc`
+
+## Root And System Endpoints
 
 ### `GET /`
-Root status endpoint.
 
-**Response:**
+Basic service status.
+
+Example response:
+
 ```json
-{"message": "Vision Agent Analyst API", "version": "1.0.1-beta", "status": "running"}
+{
+  "message": "Listing Intelligence API",
+  "version": "1.0.1-beta",
+  "status": "running"
+}
 ```
 
 ### `GET /api/config`
-Get current LLM provider configuration.
 
-**Response:**
-```json
-{"provider": "ollama", "model": "qwen3-vl:8b", "temperature": 0.7, "max_tokens": 2048}
-```
+Returns active provider and application configuration.
 
 ### `GET /api/health`
-Health check with provider connectivity status.
 
-**Response:**
-```json
-{"status": "healthy", "timestamp": "...", "provider": "ollama", "provider_connected": true}
-```
+Returns health information and provider connectivity state.
 
 ### `GET /api/usage`
-Token usage statistics.
 
-**Response:**
-```json
-{"total_requests": 42, "total_tokens": 12500, "by_provider": {"ollama": {"requests": 42, "tokens": 12500}}}
-```
+Returns token usage totals tracked by the backend.
 
-### `GET /api/templates`
-Available analysis templates (basic + industry).
+### `GET /api/models?provider=<name>`
 
-**Response:**
-```json
-{"basic": [{"key": "general", "name": "General", "description": "...", "prompt": "..."}], "industry": [...]}
-```
+Lists models for a given provider.
+
+## General Analysis
 
 ### `POST /api/analyze`
-Analyze an uploaded file (image or PDF).
 
-**Form Data:**
-| Field | Type | Required | Description |
-|-------|------|----------|-------------|
-| `file` | File | Yes | Image (PNG/JPG/WebP) or PDF |
-| `prompt` | string | Yes | Analysis prompt |
-| `template_key` | string | No | Template identifier |
-| `provider` | string | No | Override LLM provider |
-| `model` | string | No | Override model |
+Analyze an uploaded file.
 
-**Response:**
-```json
-{
-  "success": true,
-  "filename": "photo.jpg",
-  "analysis": "Detailed analysis text...",
-  "metadata": {},
-  "timestamp": "2025-01-01T00:00:00",
-  "prompt": "...",
-  "tokens_used": 450
-}
-```
+Form fields:
 
----
+- `file`
+- `prompt`
+- `template_key` optional
+- `provider` optional
+- `model` optional
+- `api_key` optional
+- `base_url` optional
 
-## E-Commerce Endpoints
+### `POST /api/ecommerce/analyze-listing`
+
+Analyze a listing URL or pasted listing text.
+
+Form fields:
+
+- `source_mode` with value `url` or `manual`
+- `listing_url` when using URL mode
+- `listing_text` when using manual mode
+- `prompt` optional
+- `template_key` optional
+- provider override fields optional
+
+## Marketplace And Listing Endpoints
 
 ### `GET /api/ecommerce/marketplaces`
-List supported marketplaces with their photo requirements.
 
-**Response:**
-```json
-{
-  "marketplaces": [
-    {
-      "id": "allegro",
-      "name": "Allegro",
-      "min_image_width": 1000,
-      "min_image_height": 1000,
-      "max_file_size_mb": 10,
-      "required_background": "white or neutral",
-      "aspect_ratio": "1:1 preferred",
-      "forbidden_elements": ["watermarks", "logos", "text overlays"],
-      "recommendations": [...]
-    }
-  ]
-}
-```
+Returns supported marketplaces and their configured rules.
 
 ### `POST /api/ecommerce/analyze-product`
-Full product photo analysis with SEO and quality assessment.
 
-**Form Data:**
-| Field | Type | Required | Description |
-|-------|------|----------|-------------|
-| `file` | File | Yes | Product photo |
-| `marketplace` | string | No | Target marketplace (default: "general") |
+Analyze a product image.
 
-**Response:**
-```json
-{
-  "success": true,
-  "filename": "product.jpg",
-  "analysis": "Product Description: ... SEO Title: ... Tags: ...",
-  "marketplace": "allegro",
-  "metadata": {},
-  "timestamp": "...",
-  "tokens_used": 680
-}
-```
+Form fields:
 
-### `POST /api/ecommerce/compliance-check`
-Check product photo compliance with marketplace requirements.
+- `file`
+- `marketplace` optional
+- provider override fields optional
 
-**Form Data:**
-| Field | Type | Required | Description |
-|-------|------|----------|-------------|
-| `file` | File | Yes | Product photo |
-| `marketplace` | string | Yes | Target marketplace |
+### `POST /api/ecommerce/analyze-product-full`
 
-**Response:**
-```json
-{
-  "success": true,
-  "filename": "product.jpg",
-  "marketplace": "walmart",
-  "analysis": "Compliance Status: PASS/FAIL ...",
-  "metadata": {},
-  "timestamp": "...",
-  "tokens_used": 520
-}
-```
+Run a fuller product-analysis workflow with listing-oriented output.
+
+Form fields:
+
+- `file`
+- `marketplace` optional
+- `keywords` optional
+- provider override fields optional
 
 ### `POST /api/ecommerce/generate-seo`
-Generate SEO-optimized listing content from product image.
 
-**Form Data:**
-| Field | Type | Required | Description |
-|-------|------|----------|-------------|
-| `file` | File | Yes | Product photo |
-| `marketplace` | string | No | Target marketplace (default: "general") |
-| `keywords` | string | No | Target keywords (comma-separated) |
-
-**Response:**
-```json
-{
-  "success": true,
-  "filename": "product.jpg",
-  "marketplace": "amazon",
-  "seo_content": "Title: ... Bullet Points: ... Description: ... Tags: ...",
-  "metadata": {},
-  "timestamp": "...",
-  "tokens_used": 750
-}
-```
-
-### `POST /api/ecommerce/batch-analyze`
-Batch analyze multiple product images.
-
-**Form Data:**
-| Field | Type | Required | Description |
-|-------|------|----------|-------------|
-| `files` | File[] | Yes | Multiple product photos |
-| `marketplace` | string | No | Target marketplace (default: "general") |
-
-**Response:**
-```json
-{
-  "success": true,
-  "total_files": 5,
-  "processed": 5,
-  "results": [
-    {"filename": "img1.jpg", "analysis": "...", "success": true, "metadata": {}},
-    {"filename": "img2.jpg", "analysis": "...", "success": true, "metadata": {}}
-  ],
-  "csv_data": "filename,analysis,...",
-  "timestamp": "..."
-}
-```
+Generate SEO-oriented listing content from a product image.
 
 ### `POST /api/ecommerce/compare`
-Compare product photo with competitor's listing.
 
-**Form Data:**
-| Field | Type | Required | Description |
-|-------|------|----------|-------------|
-| `product_image` | File | Yes | Your product photo |
-| `competitor_image` | File | Yes | Competitor's product photo |
-| `marketplace` | string | No | Target marketplace (default: "general") |
+Compare one product image with one competitor image.
 
-**Response:**
-```json
-{
-  "success": true,
-  "product_filename": "my_product.jpg",
-  "competitor_filename": "competitor.jpg",
-  "analysis": "Strengths: ... Weaknesses: ... Action Items: ...",
-  "marketplace": "general",
-  "metadata": {},
-  "timestamp": "...",
-  "tokens_used": 890
-}
-```
+Form fields:
+
+- `product_image`
+- `competitor_image`
+- `marketplace` optional
+- provider override fields optional
+
+### `POST /api/ecommerce/batch-analyze`
+
+Batch-analyze multiple product images.
+
+Form fields:
+
+- `files`
+- `marketplace` optional
+- `keywords` optional
+- provider override fields optional
+
+## Compliance Endpoints
+
+### `POST /api/ecommerce/compliance-check`
+
+Run marketplace compliance review for a product image.
+
+Form fields:
+
+- `file`
+- `marketplace`
+- provider override fields optional
+
+### `POST /api/ecommerce/compliance-fix/suggestions`
+
+Return deterministic fix suggestions for a non-compliant image.
+
+Form fields:
+
+- `file`
+- `marketplace`
+
+### `POST /api/ecommerce/compliance-fix/apply`
+
+Apply a selected deterministic fix and return before/after analysis.
+
+Form fields:
+
+- `file`
+- `marketplace`
+- `action`
+- `transform_payload` optional
+- provider override fields optional
+
+## Focused Analysis Endpoints
 
 ### `POST /api/ecommerce/suggest-improvements`
-Suggest photo improvements for better conversion.
 
-**Form Data:**
-| Field | Type | Required | Description |
-|-------|------|----------|-------------|
-| `file` | File | Yes | Product photo |
-
-**Response:**
-```json
-{
-  "success": true,
-  "filename": "product.jpg",
-  "analysis": "Current Score: 6/10 ... Top 5 Improvements: ...",
-  "metadata": {},
-  "timestamp": "...",
-  "tokens_used": 620
-}
-```
+Return improvement guidance for a product image.
 
 ### `POST /api/ecommerce/extract-attributes`
-Extract product attributes from photo.
 
-**Form Data:**
-| Field | Type | Required | Description |
-|-------|------|----------|-------------|
-| `file` | File | Yes | Product photo |
+Extract product attributes from an uploaded image.
 
-**Response:**
+### `POST /api/ecommerce/inventory-check`
+
+Run deterministic object detection and OCR for shelf or inventory-style images.
+
+## Image Intelligence Endpoints
+
+### `POST /api/image-intelligence/quality`
+
+Neural image-quality scoring.
+
+### `POST /api/image-intelligence/objects`
+
+Object detection.
+
+### `POST /api/image-intelligence/text`
+
+OCR text detection.
+
+### `POST /api/image-intelligence/florence`
+
+Florence-based image analysis.
+
+### `POST /api/image-intelligence/upscale`
+
+Recommendation endpoint for whether an image should be upscaled.
+
+### `POST /api/image-intelligence/relight/apply`
+
+Apply IC-Light relighting.
+
+Form fields:
+
+- `image`
+- `prompt` optional
+- `light_direction` optional
+
+### `POST /api/image-intelligence/upscale/apply`
+
+Apply Real-ESRGAN upscaling.
+
+### `POST /api/image-intelligence/outpaint/apply`
+
+Expand the image canvas and outpaint the new region.
+
+Form fields:
+
+- `image`
+- `direction` optional
+- `expand_ratio` optional
+- `prompt` optional
+
+### `POST /api/image-intelligence/erase`
+
+Erase selected regions such as text or watermarks.
+
+Form fields:
+
+- `image`
+- `regions` as JSON-encoded bounding boxes
+
+## Error Format
+
+Typical error response:
+
 ```json
 {
-  "success": true,
-  "filename": "product.jpg",
-  "attributes": "Category: Electronics ... Color: Black ... Material: Plastic ...",
-  "metadata": {},
-  "timestamp": "...",
-  "tokens_used": 480
+  "detail": "Error message"
 }
 ```
 
----
+Typical status codes:
 
-## Error Responses
-
-All endpoints return standard HTTP error codes:
-
-| Code | Description |
-|------|-------------|
-| 400 | Bad request (invalid marketplace, etc.) |
-| 422 | Validation error (missing required fields) |
-| 500 | Internal server error |
-| 503 | Agent not initialized |
-
-Error format:
-```json
-{"detail": "Error message description"}
-```
+- `400` invalid request or unsupported values
+- `422` missing or invalid form data
+- `500` internal processing error
+- `503` agent unavailable
+- `504` long-running operation timed out

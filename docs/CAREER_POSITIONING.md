@@ -4,7 +4,7 @@ Use the snippets below for your CV, LinkedIn, portfolio site, or application mat
 
 ## Selected Project
 
-### Selected Project: Vision Agent Analyst
+### Selected Project: Listing Intelligence
 
 Built a full-stack AI product for marketplace listing intelligence, compliance review, competitor analysis, and deterministic image operations. The system combines a React and TypeScript frontend with a FastAPI backend, multimodal LLM orchestration, and computer-vision utilities such as OCR, object detection, relighting, upscaling, and export-oriented image correction. Designed as a product-shaped system rather than a single-model demo, it demonstrates typed API design, multi-provider architecture, caching, rate limiting, cost tracking, CI, and Dockerized local deployment.
 
@@ -34,4 +34,4 @@ Built a full-stack AI product for marketplace listing intelligence, compliance r
 
 ## LinkedIn Summary
 
-Built Vision Agent Analyst, a full-stack AI product for marketplace listing intelligence, compliance review, competitor comparison, and deterministic image operations. The system combines React, TypeScript, FastAPI, multimodal LLM orchestration, OCR, object detection, relighting, upscaling, caching, rate limiting, CI, and Dockerized local deployment.
+Built Listing Intelligence, a full-stack AI product for marketplace listing intelligence, compliance review, competitor comparison, and deterministic image operations. The system combines React, TypeScript, FastAPI, multimodal LLM orchestration, OCR, object detection, relighting, upscaling, caching, rate limiting, CI, and Dockerized local deployment.

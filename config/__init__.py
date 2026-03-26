@@ -1,4 +1,4 @@
-"""Configuration management for Vision Agent Analyst."""
+"""Configuration management for Listing Intelligence."""
 
 import os
 import sys

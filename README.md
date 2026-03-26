@@ -1,8 +1,8 @@
 <div align="center">
 
-# Vision Agent Analyst
+# Listing Intelligence
 
-Full-stack AI product for marketplace listing intelligence and deterministic image operations.
+AI workspace for marketplace listings, compliance review, and deterministic product-image fixes.
 
 [![Status: Beta](https://img.shields.io/badge/status-beta-2563eb.svg)](#)
 [![CI](https://github.com/KazKozDev/LISTING-INTELLIGENCE/actions/workflows/ci.yml/badge.svg)](https://github.com/KazKozDev/LISTING-INTELLIGENCE/actions)
@@ -11,69 +11,57 @@ Full-stack AI product for marketplace listing intelligence and deterministic ima
 
 </div>
 
-## Highlights
+## What It Is
 
-- Product-shaped AI system, not a single-model demo
-- End-to-end React, FastAPI, and multimodal backend architecture
-- Listing, compliance, compare, batch, and fix workflows in one app
-- Deterministic CV tools where repeatability matters most
-- Local-first execution path with Ollama support
+Listing Intelligence is a full-stack application for product-image analysis and marketplace operations. It combines LLM-driven listing workflows with deterministic computer-vision utilities, so the same system can both generate copy and perform repeatable image corrections.
 
-## Demo
+The current product is organized around four working modes:
 
-<!-- TODO: Add demo GIF or screenshot -->
+- Product Workspace for listing analysis, SEO output, comparison, and batch runs
+- Compliance for marketplace image audits against Amazon, Walmart, eBay, Allegro, and general rules
+- Fix Studio for deterministic correction flows such as recentering, relighting, outpainting, watermark/text removal, and export review
+- Additional Tools for narrower workflows like attribute extraction, inventory scans, pricing, keyword gaps, and related analysis
 
-## Overview
+## Why It Exists
 
-Vision Agent Analyst is a full-stack AI application built around a clear operational workflow: take raw product visuals and turn them into listing, compliance, comparison, and image-fix outputs that are usable in marketplace contexts. From a single image, the system can generate listing copy, extract attributes, score quality, compare against competitors, validate marketplace rules, and route work into deterministic fix flows. As a portfolio project, it is meant to show end-to-end product ownership across UX, backend architecture, model orchestration, and production-oriented engineering.
+Marketplace work usually gets split across several disconnected tools: one for copy, one for image review, one for compliance checks, and another for cleanup. This project pulls those steps into one product surface and makes a clear distinction between two kinds of work:
 
-## Why This Project Matters
+- generative tasks, where an LLM is useful
+- deterministic tasks, where predictable CV pipelines are safer
 
-Most AI portfolio projects stop at a chat interface or a single inference call. This repository goes further by packaging model behavior into a product with explicit user flows, typed contracts, deterministic fallbacks, CI, and deployment primitives. It demonstrates the ability to make engineering decisions about when to use LLM generation, when to use deterministic computer vision, how to structure a multi-provider backend, and how to turn that into a coherent interface that looks and behaves like a real product rather than an experiment.
+That separation is the point of the repo. It is not just a model wrapper. It is a product-shaped system with UI, API, routing, validation, export, history, and image-operation pipelines.
 
-## Motivation
+## Core Capabilities
 
-Marketplace operations are messy because the work is split across copywriting, visual QA, compliance interpretation, competitive review, and repetitive image cleanup. Generic AI tools can help with parts of that process, but they do not usually provide workflow-specific structure or reliable deterministic steps when precision matters. This project packages those responsibilities into one system and deliberately mixes LLM generation with OCR, detection, relighting, upscaling, and export-focused utilities so the product can support both creative and operational tasks.
+- Generate listing analysis and SEO-oriented product copy from uploaded images
+- Compare a product image against a competitor image and return structured recommendations
+- Run marketplace compliance audits with explicit pass/fail style guidance
+- Suggest and apply deterministic compliance fixes
+- Process multiple product images in batch and export CSV output
+- Run object detection, OCR, quality scoring, Florence analysis, relighting, outpainting, upscaling, and erase flows
+- Switch between local and hosted model providers from the same product
 
-## Features
+## Stack
 
-- Product workspace for full listing generation from product images
-- Competitor comparison with structured strengths, weaknesses, and next actions
-- Marketplace compliance checks for publish-ready image validation
-- Additional e-commerce tools for pricing, reviews, keywords, USP, and inventory workflows
-- Fix Studio for deterministic image cleanup, relighting, outpainting, and export
-- Batch analysis pipeline with CSV export
-- Multi-provider model routing with local and hosted backends
-- Core multimodal engine for visual and PDF analysis
+- Frontend: React 19, TypeScript, Vite
+- Backend: FastAPI, Pydantic, Uvicorn
+- LLM providers: Ollama, OpenAI, Anthropic, Google Gemini, Azure OpenAI
+- Vision tooling: YOLO, EasyOCR, Florence-2, diffusers, Real-ESRGAN, LaMa, IC-Light
+- Tooling: Pytest, Ruff, Black, Mypy, Docker, Docker Compose
 
 ## Architecture
 
-Components:
-- Frontend app in React 19 and TypeScript for product, compliance, fix, tools, history, settings, and help flows
-- FastAPI backend exposing REST endpoints for analysis, e-commerce workflows, and image-intelligence operations
-- Core VisionAgent service for multimodal analysis, provider selection, caching, token counting, and rate limiting
-- E-commerce services for listing generation, compliance, comparison, SEO, batch processing, and image operations
-- Config-driven prompt and model layer in `config/` for provider, logging, and template control
+- [frontend](frontend) contains the React client and the product workflows users interact with
+- [api](api) exposes the HTTP API used by the frontend and external clients
+- [src](src) contains the core agent, provider integrations, report/export logic, and e-commerce/image services
+- [config](config) contains model, prompt, policy, and logging configuration
+- [tests](tests) covers backend behavior and service-level flows
 
-Flow:
-- User uploads an image or document
-- Frontend sends a typed request to the backend
-- Backend routes the request to VisionAgent or a specialized e-commerce service
-- Service combines LLM inference and, where needed, deterministic CV utilities
-- API returns structured results for UI rendering, export, and follow-up actions
-
-## Tech Stack
-
-- Python 3.10+, FastAPI, Pydantic, Uvicorn
-- React 19, TypeScript, Vite
-- Ollama, OpenAI, Anthropic, Google Gemini, Azure OpenAI
-- Ultralytics YOLO, EasyOCR, diffusers, Real-ESRGAN, Florence-based image tooling
-- Pytest, Black, Ruff, Mypy
-- Docker and Docker Compose
+The backend routes requests either into multimodal LLM analysis or into deterministic image tooling, depending on the operation. That split is visible both in the UI and in the API surface.
 
 ## Quick Start
 
-1. Clone the repository and create your environment file.
+1. Clone the repository and create the local environment file.
 
 ```bash
 git clone https://github.com/KazKozDev/LISTING-INTELLIGENCE.git
@@ -87,13 +75,13 @@ cp .env.example .env
 pip install -e ".[dev]"
 ```
 
-3. Start the backend.
+3. Start the API server.
 
 ```bash
 uvicorn api.main:app --reload --port 8000
 ```
 
-4. Start the frontend in a new terminal.
+4. Start the frontend in a second terminal.
 
 ```bash
 cd frontend
@@ -101,73 +89,85 @@ npm install
 npm run dev
 ```
 
-Default local URLs:
+5. Open the app and docs.
+
 - Frontend: http://localhost:5173
 - Backend: http://localhost:8000
-- API docs: http://localhost:8000/docs
+- Swagger UI: http://localhost:8000/docs
+- ReDoc: http://localhost:8000/redoc
 
-### Docker
+## Docker
 
 ```bash
-docker-compose up
+docker-compose up --build
 ```
 
-Docker exposes:
-- Frontend on port `3000`
-- Backend on port `8000`
+The compose stack exposes:
 
-## Usage
+- frontend on port 3000
+- backend on port 8000
 
-1. Open Product Workspace to generate listing copy, compare products, or run batch image analysis.
-2. Open Compliance Check to validate marketplace image rules before publishing.
-3. Open Fix Studio to run deterministic image cleanup, relighting, outpainting, upscaling, and export tasks.
-4. Open Additional Tools for focused workflows such as keyword gaps, competitor insights, pricing analysis, and inventory checks.
+## First Workflow
 
-## API
+1. Open Product Workspace.
+2. Upload a product image.
+3. Choose the marketplace.
+4. Run full product analysis or a targeted tool.
+5. If the image fails policy review, move into Compliance.
+6. If the image needs correction, open Fix Studio and apply a deterministic fix.
 
-Key routes:
+## API Highlights
+
+Important routes in the current backend:
 
 | Method | Endpoint | Purpose |
 | --- | --- | --- |
-| `GET` | `/api/config` | Active provider and app configuration |
+| `GET` | `/api/config` | Current provider and model configuration |
+| `GET` | `/api/health` | Backend and provider connectivity status |
 | `POST` | `/api/analyze` | General file analysis |
-| `GET` | `/api/ecommerce/marketplaces` | Marketplace rules metadata |
-| `POST` | `/api/ecommerce/analyze-product-full` | Full listing analysis from a product image |
-| `POST` | `/api/ecommerce/compliance-check` | Marketplace compliance workflow |
-| `POST` | `/api/ecommerce/compare` | Competitor comparison |
-| `POST` | `/api/ecommerce/batch-analyze` | Batch workflow with CSV export |
-| `POST` | `/api/ecommerce/inventory-check` | Deterministic object detection and OCR shelf analysis |
+| `POST` | `/api/ecommerce/analyze-product` | Product photo analysis |
+| `POST` | `/api/ecommerce/analyze-product-full` | Product analysis plus SEO-style output |
+| `POST` | `/api/ecommerce/analyze-listing` | Listing URL or pasted listing text analysis |
+| `POST` | `/api/ecommerce/compliance-check` | Marketplace compliance review |
+| `POST` | `/api/ecommerce/compliance-fix/suggestions` | Deterministic fix suggestions |
+| `POST` | `/api/ecommerce/compliance-fix/apply` | Apply a selected deterministic fix |
+| `POST` | `/api/ecommerce/compare` | Product vs competitor comparison |
+| `POST` | `/api/ecommerce/batch-analyze` | Batch processing for multiple product images |
+| `POST` | `/api/ecommerce/inventory-check` | Deterministic object detection plus OCR review |
+| `POST` | `/api/image-intelligence/relight/apply` | IC-Light relighting |
+| `POST` | `/api/image-intelligence/outpaint/apply` | Canvas expansion and outpainting |
+| `POST` | `/api/image-intelligence/erase` | Remove text or watermarks with inpainting |
 
-Full API reference: [docs/API.md](docs/API.md)
+Full endpoint details are in [docs/API.md](docs/API.md).
 
 ## Project Structure
 
 ```text
-vision-agent-analyst/
+LISTING-INTELLIGENCE/
 ├── api/                 FastAPI routes and response schemas
-├── config/              Model, prompt, policy, and logging configuration
-├── docs/                API and feature documentation
-├── examples/            Python usage examples
-├── frontend/            React + TypeScript client application
-├── src/                 Core agent, providers, utilities, and e-commerce services
-├── tests/               Pytest suite and fixtures
-├── Dockerfile           Backend container build
-├── docker-compose.yml   Full local stack orchestration
+├── config/              Model, prompt, marketplace, and logging config
+├── docs/                Product and API documentation
+├── examples/            Example scripts for API usage
+├── frontend/            React client
+├── src/                 Core services, providers, exporters, and CV tooling
+├── tests/               Backend test suite
+├── Dockerfile           Backend container image
+├── docker-compose.yml   Local full-stack orchestration
 └── pyproject.toml       Python package metadata and tooling config
 ```
 
-## Testing
+## Development Checks
 
-Backend checks:
+Backend:
 
 ```bash
 black --check src/ api/ config/ tests/
 ruff check src/ api/ config/ tests/
 mypy src/ api/ --ignore-missing-imports
-pytest --cov=src --cov=api --cov-report=term-missing --cov-fail-under=70
+pytest -q
 ```
 
-Frontend checks:
+Frontend:
 
 ```bash
 cd frontend
@@ -175,46 +175,24 @@ npm run lint
 npm run build
 ```
 
-CI in [.github/workflows/ci.yml](.github/workflows/ci.yml) runs Python linting, mypy, pytest coverage, frontend lint/build, and Docker image build.
+CI in [.github/workflows/ci.yml](.github/workflows/ci.yml) runs backend checks, frontend lint/build, and Docker image validation.
 
 ## Documentation
 
-- [docs/API.md](docs/API.md) — REST API reference
-- [docs/ECOMMERCE_GUIDE.md](docs/ECOMMERCE_GUIDE.md) — e-commerce workflows and usage
-- [docs/QUICKSTART.md](docs/QUICKSTART.md) — startup notes
-- [docs/EXPORT_GUIDE.md](docs/EXPORT_GUIDE.md) — export flows and formats
-- [docs/INDUSTRY_TEMPLATES.md](docs/INDUSTRY_TEMPLATES.md) — configured analysis templates
-- [docs/NEW_FEATURES.md](docs/NEW_FEATURES.md) — recent product additions
+- [docs/API.md](docs/API.md) for the backend API
+- [docs/QUICKSTART.md](docs/QUICKSTART.md) for a short setup and usage path
+- [docs/ECOMMERCE_GUIDE.md](docs/ECOMMERCE_GUIDE.md) for marketplace workflows
+- [docs/EXPORT_GUIDE.md](docs/EXPORT_GUIDE.md) for export formats and reports
+- [docs/INDUSTRY_TEMPLATES.md](docs/INDUSTRY_TEMPLATES.md) for configurable prompt templates
 
 ## License
 
-This project is available under the PolyForm Noncommercial 1.0.0 license for personal, educational, research, portfolio, and other non-commercial use.
+This repository is source-available under PolyForm Noncommercial 1.0.0 for personal, educational, research, and other non-commercial use.
 
-Commercial use requires a separate paid license.
+Commercial use requires a separate license. See [LICENSE](LICENSE) and [COMMERCIAL-LICENSE.md](COMMERCIAL-LICENSE.md).
 
-See [LICENSE](LICENSE) for the non-commercial terms and [COMMERCIAL-LICENSE.md](COMMERCIAL-LICENSE.md) for commercial licensing details.
-
-## Commercial Use
-
-This repository is source-available.
-
-Commercial licensing contact:
+## Commercial Contact
 
 - Email: KazKozDev@gmail.com
-- [GitHub](https://github.com/KazKozDev)
-- [LinkedIn](https://www.linkedin.com/in/kazkozdev/)
-
-## Contributing
-
-1. Fork the repository.
-2. Create a feature branch.
-3. Run backend and frontend checks before opening a pull request.
-4. Submit a pull request with a concise change summary.
-
----
-
-<div align="center">
-
-[Artem KK](https://www.linkedin.com/in/kazkozdev/) | PolyForm Noncommercial [LICENSE](LICENSE) | [Commercial Licensing](COMMERCIAL-LICENSE.md)
-
-</div>
+- GitHub: https://github.com/KazKozDev
+- LinkedIn: https://www.linkedin.com/in/kazkozdev/

@@ -1,6 +1,6 @@
 # E-Commerce Guide
 
-Vision Agent Analyst includes specialized tools for e-commerce product photo analysis, SEO optimization, and marketplace compliance.
+Listing Intelligence includes specialized tools for e-commerce product photo analysis, SEO optimization, and marketplace compliance.
 
 ## Supported Marketplaces
 

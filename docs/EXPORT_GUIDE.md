@@ -1,210 +1,107 @@
-# Export Formats Guide
+# Export Guide
 
-Vision Agent Analyst supports multiple export formats to fit different workflows.
+Listing Intelligence supports export paths for both individual runs and saved history.
 
 ## Available Formats
 
-### 1. JSON Export 📄
+### JSON
 
-**Best for**: 
-- API integration
-- Programmatic processing
-- Data pipelines
-- Archival storage
+Best for:
 
-**Structure**:
-```json
-{
-  "filename": "product_screenshot.png",
-  "timestamp": "2025-12-06T02:30:00",
-  "task": "Analyze this e-commerce product...",
-  "analysis": "Full analysis text here...",
-  "metadata": {
-    "model": "gpt-4o",
-    "provider": "openai",
-    "usage": {
-      "total_tokens": 1234
-    }
-  }
-}
+- automation
+- data pipelines
+- preserving full metadata
+
+Typical contents:
+
+- filename
+- timestamp
+- prompt or task context
+- analysis text
+- provider and model metadata
+- token usage
+
+### CSV
+
+Best for:
+
+- spreadsheet workflows
+- bulk review
+- simple reporting
+
+Typical columns:
+
+- filename
+- timestamp
+- task
+- analysis
+- model
+- provider
+- token count
+
+### Markdown
+
+Best for:
+
+- readable text reports
+- internal notes
+- lightweight sharing
+
+The frontend history view exports Markdown for both single runs and combined history archives.
+
+## Where Export Happens
+
+### Single Saved Run
+
+In Run History, each saved entry can be exported as:
+
+- JSON
+- CSV
+- Markdown
+
+### Full Run History
+
+Run History also supports archive export for all saved entries as:
+
+- JSON
+- CSV
+- Markdown
+
+## File Naming
+
+Current frontend export naming patterns:
+
+```text
+analysis_<filename>_<date>.json
+analysis_<filename>_<date>.csv
+analysis_<filename>_<date>.md
+all_analyses_<date>.json
+all_analyses_<date>.csv
+all_analyses_<date>.md
 ```
 
-**Use cases**:
-- Feeding results into other systems
-- Building analysis databases
-- Machine learning training data
-- Long-term storage with full context
+## Practical Use
 
----
+### Use JSON when
 
-### 2. CSV Export 📊
+- another service will consume the output
+- metadata and token usage need to be retained
+- results should be stored in structured form
 
-**Best for**:
-- Spreadsheet analysis (Excel, Google Sheets)
-- Data visualization
-- Bulk data review
-- Reporting dashboards
+### Use CSV when
 
-**Columns**:
-- Filename
-- Timestamp
-- Task
-- Analysis
-- Model
-- Provider
-- Tokens Used
+- results need to be reviewed in Excel or Google Sheets
+- multiple runs should be compared quickly
+- token usage or model usage should be summarized
 
-**Use cases**:
-- Creating pivot tables
-- Tracking costs (token usage)
-- Comparing analyses across files
-- Sharing with non-technical stakeholders
+### Use Markdown when
 
----
+- a readable narrative export is preferred
+- analysis needs to be copied into docs, tickets, or reports
+- a lightweight combined archive is enough
 
-### 3. PDF Export 📕
+## Related Notes
 
-**Best for**:
-- Client presentations
-- Executive reports
-- Archival documentation
-- Print-ready documents
-
-**Features**:
-- Professional formatting
-- Branded layout
-- Page numbers
-- Table of contents (for batch reports)
-
-**Use cases**:
-- Stakeholder presentations
-- Compliance documentation
-- Portfolio pieces
-- Client deliverables
-
----
-
-## Export Options
-
-### Single File Analysis
-After analyzing a file, you'll see three export buttons:
-- **📄 JSON** - Download as JSON
-- **📊 CSV** - Download as CSV
-- **📕 PDF** - Download as PDF
-
-### Batch Export (Analysis History)
-In the "Analysis History" tab:
-- **📄 Export All (JSON)** - All results in one JSON file
-- **📊 Export All (CSV)** - All results in one CSV file
-- **🗑️ Clear History** - Remove all stored results
-
-## Workflow Examples
-
-### Workflow 1: E-commerce Product Monitoring
-1. Analyze competitor product pages daily
-2. Export as **CSV**
-3. Import into Google Sheets
-4. Track price changes and UI updates over time
-5. Create charts showing competitive trends
-
-### Workflow 2: Financial Report Generation
-1. Analyze quarterly financial charts
-2. Export as **JSON**
-3. Extract numerical data programmatically
-4. Feed into financial modeling tools
-5. Generate automated reports
-
-### Workflow 3: Client Deliverable
-1. Analyze client's marketing creatives
-2. Export as **PDF**
-3. Add to presentation deck
-4. Share with client for review
-5. Archive for future reference
-
-### Workflow 4: Bulk Document Processing
-1. Upload 50 invoices (Batch Analysis)
-2. Use "Logistics Document Analysis" template
-3. Export all as **CSV**
-4. Import into accounting software
-5. Automate data entry
-
-## Integration Tips
-
-### Google Sheets Integration
-1. Export as CSV
-2. Open Google Sheets
-3. File → Import → Upload
-4. Select your CSV file
-5. Use built-in formulas for analysis
-
-### Python Integration
-```python
-import json
-
-# Load JSON export
-with open('analysis_results.json') as f:
-    data = json.load(f)
-
-# Process results
-for item in data:
-    print(f"File: {item['filename']}")
-    print(f"Analysis: {item['analysis'][:100]}...")
-    print(f"Tokens: {item['metadata']['usage']['total_tokens']}")
-```
-
-### Excel Integration
-1. Export as CSV
-2. Open Excel
-3. Data → From Text/CSV
-4. Select your file
-5. Use Power Query for advanced analysis
-
-## Best Practices
-
-1. **Choose format by use case**:
-   - JSON for automation
-   - CSV for analysis
-   - PDF for presentation
-
-2. **Batch export for efficiency**:
-   - Analyze multiple files
-   - Export all at once
-   - Process in bulk
-
-3. **Preserve metadata**:
-   - JSON includes full context
-   - CSV includes key metrics
-   - PDF includes visual formatting
-
-4. **Regular exports**:
-   - Don't rely on browser storage
-   - Export important results immediately
-   - Clear history periodically
-
-## File Naming Convention
-
-All exports use this pattern:
-```
-analysis_[filename]_[timestamp].ext
-all_analyses_[timestamp].ext
-```
-
-Example:
-```
-analysis_product_screenshot.png_20251206_023000.json
-all_analyses_20251206_023000.csv
-```
-
-## Troubleshooting
-
-**Q: CSV shows garbled text**
-A: Open with UTF-8 encoding in your spreadsheet software
-
-**Q: JSON file is too large**
-A: Export individual results instead of batch export
-
-**Q: PDF export not available**
-A: Install reportlab: `pip install reportlab`
-
-**Q: Can I customize export format?**
-A: Yes, edit `src/utils/export.py` for custom formats
+- The frontend history system stores previous runs locally and exposes export from that archive.
+- Backend report generation also exists in the Python codebase, but the current frontend history UX exports JSON, CSV, and Markdown.
+- If you need API-facing output formats, use the REST endpoints documented in [API.md](API.md).

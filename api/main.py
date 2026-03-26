@@ -1,4 +1,4 @@
-"""FastAPI backend for Vision Agent Analyst."""
+"""FastAPI backend for Listing Intelligence."""
 
 import asyncio
 from collections import Counter
@@ -86,11 +86,11 @@ async def lifespan(app: FastAPI):
 
 
 app = FastAPI(
-    title="Vision Agent Analyst API",
+    title="Listing Intelligence API",
     description=(
         "AI-powered visual analysis for e-commerce, charts, and documents"
     ),
-    version="0.2.0",
+    version="1.0.1-beta",
     lifespan=lifespan,
 )
 
@@ -503,7 +503,6 @@ def build_inventory_vision_review_prompt(
     )
 
     return (
-        "You are validating an object-detection pass over an image. "
         "Use the image as primary evidence and the structured detection "
         "payload as supporting context. Do not invent exact counts beyond "
         "the supplied detections. If the scene visually suggests occlusion, "
@@ -526,8 +525,8 @@ def build_inventory_vision_review_prompt(
 def root():
     """Root endpoint."""
     return {
-        "message": "Vision Agent Analyst API",
-        "version": "0.2.0",
+        "message": "Listing Intelligence API",
+        "version": "1.0.1-beta",
         "status": "running",
     }
 

@@ -29,7 +29,7 @@ A clear and concise description of what actually happened.
 
 - OS: [e.g., Ubuntu 20.04, Windows 11, macOS 13]
 - Python Version: [e.g., 3.9, 3.10, 3.11]
-- Vision Agent Analyst Version: [e.g., 0.1.0]
+- Listing Intelligence Version: [e.g., 1.0.1-beta]
 - LLM Provider: [e.g., Ollama, OpenAI, Anthropic]
 - Model: [e.g., qwen3-vl:8b, gpt-4o]
 

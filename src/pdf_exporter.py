@@ -43,7 +43,7 @@ class PDFExporter:
         self,
         results: list[Any],
         output_path: Path | None = None,
-        title: str = "Vision Agent Analysis Report",
+        title: str = "Listing Intelligence Report",
         include_metadata: bool = True,
         **kwargs
     ) -> Path:
@@ -389,7 +389,7 @@ class PDFExporter:
         canvas.setFont('Helvetica', 9)
         canvas.setFillColor(colors.HexColor('#6b7280'))
         canvas.drawRightString(A4[0] - 2*cm, 1.5*cm, text)
-        canvas.drawString(2*cm, 1.5*cm, "Vision Agent Analyst")
+        canvas.drawString(2*cm, 1.5*cm, "Listing Intelligence")
         canvas.restoreState()
 
     def _escape_html(self, text: str) -> str:
@@ -410,7 +410,7 @@ class PDFExporter:
     def export_to_bytes(
         self,
         results: list[Any],
-        title: str = "Vision Agent Analysis Report",
+        title: str = "Listing Intelligence Report",
         include_metadata: bool = True,
         **kwargs
     ) -> bytes:

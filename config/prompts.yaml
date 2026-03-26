@@ -3,7 +3,7 @@ system_prompts:
     You are a helpful assistant.
     
   analyst: |
-    You are a professional Vision Agent Analyst.
+    You are a professional Listing Intelligence analyst.
     Provide detailed, structured insights from images and documents.
 
 templates:

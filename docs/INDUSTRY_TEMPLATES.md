@@ -1,174 +1,92 @@
-# Industry-Specific Templates
+# Templates Guide
 
-Vision Agent Analyst includes pre-built analysis templates optimized for specific industries and use cases.
+Listing Intelligence uses prompt templates defined in [config/prompts.yaml](../config/prompts.yaml).
 
-## Available Templates
+The current template system covers three broad groups:
 
-### 1. E-commerce Product Analysis
-**Use Case**: Analyze product cards, listings, and marketplace screenshots
+- chart analysis
+- UI review
+- document analysis
 
-**What it analyzes**:
-- Pricing and discount presentation
-- Visual hierarchy and layout
-- Product information clarity
-- UX assessment
-- Competitive positioning
+These templates are resolved by `template_key` and used by the backend when a request asks for a configured analysis path.
 
-**Best for**: Marketplace sellers, e-commerce managers, conversion optimization specialists
+## Template Sources
 
----
+The repository currently defines:
 
-### 2. Financial Chart Analysis
-**Use Case**: Extract data from financial charts and dashboards
+- base templates under `templates`
+- role-specific system prompts under `system_prompts`
+- configured template sets under `industry_templates`
 
-**What it analyzes**:
-- Numerical data extraction
-- Chart structure and type
-- Trend analysis
-- Key metrics identification
-- Structured data output (tables)
+## Current Template Families
 
-**Best for**: Financial analysts, traders, investment researchers
+### Chart Templates
 
----
+Examples include:
 
-### 3. Medical Image Review
-**Use Case**: Describe medical images and scans (educational purposes only)
+- sales performance
+- market trends
+- competitive comparison
+- KPI dashboard review
+- funnel analysis
+- SWOT visualization
 
-**Disclaimer**: For educational and documentation purposes only. Not for medical diagnosis.
+These templates are designed for screenshots, charts, and dashboard-style visuals where the output should be structured rather than purely descriptive.
 
-**What it analyzes**:
-- Image type and quality
-- Visible anatomical structures
-- Technical details
-- Objective observations
+### UI Templates
 
-**Best for**: Medical educators, documentation specialists, researchers
+Examples include:
 
----
+- landing page conversion audit
+- mobile app UX review
+- dashboard usability review
+- e-commerce checkout review
+- SaaS workflow review
+- accessibility audit
 
-### 4. Real Estate Floor Plan Analysis
-**Use Case**: Evaluate property layouts and floor plans
+These templates focus on layout, discoverability, friction, clarity, and accessibility.
 
-**What it analyzes**:
-- Layout overview and room count
-- Space efficiency
-- Functional assessment
-- Ergonomics and livability
-- Market positioning
+### Document Templates
 
-**Best for**: Real estate agents, property developers, interior designers
+Examples include:
 
----
+- contract review
+- technical spec extraction
+- policy review
 
-### 5. Marketing Creative Analysis
-**Use Case**: Analyze ads, banners, and marketing materials
+These templates are aimed at structured extraction and summarization rather than free-form commentary.
 
-**What it analyzes**:
-- Visual impact
-- Messaging effectiveness
-- Design elements
-- Target audience fit
-- Conversion optimization
-- Competitive benchmarking
+## How Templates Are Used
 
-**Best for**: Marketing managers, creative directors, growth marketers
+Templates are consumed through backend flows that accept `template_key`, including general analysis and listing-analysis routes.
 
----
+Typical pattern:
 
-### 6. Logistics Document Analysis
-**Use Case**: Analyze shipping documents, invoices, and package labels
+1. choose a template key
+2. submit a file or listing content
+3. let the backend resolve the configured prompt
+4. receive a structured analysis response
 
-**What it analyzes**:
-- Document type identification
-- Shipment details
-- Item information
-- Financial data
-- Condition assessment
-- Compliance verification
+## Customization
 
-**Best for**: Logistics coordinators, warehouse managers, supply chain analysts
+To add or change templates:
 
----
+1. edit [config/prompts.yaml](../config/prompts.yaml)
+2. add or update an entry under `industry_templates`
+3. restart the backend if you are running locally
 
-### 7. Educational Content Analysis
-**Use Case**: Analyze diagrams, textbook pages, and learning materials
-
-**What it analyzes**:
-- Content type and level
-- Learning objectives
-- Visual pedagogy
-- Accessibility
-- Engagement factors
-
-**Best for**: Teachers, instructional designers, educational publishers
-
-## How to Use
-
-1. **Upload your file** (image or PDF)
-2. **Select "Industry-Specific"** from Analysis Category
-3. **Choose your industry template** from the dropdown
-4. **Review the prompt** (optional - click "View Prompt Template")
-5. **Click "Analyze File"**
-
-## Export Options
-
-All analysis results can be exported in multiple formats:
-
-- **JSON**: Structured data with full metadata
-- **CSV**: Tabular format for spreadsheet import
-- **PDF**: Professional formatted report
-
-## Custom Templates
-
-To add your own industry template:
-
-1. Edit `config/prompts.yaml`
-2. Add a new entry under `industry_templates`:
+Template shape:
 
 ```yaml
-your_industry:
-  name: "Your Industry Name"
-  description: "Brief description of what this analyzes"
+your_template_key:
+  name: "Template Name"
+  description: "Short description"
   prompt: |
-    Your detailed analysis prompt here...
-    
-    1. Section 1
-    2. Section 2
-    etc.
+    Your analysis instructions here.
 ```
 
-3. Restart the application
+## Guidance
 
-## Best Practices
-
-1. **Choose the right template**: Select the template that best matches your use case
-2. **Review the prompt**: Click "View Prompt Template" to understand what will be analyzed
-3. **Export strategically**: 
-   - Use JSON for programmatic processing
-   - Use CSV for data analysis in Excel/Sheets
-   - Use PDF for sharing with stakeholders
-4. **Batch processing**: For multiple similar files, use the Batch Analysis tab with your chosen template
-
-## Examples
-
-### E-commerce Example
-Upload a product screenshot from Amazon/eBay and get:
-- Price positioning analysis
-- CTA button effectiveness
-- Trust signal assessment
-- Conversion optimization tips
-
-### Finance Example
-Upload a stock chart and get:
-- Extracted numerical data in table format
-- Trend direction and volatility
-- Key support/resistance levels
-- Actionable insights
-
-### Real Estate Example
-Upload a floor plan and get:
-- Room count and dimensions
-- Traffic flow assessment
-- Privacy and noise considerations
-- Target demographic fit
+- Keep template prompts specific to the artifact being analyzed.
+- Prefer structured output requests over vague prose requests.
+- Do not document templates here that are not present in [config/prompts.yaml](../config/prompts.yaml).

@@ -1,6 +1,6 @@
 #!/bin/bash
 # ─────────────────────────────────────────────
-# Vision Agent Analyst — one-click launcher
+# Listing Intelligence — one-click launcher
 # Double-click this file to start the app
 # ─────────────────────────────────────────────
 set -e
@@ -50,7 +50,7 @@ wait_for_port() {
     return 1
 }
 
-echo -e "${GREEN}━━━ Vision Agent Analyst ━━━${NC}"
+echo -e "${GREEN}━━━ Listing Intelligence ━━━${NC}"
 echo ""
 
 # ── 1. Python: create venv if missing ──

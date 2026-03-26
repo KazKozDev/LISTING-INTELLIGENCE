@@ -1,212 +1,80 @@
-# New Features Summary
+# Product Surface Updates
 
-## 🎯 Industry-Specific Templates
+This document summarizes the current public-facing product surface in Listing Intelligence.
 
-Added 7 pre-built analysis templates optimized for real-world use cases:
+## Main Workflows
 
-1. **E-commerce** - Product card analysis (pricing, UX, conversion optimization)
-2. **Finance** - Chart analysis with data extraction and table formatting
-3. **Medical** - Image review for educational/documentation purposes
-4. **Real Estate** - Floor plan evaluation (layout, ergonomics, market fit)
-5. **Marketing** - Creative analysis (visual impact, messaging, CTAs)
-6. **Logistics** - Document analysis (invoices, shipping labels, compliance)
-7. **Education** - Learning material assessment (pedagogy, accessibility)
+### Product Workspace
 
-### How to Use
-- Select "Industry-Specific" from Analysis Category dropdown
-- Choose your industry template
-- Review the prompt (optional)
-- Analyze your file
+The primary workflow for listing work.
 
-### Configuration
-All templates are defined in `config/prompts.yaml` under `industry_templates`.
+Current capabilities:
 
----
+- product image analysis
+- full listing generation
+- SEO-oriented output
+- competitor comparison
+- batch analysis for multiple images
 
-## 📊 Multi-Format Export
+### Compliance
 
-Added export capabilities in 3 formats:
+Marketplace-specific image review with pass/fail guidance.
 
-### JSON Export
-- Full structured data with metadata
-- Best for API integration and programmatic processing
-- Includes: filename, timestamp, task, analysis, model info, token usage
+Current capabilities:
 
-### CSV Export
-- Tabular format for spreadsheet analysis
-- Best for Excel/Google Sheets import
-- Columns: Filename, Timestamp, Task, Analysis, Model, Provider, Tokens
+- marketplace-aware compliance checks
+- issue summaries and severity cues
+- handoff into Fix Studio when the image needs correction
 
-### PDF Export
-- Professional formatted reports
-- Best for presentations and client deliverables
-- Existing feature, now integrated with new export options
+### Fix Studio
 
-### Export Locations
-1. **Single Analysis**: 3 export buttons after each analysis (JSON, CSV, PDF)
-2. **Batch Export**: "Export All" buttons in Analysis History tab
+Deterministic correction workspace for image repair and export review.
 
----
+Current capabilities:
 
-## 📁 New Files Created
+- compliance-fix suggestions
+- controlled fix application
+- relighting
+- outpainting
+- upscaling
+- text or watermark removal
 
-### Configuration
-- `config/prompts.yaml` - Updated with industry templates
+### Additional Tools
 
-### Code
-- `src/utils/export.py` - Export utilities (JSON, CSV, structured data)
+Focused workflows for narrower tasks.
 
-### Documentation
-- `docs/INDUSTRY_TEMPLATES.md` - Complete guide to industry templates
-- `docs/EXPORT_GUIDE.md` - Export formats and workflow examples
+Current tools include:
 
----
+- competitor insights
+- keyword gap analysis
+- USP extraction
+- pricing analysis
+- review sentiment
+- Object Scan for deterministic object detection and OCR review
 
-## 🎨 UI Improvements
+## Product Characteristics
 
-1. **Two-tier template selection**:
-   - Basic Analysis (General, Chart, UI, Custom)
-   - Industry-Specific (7 specialized templates)
+What differentiates the current build:
 
-2. **Template preview**:
-   - "View Prompt Template" expander to see what will be analyzed
-   - Description tooltip for each industry template
+- one UI for generative listing work and deterministic image operations
+- local or hosted provider routing through the same product surface
+- persistent run history in the frontend
+- export support for JSON, CSV, and Markdown from saved runs
+- marketplace-aware flows rather than generic image prompting
 
-3. **Export buttons**:
-   - Compact 3-column layout for export options
-   - Emoji icons for quick recognition
-   - Consistent placement across all results
+## Backend Coverage
 
-4. **Batch operations**:
-   - Export all results at once
-   - Clear history with confirmation
+The current API surface supports:
 
----
+- general file analysis
+- product analysis and full listing analysis
+- listing URL or pasted listing analysis
+- compliance review and compliance fix flows
+- competitor comparison and batch analysis
+- object detection, OCR, Florence analysis, quality scoring, relighting, outpainting, upscaling, and erase operations
 
-## 💡 Use Cases Enabled
+## Notes
 
-### E-commerce
-- Monitor competitor product pages
-- Track price changes and UI updates
-- Optimize conversion rates
-
-### Finance
-- Extract data from charts automatically
-- Build financial databases
-- Automate report generation
-
-### Real Estate
-- Evaluate floor plans at scale
-- Compare properties systematically
-- Generate client reports
-
-### Marketing
-- A/B test creative analysis
-- Competitive benchmarking
-- Campaign performance tracking
-
-### Logistics
-- Automate invoice data entry
-- Track shipment compliance
-- Document verification
-
----
-
-## 🚀 Next Steps (Future Features)
-
-Based on original plan:
-
-### Priority 1: Chain of Thought Analysis
-- Multi-step analysis pipeline
-- Intermediate results display
-- Progressive refinement
-
-### Priority 2: Scheduled Monitoring
-- Automated analysis on schedule
-- Change detection and alerts
-- Historical trend tracking
-
-### Priority 3: Comparison Mode
-- Side-by-side analysis of 2+ images
-- Diff highlighting
-- Before/after reports
-
-### Priority 4: Google Sheets Integration
-- Direct export to Sheets
-- Real-time sync
-- Template-based formatting
-
----
-
-## 📈 Impact
-
-**Before**: Generic "analyze this" prompts, text-only output
-**After**: 
-- 7 specialized analysis types
-- 3 export formats
-- Professional workflows enabled
-- Real business value delivered
-
-**Estimated time saved per analysis**: 5-10 minutes (no manual prompt writing)
-**Estimated time saved per export**: 2-5 minutes (no manual data formatting)
-
----
-
-## 🔧 Technical Details
-
-### Dependencies
-No new dependencies required - uses built-in Python libraries:
-- `json` - JSON export
-- `csv` - CSV export  
-- `io` - String buffer for CSV generation
-- `yaml` - Already required for config
-
-### Performance
-- Export operations are instant (< 100ms for typical results)
-- No impact on analysis speed
-- Minimal memory overhead
-
-### Compatibility
-- Works with all LLM providers
-- Compatible with existing batch processing
-- Backward compatible with old analysis results
-
----
-
-## 📚 Documentation
-
-All features are documented in:
-- `docs/INDUSTRY_TEMPLATES.md` - Template guide
-- `docs/EXPORT_GUIDE.md` - Export workflows
-- `README.md` - Updated feature list
-- `config/prompts.yaml` - Template definitions (with comments)
-
----
-
-## ✅ Testing Checklist
-
-- [x] Industry templates load correctly
-- [x] Template selection works in UI
-- [x] JSON export generates valid JSON
-- [x] CSV export creates proper CSV format
-- [x] PDF export still works
-- [x] Batch export handles multiple results
-- [x] Clear history works
-- [x] Templates are customizable via YAML
-- [x] Documentation is complete
-
----
-
-## 🎓 User Education
-
-Users can learn about new features through:
-1. **In-app**: Template descriptions and prompt previews
-2. **Docs**: Comprehensive guides with examples
-3. **README**: Updated feature highlights
-4. **Examples**: Real-world use cases documented
-
----
-
-**Total implementation time**: ~2 hours
-**Lines of code added**: ~800
-**New capabilities**: 7 industry templates + 3 export formats = 10x more useful
+- This file is intentionally descriptive, not a changelog with speculative roadmap items.
+- For endpoint details, see [API.md](API.md).
+- For setup and usage, see [QUICKSTART.md](QUICKSTART.md).
