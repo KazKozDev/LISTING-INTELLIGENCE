@@ -41,3 +41,98 @@ output:
   format: markdown
   max_image_size: [1920, 1080]
   pdf_dpi: 150
+
+image_ai:
+  enabled: true
+  background_removal_model: ZhengPeng7/BiRefNet
+  alpha_threshold: 8
+  allow_remote_code: true
+  device: mps
+  rmbg_input_size: 1024
+  birefnet_input_size: 1024
+  cpu_birefnet_input_size: 512
+  cpu_birefnet_retry_size: 384
+  allow_full_image_fallback: true
+  minimum_fill_ratio: 0.82
+  recommended_fill_ratio: 0.88
+
+object_detection:
+  enabled: true
+  model: yolo11n.pt
+  device: mps
+  confidence_threshold: 0.25
+  detect_watermarks: true
+  detect_text_overlays: true
+  max_objects_warning: 3
+
+ocr:
+  enabled: true
+  languages: [en, ru]
+  device: mps
+  confidence_threshold: 0.3
+  warn_on_text_in_main_image: true
+
+quality_scoring:
+  enabled: true
+  model: musiq
+  device: mps
+
+florence2:
+  enabled: true
+  model: microsoft/Florence-2-base
+  device: mps
+  allow_remote_code: true
+  caption_task: <MORE_DETAILED_CAPTION>
+  ocr_task: <OCR>
+  max_new_tokens: 256
+  max_ocr_tokens: 128
+  num_beams: 3
+  max_attributes: 12
+
+lama_inpaint:
+  enabled: true
+  device: mps
+
+ic_light:
+  enabled: true
+  base_model: runwayml/stable-diffusion-v1-5
+  model_url: https://huggingface.co/lllyasviel/ic-light/resolve/main/iclight_sd15_fc.safetensors
+  model_file: iclight_sd15_fc.safetensors
+  device: mps
+  prompt: product photo, soft studio lighting, subtle realistic contact shadow, clean white background
+  negative_prompt: lowres, blurry, dark, noisy, cluttered background, watermark, text
+  width: 768
+  height: 768
+  steps: 20
+  cfg_scale: 4.0
+  lowres_denoise: 0.9
+  seed: 12345
+  cache_dir: outputs/models
+
+outpainting:
+  enabled: true
+  model: runwayml/stable-diffusion-inpainting
+  device: mps
+  prompt: extend the existing product photo naturally, continue the background and surface seamlessly, keep the main subject unchanged
+  negative_prompt: extra products, duplicated object, cropped subject, text, watermark, border, frame, distortion, blur, clutter
+  steps: 24
+  guidance_scale: 7.0
+  strength: 0.99
+  max_inference_side: 768
+  default_expand_ratio: 0.25
+  feather_px: 18
+  background: white
+  seed: 12345
+  cache_dir: outputs/models
+
+upscaling:
+  enabled: true
+  model: RealESRGAN_x4plus
+  device: mps
+  scale: 4
+  tile_size: 512
+  cache_dir: outputs/models
+  model_file: RealESRGAN_x4plus.pth
+  model_url: https://github.com/xinntao/Real-ESRGAN/releases/download/v0.1.0/RealESRGAN_x4plus.pth
+  auto_upscale_below_width: 800
+  auto_upscale_below_height: 800

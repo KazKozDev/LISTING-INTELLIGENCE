@@ -1,10 +1,5 @@
 """Tests for Config."""
 
-import os
-import pytest
-from pathlib import Path
-from unittest.mock import patch
-
 from config import Config, load_yaml_config
 
 
@@ -25,7 +20,15 @@ class TestLoadYamlConfig:
 class TestConfig:
     def test_default_creation(self):
         config = Config()
-        assert config.provider in ["ollama", "openai", "anthropic", "google", "azure"]
+        assert config.provider in [
+            "ollama",
+            "openai",
+            "grok",
+            "groq",
+            "anthropic",
+            "google",
+            "azure",
+        ]
         assert config.max_tokens > 0
         assert 0 <= config.temperature <= 2
 
@@ -70,9 +73,18 @@ class TestConfig:
 
     def test_prompts_config_loaded(self):
         config = Config()
-        # prompts_config should be a dict (may be empty if yaml not found in test env)
+        # May be empty in isolated test environments, but must stay a dict.
         assert isinstance(config.prompts_config, dict)
 
     def test_model_config_loaded(self):
         config = Config()
-        assert isinstance(config.model_config, dict)
+        assert isinstance(config.model_config_data, dict)
+
+    def test_ollama_default_model_uses_yaml_default(self):
+        config = Config(provider="ollama", model="")
+        assert config.model == "qwen3-vl:8b"
+
+    def test_composition_policies_config_loaded(self):
+        config = Config()
+        assert isinstance(config.composition_policies_config, dict)
+        assert "default" in config.composition_policies_config

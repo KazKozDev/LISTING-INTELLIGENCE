@@ -3,7 +3,7 @@
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Optional, Dict, Any, Union
+from typing import Any
 
 
 @dataclass
@@ -12,10 +12,10 @@ class ProviderResponse:
 
     text: str
     model: str
-    usage: Dict[str, Any]
-    metadata: Dict[str, Any]
+    usage: dict[str, Any]
+    metadata: dict[str, Any]
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         """Convert to dictionary."""
         return {
             "text": self.text,
@@ -31,8 +31,8 @@ class BaseLLMProvider(ABC):
     def __init__(
         self,
         model: str,
-        api_key: Optional[str] = None,
-        base_url: Optional[str] = None,
+        api_key: str | None = None,
+        base_url: str | None = None,
         **kwargs
     ):
         """Initialize provider.
@@ -51,7 +51,7 @@ class BaseLLMProvider(ABC):
     @abstractmethod
     def analyze_image(
         self,
-        image_path: Union[str, Path],
+        image_path: str | Path,
         prompt: str,
         temperature: float = 0.7,
         max_tokens: int = 2048,

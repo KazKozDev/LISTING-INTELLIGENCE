@@ -1,0 +1,47 @@
+default:
+  main_image:
+    minimum_fill_ratio: 0.82
+    recommended_fill_ratio: 0.88
+  gallery_image:
+    minimum_fill_ratio: 0.76
+    recommended_fill_ratio: 0.82
+
+amazon:
+  main_image:
+    minimum_fill_ratio: 0.85
+    recommended_fill_ratio: 0.90
+  gallery_image:
+    minimum_fill_ratio: 0.78
+    recommended_fill_ratio: 0.84
+
+walmart:
+  main_image:
+    minimum_fill_ratio: 0.90
+    recommended_fill_ratio: 0.94
+  gallery_image:
+    minimum_fill_ratio: 0.82
+    recommended_fill_ratio: 0.88
+
+ebay:
+  main_image:
+    minimum_fill_ratio: 0.80
+    recommended_fill_ratio: 0.86
+  gallery_image:
+    minimum_fill_ratio: 0.74
+    recommended_fill_ratio: 0.80
+
+allegro:
+  main_image:
+    minimum_fill_ratio: 0.78
+    recommended_fill_ratio: 0.84
+  gallery_image:
+    minimum_fill_ratio: 0.72
+    recommended_fill_ratio: 0.78
+
+etsy:
+  main_image:
+    minimum_fill_ratio: 0.72
+    recommended_fill_ratio: 0.80
+  gallery_image:
+    minimum_fill_ratio: 0.66
+    recommended_fill_ratio: 0.74

@@ -1,15 +1,9 @@
-import { useState, useCallback } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import type { AnalysisResult, HistoryItem } from '../api/types'
+import { appendHistoryItem, clearHistoryItems, loadHistoryItems } from '../utils/historyStorage'
 
-const STORAGE_KEY = 'analysisHistory'
-
-function loadHistory(): HistoryItem[] {
-  try {
-    const saved = localStorage.getItem(STORAGE_KEY)
-    return saved ? JSON.parse(saved) : []
-  } catch {
-    return []
-  }
+function getUsageTokens(result: AnalysisResult | HistoryItem): number {
+  return result.metadata.usage?.total_tokens ?? 0
 }
 
 /** Standalone save — callable from any component without the hook */
@@ -18,33 +12,43 @@ export function saveToHistory(result: AnalysisResult) {
     ...result,
     id: Date.now().toString() + Math.random().toString(36),
   }
-  const prev = loadHistory()
-  localStorage.setItem(STORAGE_KEY, JSON.stringify([item, ...prev]))
+
+  void appendHistoryItem(item)
 }
 
 export function useHistory() {
-  const [history, setHistory] = useState<HistoryItem[]>(loadHistory)
+  const [history, setHistory] = useState<HistoryItem[]>([])
+
+  useEffect(() => {
+    let isMounted = true
+
+    void loadHistoryItems().then((items) => {
+      if (isMounted) {
+        setHistory(items)
+      }
+    })
+
+    return () => {
+      isMounted = false
+    }
+  }, [])
 
   const addToHistory = useCallback((result: AnalysisResult) => {
     const item: HistoryItem = {
       ...result,
       id: Date.now().toString() + Math.random().toString(36),
     }
-    setHistory((prev) => {
-      const updated = [item, ...prev]
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(updated))
-      return updated
-    })
+    setHistory((prev) => [item, ...prev])
+    void appendHistoryItem(item)
   }, [])
 
   const clearHistory = useCallback(() => {
     setHistory([])
-    localStorage.removeItem(STORAGE_KEY)
+    void clearHistoryItems()
   }, [])
 
   const totalTokens = history.reduce(
-    (acc, item) =>
-      acc + ((item.metadata.usage as { total_tokens?: number })?.total_tokens || 0),
+    (acc, item) => acc + getUsageTokens(item),
     0
   )
 

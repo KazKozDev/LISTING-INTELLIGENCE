@@ -3,9 +3,9 @@
 import base64
 import logging
 from pathlib import Path
-from typing import Union, Optional
 
 from .base import BaseLLMProvider, ProviderResponse
+from .openai_provider import _collect_paginated_model_ids
 
 logger = logging.getLogger(__name__)
 
@@ -16,8 +16,8 @@ class AnthropicProvider(BaseLLMProvider):
     def __init__(
         self,
         model: str = "claude-3-5-sonnet-20241022",
-        api_key: Optional[str] = None,
-        base_url: Optional[str] = None,
+        api_key: str | None = None,
+        base_url: str | None = None,
         **kwargs
     ):
         """Initialize Anthropic provider.
@@ -37,7 +37,9 @@ class AnthropicProvider(BaseLLMProvider):
             import anthropic
             self.client = anthropic.Anthropic(api_key=self.api_key)
         except ImportError:
-            raise ImportError("anthropic package is required. Install: pip install anthropic")
+            raise ImportError(
+                "anthropic package is required. Install: pip install anthropic"
+            )
 
     def verify_connection(self) -> bool:
         """Verify Anthropic connection."""
@@ -53,21 +55,30 @@ class AnthropicProvider(BaseLLMProvider):
             return False
 
     def list_models(self) -> list:
-        """List available Anthropic models."""
-        return [
-            "claude-3-5-sonnet-20241022",
-            "claude-3-5-haiku-20241022",
-            "claude-3-opus-20240229",
-            "claude-3-sonnet-20240229",
-            "claude-3-haiku-20240307",
-        ]
+        """List available Anthropic models dynamically via API."""
+        try:
+            response = self.client.models.list()
+            return _collect_paginated_model_ids(response)
+        except Exception as e:
+            logger.warning(f"Failed to list Anthropic models via API: {e}")
+            # Fallback to known models if API call fails
+            return [
+                "claude-sonnet-4-20250514",
+                "claude-haiku-4-20250414",
+                "claude-3-5-sonnet-20241022",
+                "claude-3-5-haiku-20241022",
+                "claude-3-opus-20240229",
+            ]
 
     @property
     def supports_vision(self) -> bool:
-        """Check if model supports vision."""
-        return "claude-3" in self.model or "claude-3-5" in self.model
+        """Check if model supports vision.
 
-    def _encode_image(self, image_path: Union[str, Path]) -> dict:
+        All Claude 3+ models support vision.
+        """
+        return True
+
+    def _encode_image(self, image_path: str | Path) -> dict:
         """Encode image for Anthropic."""
         image_path = Path(image_path)
         if not image_path.exists():
@@ -98,7 +109,7 @@ class AnthropicProvider(BaseLLMProvider):
 
     def analyze_image(
         self,
-        image_path: Union[str, Path],
+        image_path: str | Path,
         prompt: str,
         temperature: float = 0.7,
         max_tokens: int = 2048,
@@ -108,14 +119,18 @@ class AnthropicProvider(BaseLLMProvider):
         if not self.supports_vision:
             raise ValueError(f"Model {self.model} does not support vision")
 
+        # Guard against empty prompt — Anthropic API rejects empty text blocks
+        if not prompt or not prompt.strip():
+            prompt = "Analyze this image and provide detailed insights."
+
         image_content = self._encode_image(image_path)
 
         messages = [
             {
                 "role": "user",
                 "content": [
-                    {"type": "text", "text": prompt},
                     image_content,
+                    {"type": "text", "text": prompt},
                 ]
             }
         ]
@@ -135,7 +150,10 @@ class AnthropicProvider(BaseLLMProvider):
                 usage={
                     "prompt_tokens": response.usage.input_tokens,
                     "completion_tokens": response.usage.output_tokens,
-                    "total_tokens": response.usage.input_tokens + response.usage.output_tokens,
+                    "total_tokens": (
+                        response.usage.input_tokens
+                        + response.usage.output_tokens
+                    ),
                 },
                 metadata={
                     "stop_reason": response.stop_reason,
@@ -169,7 +187,10 @@ class AnthropicProvider(BaseLLMProvider):
                 usage={
                     "prompt_tokens": response.usage.input_tokens,
                     "completion_tokens": response.usage.output_tokens,
-                    "total_tokens": response.usage.input_tokens + response.usage.output_tokens,
+                    "total_tokens": (
+                        response.usage.input_tokens
+                        + response.usage.output_tokens
+                    ),
                 },
                 metadata={
                     "stop_reason": response.stop_reason,

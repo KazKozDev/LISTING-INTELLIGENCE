@@ -1,15 +1,13 @@
 """Tests for export utilities."""
 
-import json
 import csv
-import pytest
-from pathlib import Path
+import json
 
 from src.utils.export import (
-    export_to_json,
     export_to_csv,
-    extract_structured_data,
+    export_to_json,
     export_to_structured_json,
+    extract_structured_data,
 )
 
 

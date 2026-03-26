@@ -1,8 +1,8 @@
 """Rate limiter implementation."""
 
-import time
 import threading
-from typing import Dict, Optional
+import time
+
 
 class RateLimiter:
     """Rate limiter using sliding window or token bucket algorithm."""
@@ -29,7 +29,7 @@ class RateLimiter:
         with self._lock:
             current_time = time.time()
             elapsed = current_time - self.last_request_time
-            
+
             if elapsed < self.interval:
                 sleep_time = self.interval - elapsed
                 time.sleep(sleep_time)
@@ -37,7 +37,7 @@ class RateLimiter:
             else:
                 self.last_request_time = current_time
 
-    def get_current_usage(self) -> Dict[str, float]:
+    def get_current_usage(self) -> dict[str, float]:
         """Get current usage statistics.
 
         Returns:

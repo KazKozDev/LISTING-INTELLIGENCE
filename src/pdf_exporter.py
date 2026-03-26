@@ -2,20 +2,25 @@
 
 import logging
 from datetime import datetime
-from pathlib import Path
-from typing import List, Optional, Any
 from io import BytesIO
+from pathlib import Path
+from typing import Any
 
 try:
     from reportlab.lib import colors
+    from reportlab.lib.enums import TA_CENTER, TA_JUSTIFY, TA_LEFT
     from reportlab.lib.pagesizes import A4, letter
-    from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
-    from reportlab.lib.units import inch, cm
+    from reportlab.lib.styles import ParagraphStyle, getSampleStyleSheet
+    from reportlab.lib.units import cm, inch
+    from reportlab.platypus import Image as RLImage
     from reportlab.platypus import (
-        SimpleDocTemplate, Paragraph, Spacer, PageBreak,
-        Table, TableStyle, Image as RLImage
+        PageBreak,
+        Paragraph,
+        SimpleDocTemplate,
+        Spacer,
+        Table,
+        TableStyle,
     )
-    from reportlab.lib.enums import TA_CENTER, TA_LEFT, TA_JUSTIFY
     REPORTLAB_AVAILABLE = True
 except ImportError:
     REPORTLAB_AVAILABLE = False
@@ -36,8 +41,8 @@ class PDFExporter:
 
     def export(
         self,
-        results: List[Any],
-        output_path: Optional[Path] = None,
+        results: list[Any],
+        output_path: Path | None = None,
         title: str = "Vision Agent Analysis Report",
         include_metadata: bool = True,
         **kwargs
@@ -183,10 +188,10 @@ class PDFExporter:
     def _create_title_page(
         self,
         title: str,
-        results: List[Any],
+        results: list[Any],
         include_metadata: bool,
         styles: dict
-    ) -> List:
+    ) -> list:
         """Create title page content.
 
         Args:
@@ -208,7 +213,7 @@ class PDFExporter:
         story.append(Spacer(1, 0.3*inch))
 
         # Subtitle
-        subtitle = f"Professional Multimodal Analysis Report"
+        subtitle = "Professional Multimodal Analysis Report"
         story.append(Paragraph(subtitle, styles['CustomSubtitle']))
         story.append(Spacer(1, 1*inch))
 
@@ -247,7 +252,7 @@ class PDFExporter:
         story.append(PageBreak())
         return story
 
-    def _create_toc(self, results: List[Any], styles: dict) -> List:
+    def _create_toc(self, results: list[Any], styles: dict) -> list:
         """Create table of contents.
 
         Args:
@@ -287,7 +292,7 @@ class PDFExporter:
         story.append(PageBreak())
         return story
 
-    def _create_results_section(self, results: List[Any], styles: dict) -> List:
+    def _create_results_section(self, results: list[Any], styles: dict) -> list:
         """Create analysis results section.
 
         Args:
@@ -404,7 +409,7 @@ class PDFExporter:
 
     def export_to_bytes(
         self,
-        results: List[Any],
+        results: list[Any],
         title: str = "Vision Agent Analysis Report",
         include_metadata: bool = True,
         **kwargs

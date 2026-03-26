@@ -1,10 +1,11 @@
 """Response caching utility."""
 
-import json
 import hashlib
+import json
 import time
 from pathlib import Path
-from typing import Optional, Any, Dict
+from typing import Any
+
 
 class Cache:
     """File-based cache for LLM responses."""
@@ -25,7 +26,7 @@ class Cache:
         content = f"{model}:{prompt}"
         return hashlib.sha256(content.encode()).hexdigest()
 
-    def get(self, prompt: str, model: str) -> Optional[Any]:
+    def get(self, prompt: str, model: str) -> Any | None:
         """Retrieve cached response.
 
         Args:
@@ -42,13 +43,13 @@ class Cache:
             return None
 
         try:
-            with open(cache_file, "r") as f:
+            with open(cache_file) as f:
                 data = json.load(f)
-            
+
             # Check expiration
             if time.time() - data["timestamp"] > self.ttl_seconds:
                 return None
-            
+
             return data["response"]
         except (json.JSONDecodeError, OSError):
             return None

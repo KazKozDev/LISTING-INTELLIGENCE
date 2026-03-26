@@ -1,10 +1,9 @@
 """Ollama provider implementation."""
 
 import base64
-import logging
 import json
+import logging
 from pathlib import Path
-from typing import Union, Optional
 
 import requests
 from PIL import Image
@@ -20,7 +19,7 @@ class OllamaProvider(BaseLLMProvider):
     def __init__(
         self,
         model: str = "qwen3-vl:8b",
-        api_key: Optional[str] = None,
+        api_key: str | None = None,
         base_url: str = "http://localhost:11434",
         **kwargs
     ):
@@ -63,7 +62,7 @@ class OllamaProvider(BaseLLMProvider):
         vision_models = ["llava", "bakllava", "qwen-vl", "qwen2-vl", "qwen3-vl"]
         return any(vm in self.model.lower() for vm in vision_models)
 
-    def _encode_image(self, image_path: Union[str, Path]) -> str:
+    def _encode_image(self, image_path: str | Path) -> str:
         """Encode image to base64."""
         image_path = Path(image_path)
 
@@ -85,7 +84,7 @@ class OllamaProvider(BaseLLMProvider):
 
     def analyze_image(
         self,
-        image_path: Union[str, Path],
+        image_path: str | Path,
         prompt: str,
         temperature: float = 0.7,
         max_tokens: int = 2048,
@@ -94,6 +93,10 @@ class OllamaProvider(BaseLLMProvider):
         """Analyze image with Ollama using Chat API."""
         if not self.supports_vision:
             raise ValueError(f"Model {self.model} does not support vision")
+
+        # Guard against empty prompt
+        if not prompt or not prompt.strip():
+            prompt = "Analyze this image and provide detailed insights."
 
         image_data = self._encode_image(image_path)
 
@@ -130,7 +133,7 @@ class OllamaProvider(BaseLLMProvider):
                 logger.debug(f"Ollama Chat Request: {json.dumps(debug_payload, default=str)}")
 
             response = requests.post(f"{self.base_url}/api/chat", json=payload, timeout=120)
-            
+
             if logger.isEnabledFor(logging.DEBUG):
                 logger.debug(f"Ollama Response Status: {response.status_code}")
                 # Log first 1000 chars of response

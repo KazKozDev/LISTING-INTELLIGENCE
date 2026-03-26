@@ -13,7 +13,7 @@ Root status endpoint.
 
 **Response:**
 ```json
-{"message": "Vision Agent Analyst API", "version": "0.2.0", "status": "running"}
+{"message": "Vision Agent Analyst API", "version": "1.0.1-beta", "status": "running"}
 ```
 
 ### `GET /api/config`
@@ -85,13 +85,13 @@ List supported marketplaces with their photo requirements.
 {
   "marketplaces": [
     {
-      "id": "wildberries",
-      "name": "Wildberries",
-      "min_image_width": 900,
-      "min_image_height": 1200,
+      "id": "allegro",
+      "name": "Allegro",
+      "min_image_width": 1000,
+      "min_image_height": 1000,
       "max_file_size_mb": 10,
-      "required_background": "white",
-      "aspect_ratio": "3:4",
+      "required_background": "white or neutral",
+      "aspect_ratio": "1:1 preferred",
       "forbidden_elements": ["watermarks", "logos", "text overlays"],
       "recommendations": [...]
     }
@@ -114,7 +114,7 @@ Full product photo analysis with SEO and quality assessment.
   "success": true,
   "filename": "product.jpg",
   "analysis": "Product Description: ... SEO Title: ... Tags: ...",
-  "marketplace": "wildberries",
+  "marketplace": "allegro",
   "metadata": {},
   "timestamp": "...",
   "tokens_used": 680
@@ -135,7 +135,7 @@ Check product photo compliance with marketplace requirements.
 {
   "success": true,
   "filename": "product.jpg",
-  "marketplace": "ozon",
+  "marketplace": "walmart",
   "analysis": "Compliance Status: PASS/FAIL ...",
   "metadata": {},
   "timestamp": "...",
@@ -252,28 +252,6 @@ Extract product attributes from photo.
   "timestamp": "...",
   "tokens_used": 480
 }
-```
-
----
-
-## WebSocket
-
-### `WS /api/ws/batch-progress`
-Real-time batch processing progress updates.
-
-**Client sends:**
-```json
-{"action": "start_batch", "files": [...], "marketplace": "general"}
-```
-
-**Server responds:**
-```json
-{"type": "batch_started", "task_id": "uuid", "total": 5}
-```
-
-**Ping/Pong:**
-```json
-{"action": "ping"}  ->  {"type": "pong"}
 ```
 
 ---

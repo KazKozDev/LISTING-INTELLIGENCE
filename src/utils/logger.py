@@ -2,9 +2,10 @@
 
 import logging
 import logging.config
-import yaml
 from pathlib import Path
-from typing import Optional
+
+import yaml
+
 
 def setup_logging(
     config_path: Path,
@@ -17,7 +18,7 @@ def setup_logging(
         default_level: Default logging level if config file not found.
     """
     if config_path.exists():
-        with open(config_path, "rt") as f:
+        with open(config_path) as f:
             try:
                 config = yaml.safe_load(f.read())
                 logging.config.dictConfig(config)

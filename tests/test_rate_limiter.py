@@ -1,7 +1,6 @@
 """Tests for RateLimiter utility."""
 
 import time
-import pytest
 
 from src.utils.rate_limiter import RateLimiter
 

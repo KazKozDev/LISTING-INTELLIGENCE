@@ -1,21 +1,4 @@
-import {
-  ShoppingCart,
-  History, Settings, HelpCircle, Eye,
-  Tag, ShieldCheck, Package, GitCompareArrows, Wrench,
-} from 'lucide-react'
 import type { Config } from '../api/types'
-
-export const navItems = [
-  { id: 'ecom-product', icon: ShoppingCart, label: 'Product Analysis' },
-  { id: 'ecom-compliance', icon: ShieldCheck, label: 'Compliance' },
-  { id: 'ecom-seo', icon: Tag, label: 'SEO Generator' },
-  { id: 'ecom-compare', icon: GitCompareArrows, label: 'Competitor Compare' },
-  { id: 'ecom-tools', icon: Wrench, label: 'Tools' },
-  { id: 'ecom-bulk', icon: Package, label: 'Bulk Upload' },
-  { id: 'history', icon: History, label: 'History' },
-  { id: 'settings', icon: Settings, label: 'Settings' },
-  { id: 'help', icon: HelpCircle, label: 'Help' },
-]
 
 interface SidebarProps {
   activeNav: string
@@ -24,39 +7,63 @@ interface SidebarProps {
 }
 
 export function Sidebar({ activeNav, onNavChange, config }: SidebarProps) {
+  const githubUrl = 'https://github.com/KazKozDev'
+  const navItems = [
+    { id: 'ecom-product', label: 'Product Workspace', eyebrow: 'Core workflow' },
+    { id: 'ecom-compliance', label: 'Compliance', eyebrow: 'Marketplace rules' },
+    { id: 'ecom-fix', label: 'Fix Studio', eyebrow: 'Image operations' },
+    { id: 'ecom-tools', label: 'Additional Tools', eyebrow: 'Focused analyses' },
+    { id: 'history', label: 'History', eyebrow: 'Past runs' },
+    { id: 'settings', label: 'Settings', eyebrow: 'System controls' },
+    { id: 'help', label: 'Help', eyebrow: 'Usage guide' },
+  ]
+
   return (
     <aside className="sidebar">
       <div className="sidebar-header">
         <div className="sidebar-logo">
-          <div className="logo-icon"><Eye /></div>
-          <span className="logo-text">Vision Agent</span>
+          <span className="logo-kicker">Vision workspace</span>
+          <div className="logo-lockup" aria-label="Listing Intelligence">
+            <span className="logo-text logo-text-primary">LISTING</span>
+            <span className="logo-text logo-text-secondary">INTELLIGENCE</span>
+          </div>
         </div>
       </div>
 
       <nav className="sidebar-nav">
-        {navItems.map(item => {
-          const IconComponent = item.icon
+        {navItems.map((item, index) => {
+          const isActive = activeNav === item.id
+          const navIndex = String(index + 1).padStart(2, '0')
           return (
-            <div
+            <button
               key={item.id}
-              className={`nav-item ${activeNav === item.id ? 'active' : ''}`}
+              type="button"
+              className={`nav-item ${isActive ? 'active' : ''}`}
               onClick={() => onNavChange(item.id)}
+              aria-current={isActive ? 'page' : undefined}
             >
-              <span className="nav-icon"><IconComponent /></span>
-              <span>{item.label}</span>
-            </div>
+              <span className="nav-index" aria-hidden="true">{navIndex}</span>
+              <span className="nav-copy">
+                <span className="nav-eyebrow">{item.eyebrow}</span>
+                <span className="nav-label">{item.label}</span>
+              </span>
+            </button>
           )
         })}
       </nav>
 
       <div className="sidebar-footer">
-        {config && (
-          <div className="provider-info">
-            Connected to <span className="provider-name">{config.provider}</span>
-            <br />
-            {config.model}
-          </div>
-        )}
+        <div className="provider-info" data-configured={Boolean(config)}>
+          <span className="provider-kicker">Built by</span>
+          <a
+            className="provider-link provider-name"
+            href={githubUrl}
+            target="_blank"
+            rel="noreferrer"
+          >
+            KazKozDev
+          </a>
+        </div>
       </div>
     </aside>
   )

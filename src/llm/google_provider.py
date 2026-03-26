@@ -1,9 +1,7 @@
 """Google AI provider implementation."""
 
-import base64
 import logging
 from pathlib import Path
-from typing import Union, Optional
 
 from .base import BaseLLMProvider, ProviderResponse
 
@@ -16,8 +14,8 @@ class GoogleProvider(BaseLLMProvider):
     def __init__(
         self,
         model: str = "gemini-1.5-pro",
-        api_key: Optional[str] = None,
-        base_url: Optional[str] = None,
+        api_key: str | None = None,
+        base_url: str | None = None,
         **kwargs
     ):
         """Initialize Google provider.
@@ -71,7 +69,7 @@ class GoogleProvider(BaseLLMProvider):
         """Check if model supports vision."""
         return True  # All Gemini models support vision
 
-    def _load_image(self, image_path: Union[str, Path]):
+    def _load_image(self, image_path: str | Path):
         """Load image for Google AI."""
         from PIL import Image as PILImage
 
@@ -83,13 +81,17 @@ class GoogleProvider(BaseLLMProvider):
 
     def analyze_image(
         self,
-        image_path: Union[str, Path],
+        image_path: str | Path,
         prompt: str,
         temperature: float = 0.7,
         max_tokens: int = 2048,
         **kwargs
     ) -> ProviderResponse:
         """Analyze image with Google AI."""
+        # Guard against empty prompt
+        if not prompt or not prompt.strip():
+            prompt = "Analyze this image and provide detailed insights."
+
         image = self._load_image(image_path)
 
         generation_config = {

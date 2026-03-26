@@ -340,34 +340,95 @@ industry_templates:
     name: "Competitor Pricing"
     description: "Compare pricing strategies and value propositions"
     prompt: |
-      **Role**: Pricing Strategist
-      **Task**: Deconstruct the pricing strategy shown.
-      
-      **Focus**:
-      - **Positioning**: Discount, Premium, or Penetration pricing?
-      - **Architecture**: Good/Better/Best tiering?
-      - **Psychology**: Anchoring, decoy pricing, or charm pricing (.99).
-      
+      **Role**: Listing Intelligence Pricing Lead
+      **Task**: Read this listing like a market-facing operator and explain how the brand is trying to win on price, perceived value, and offer structure.
+
+      **Analysis**:
+      1. **Price Positioning**: Classify the offer as budget, mainstream, premium, promo-led, or bundle-driven.
+      2. **Value Story**: Explain what the shopper is meant to believe they are getting for the money.
+      3. **Price Mechanics**: Identify signals such as strike-through pricing, multipacks, quantity ladders, charm pricing, or guarantee framing.
+      4. **Brand Risk**: Call out where the price feels unsupported, too generic, or easy to undercut.
+
       **Output**:
-      - **Strategy ID**: Name the strategy.
-      - **Value Comparison**: Price vs. Feature set.
-      - **Recommendation**: How should we price against this?
+      - **Pricing Posture**: Short verdict.
+      - **What Justifies the Price**: Bullet list tied to actual listing cues.
+      - **Where the Offer Feels Vulnerable**: Bullet list.
+      - **Recommended Response**: How our brand should price or frame against it.
   ecommerce_sentiment:
     name: "Review Analysis"
     description: "Analyze customer sentiment and recurring issues"
     prompt: |
-      **Role**: Customer Experience (CX) Lead
-      **Task**: Analyze the visual text of customer reviews.
-      
+      **Role**: Listing Intelligence Voice-of-Customer Lead
+      **Task**: Read the review text and turn it into an operator-grade read on what customers reward, what frustrates them, and what that means for the brand.
+
       **Analysis**:
-      1. **Themes**: Group feedback into Quality, Shipping, Service, Price.
-      2. **Sentiment**: Overall Positive/Neutral/Negative ratio.
-      
+      1. **Praise Themes**: Group repeat compliments by product quality, ease of use, delivery, service, value, or outcome.
+      2. **Complaint Themes**: Group the recurring friction points with the same discipline.
+      3. **Intensity**: Distinguish minor annoyances from issues that actively kill trust or repeat purchase.
+      4. **Brand Signal**: Explain what the review mix says about the current customer promise.
+
       **Output**:
-      - **Sentiment Score**: % Positive.
-      - **Top Praise**: What people love.
-      - **Top Complaints**: What needs fixing immediately.
-      - **Action**: One operational change to reduce tickets.
+      - **Sentiment Read**: Plain-language summary, not just a score.
+      - **What Customers Buy For**: Top positive drivers.
+      - **What Erodes Confidence**: Top negative drivers.
+      - **Immediate Brand Fix**: One action for product, ops, or copy.
+  ecommerce_competitor_insights:
+    name: "Competitor Insights"
+    description: "Map competitor positioning, strengths, and weak spots"
+    prompt: |
+      **Role**: Listing Intelligence Competitive Desk
+      **Task**: Break down the competitor listing like a category strategist. Focus on how the brand is positioning itself, why that angle may convert, and exactly where it leaves room for us to win.
+
+      **Analysis**:
+      1. **Market Angle**: Name the core promise the competitor is selling.
+      2. **Conversion Levers**: Identify the claims, proof, structure, bundles, or merchandising choices doing the persuasion work.
+      3. **Exposure Points**: Flag weak proof, generic language, unsupported claims, missing objections handling, or value gaps.
+      4. **Response Window**: Recommend a sharper position our brand can own without sounding like a copycat.
+
+      **Output**:
+      - **Competitive Read**: Crisp summary.
+      - **Why This Listing Works**: Concrete strengths.
+      - **Where It Can Be Attacked**: Concrete weaknesses.
+      - **Best Counter-Position**: One angle to lead with.
+      - **Action Queue**: 3 specific listing moves for our brand.
+  ecommerce_keyword_gap:
+    name: "Keyword Gap"
+    description: "Find missing search terms and weak keyword coverage"
+    prompt: |
+      **Role**: Listing Intelligence Search Strategist
+      **Task**: Audit the listing for search coverage with a marketplace-operator mindset. The goal is not more words; it is better ranking intent, cleaner targeting, and stronger relevance.
+
+      **Analysis**:
+      1. **Current Coverage**: Extract the primary search terms, modifiers, and use cases already represented.
+      2. **Missed Intent**: Identify missing buyer-language, audience qualifiers, problem-solution phrases, and product descriptors.
+      3. **Wasted Real Estate**: Flag words that are generic, repetitive, or consuming title and bullet space without adding ranking intent.
+      4. **Priority**: Separate must-win keyword gaps from optional expansion terms.
+
+      **Output**:
+      - **Search Footprint Today**: What the listing is clearly targeting.
+      - **Highest-Value Gaps**: Prioritized additions.
+      - **Low-Yield Language**: What to trim or replace.
+      - **Keyword Cluster**: Primary, secondary, long-tail.
+      - **Rewrite Direction**: How the title and bullets should shift.
+  ecommerce_usp_extractor:
+    name: "USP Extractor"
+    description: "Surface the strongest unique selling points and proof points"
+    prompt: |
+      **Role**: Listing Intelligence Conversion Copy Lead
+      **Task**: Pull out the real differentiators in the listing and separate them from generic filler. Focus on what the brand can credibly own and what should become headline messaging.
+
+      **Analysis**:
+      1. **True Differentiators**: Identify specific features, outcomes, guarantees, bundles, or quality signals that actually distinguish the offer.
+      2. **Proof Strength**: Check whether each differentiator is backed by evidence, specs, reviews, or tangible detail.
+      3. **Generic Filler**: Flag claims that sound polished but could belong to any competitor.
+      4. **Hero Message**: Recommend the single clearest angle that should anchor the listing.
+
+      **Output**:
+      - **Ownable USPs**: Ranked list with reasoning.
+      - **Proof Audit**: What supports each USP and what is missing.
+      - **Claims to Retire**: Generic or weak language to avoid.
+      - **Hero Angle**: One-line position the brand can lead with.
+      - **Sharper Claim Lines**: 3 concise copy options.
   ecommerce_packaging:
     name: "Packaging Design"
     description: "Evaluate shelf appeal and unboxing experience"

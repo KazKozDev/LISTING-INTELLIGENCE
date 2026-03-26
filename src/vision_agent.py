@@ -1,15 +1,15 @@
 """Main Vision Agent for multimodal analysis."""
 
-import hashlib
 import logging
 from dataclasses import dataclass
 from datetime import datetime
 from pathlib import Path
-from typing import List, Union, Optional, Dict, Any
+from typing import Any
 
 from config import Config
-from src.llm.factory import ProviderFactory
 from src.llm.base import BaseLLMProvider
+from src.llm.factory import ProviderFactory
+
 from .pdf_processor import PDFProcessor
 from .report_generator import ReportGenerator
 from .utils.cache import Cache
@@ -28,14 +28,14 @@ class AnalysisResult:
     file_type: str
     task: str
     text: str
-    metadata: Dict[str, Any]
+    metadata: dict[str, Any]
     timestamp: datetime = None
 
     def __post_init__(self):
         if self.timestamp is None:
             self.timestamp = datetime.now()
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         """Convert result to dictionary."""
         return {
             "file_path": str(self.file_path),
@@ -53,7 +53,7 @@ class VisionAgent:
     SUPPORTED_IMAGE_FORMATS = {".png", ".jpg", ".jpeg", ".gif", ".bmp", ".webp"}
     SUPPORTED_DOC_FORMATS = {".pdf"}
 
-    def __init__(self, config: Optional[Config] = None):
+    def __init__(self, config: Config | None = None):
         """Initialize Vision Agent.
 
         All configuration is loaded from the config object, which reads from .env file.
@@ -108,7 +108,7 @@ class VisionAgent:
 
     def analyze_image(
         self,
-        image_path: Union[str, Path],
+        image_path: str | Path,
         task: str = "Analyze this image and provide detailed insights.",
         **kwargs
     ) -> AnalysisResult:
@@ -194,8 +194,8 @@ class VisionAgent:
 
     def analyze_chart(
         self,
-        chart_path: Union[str, Path],
-        task: Optional[str] = None,
+        chart_path: str | Path,
+        task: str | None = None,
         **kwargs
     ) -> AnalysisResult:
         """Analyze a chart or data visualization.
@@ -220,8 +220,8 @@ class VisionAgent:
 
     def analyze_ui_screenshot(
         self,
-        screenshot_path: Union[str, Path],
-        task: Optional[str] = None,
+        screenshot_path: str | Path,
+        task: str | None = None,
         **kwargs
     ) -> AnalysisResult:
         """Analyze a UI screenshot.
@@ -246,11 +246,11 @@ class VisionAgent:
 
     def analyze_pdf(
         self,
-        pdf_path: Union[str, Path],
+        pdf_path: str | Path,
         task: str = "Summarize and analyze this document.",
-        pages: Optional[List[int]] = None,
+        pages: list[int] | None = None,
         **kwargs
-    ) -> List[AnalysisResult]:
+    ) -> list[AnalysisResult]:
         """Analyze a PDF document.
 
         Args:
@@ -323,10 +323,10 @@ class VisionAgent:
 
     def batch_analyze(
         self,
-        file_paths: List[Union[str, Path]],
+        file_paths: list[str | Path],
         task: str = "Analyze this file.",
         **kwargs
-    ) -> List[AnalysisResult]:
+    ) -> list[AnalysisResult]:
         """Analyze multiple files in batch.
 
         Args:
@@ -362,8 +362,8 @@ class VisionAgent:
 
     def generate_report(
         self,
-        results: List[AnalysisResult],
-        output_path: Optional[Union[str, Path]] = None,
+        results: list[AnalysisResult],
+        output_path: str | Path | None = None,
         title: str = "Vision Agent Analysis Report",
         **kwargs
     ) -> Path:
@@ -385,7 +385,7 @@ class VisionAgent:
             **kwargs
         )
 
-    def interactive_analyze(self, file_path: Union[str, Path]) -> None:
+    def interactive_analyze(self, file_path: str | Path) -> None:
         """Interactive analysis mode.
 
         Args:
@@ -418,7 +418,7 @@ class VisionAgent:
 
                 if result:
                     print(f"\n{'-'*60}")
-                    print(f"Analysis Result:")
+                    print("Analysis Result:")
                     print(f"{'-'*60}")
                     print(result.text)
                     print(f"{'-'*60}\n")

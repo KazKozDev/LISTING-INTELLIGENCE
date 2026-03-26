@@ -3,9 +3,9 @@
 import base64
 import logging
 from pathlib import Path
-from typing import Union, Optional
 
 from .base import BaseLLMProvider, ProviderResponse
+from .openai_provider import _collect_paginated_model_ids
 
 logger = logging.getLogger(__name__)
 
@@ -16,8 +16,8 @@ class AzureOpenAIProvider(BaseLLMProvider):
     def __init__(
         self,
         model: str = "gpt-4o",
-        api_key: Optional[str] = None,
-        base_url: Optional[str] = None,
+        api_key: str | None = None,
+        base_url: str | None = None,
         **kwargs
     ):
         """Initialize Azure OpenAI provider.
@@ -46,7 +46,9 @@ class AzureOpenAIProvider(BaseLLMProvider):
                 api_version=self.api_version,
             )
         except ImportError:
-            raise ImportError("openai package is required. Install: pip install openai")
+            raise ImportError(
+                "openai package is required. Install: pip install openai"
+            )
 
     def verify_connection(self) -> bool:
         """Verify Azure OpenAI connection."""
@@ -62,9 +64,13 @@ class AzureOpenAIProvider(BaseLLMProvider):
             return False
 
     def list_models(self) -> list:
-        """List available Azure OpenAI deployments."""
-        logger.warning("Azure OpenAI does not support listing deployments via API")
-        return [self.model]
+        """List available Azure OpenAI deployments via API."""
+        try:
+            models = self.client.models.list()
+            return _collect_paginated_model_ids(models)
+        except Exception as e:
+            logger.warning(f"Failed to list Azure deployments: {e}")
+            return [self.model] if self.model else []
 
     @property
     def supports_vision(self) -> bool:
@@ -72,7 +78,7 @@ class AzureOpenAIProvider(BaseLLMProvider):
         vision_models = ["gpt-4o", "gpt-4-turbo", "gpt-4-vision"]
         return any(vm in self.model.lower() for vm in vision_models)
 
-    def _encode_image(self, image_path: Union[str, Path]) -> str:
+    def _encode_image(self, image_path: str | Path) -> str:
         """Encode image to base64."""
         image_path = Path(image_path)
         if not image_path.exists():
@@ -83,7 +89,7 @@ class AzureOpenAIProvider(BaseLLMProvider):
 
     def analyze_image(
         self,
-        image_path: Union[str, Path],
+        image_path: str | Path,
         prompt: str,
         temperature: float = 0.7,
         max_tokens: int = 2048,
@@ -92,6 +98,10 @@ class AzureOpenAIProvider(BaseLLMProvider):
         """Analyze image with Azure OpenAI."""
         if not self.supports_vision:
             raise ValueError(f"Model {self.model} does not support vision")
+
+        # Guard against empty prompt
+        if not prompt or not prompt.strip():
+            prompt = "Analyze this image and provide detailed insights."
 
         image_data = self._encode_image(image_path)
         image_suffix = Path(image_path).suffix.lower().replace(".", "")
@@ -104,7 +114,10 @@ class AzureOpenAIProvider(BaseLLMProvider):
                     {
                         "type": "image_url",
                         "image_url": {
-                            "url": f"data:image/{image_suffix};base64,{image_data}"
+                            "url": (
+                                f"data:image/{image_suffix};base64,"
+                                f"{image_data}"
+                            )
                         }
                     }
                 ]

@@ -1,10 +1,8 @@
 """Pydantic models for API request/response validation."""
 
-from datetime import datetime
-from typing import Optional, Dict, Any, List
+from typing import Any
 
 from pydantic import BaseModel, Field
-
 
 # --- Response Models ---
 
@@ -15,9 +13,9 @@ class AnalysisResponse(BaseModel):
     success: bool
     filename: str
     analysis: str
-    metadata: Dict[str, Any] = Field(default_factory=dict)
+    metadata: dict[str, Any] = Field(default_factory=dict)
     timestamp: str
-    prompt: Optional[str] = None
+    prompt: str | None = None
     tokens_used: int = 0
 
 
@@ -44,8 +42,8 @@ class HealthResponse(BaseModel):
 
     status: str
     timestamp: str
-    provider: Optional[str] = None
-    provider_connected: Optional[bool] = None
+    provider: str | None = None
+    provider_connected: bool | None = None
 
 
 class UsageStats(BaseModel):
@@ -53,7 +51,7 @@ class UsageStats(BaseModel):
 
     total_requests: int = 0
     total_tokens: int = 0
-    by_provider: Dict[str, Dict[str, int]] = Field(default_factory=dict)
+    by_provider: dict[str, dict[str, int]] = Field(default_factory=dict)
 
 
 class ErrorResponse(BaseModel):
@@ -71,15 +69,11 @@ class ProductAnalysisResponse(BaseModel):
 
     success: bool
     filename: str
-    description: str
-    seo_title: str = ""
-    seo_tags: List[str] = Field(default_factory=list)
-    quality_score: float = 0.0
-    attributes: Dict[str, str] = Field(default_factory=dict)
-    improvements: List[str] = Field(default_factory=list)
-    raw_analysis: str = ""
-    metadata: Dict[str, Any] = Field(default_factory=dict)
-    timestamp: str = ""
+    analysis: str
+    marketplace: str = "general"
+    metadata: dict[str, Any] = Field(default_factory=dict)
+    timestamp: str
+    tokens_used: int = 0
 
 
 class ComplianceCheckResponse(BaseModel):
@@ -88,11 +82,22 @@ class ComplianceCheckResponse(BaseModel):
     success: bool
     filename: str
     marketplace: str
-    is_compliant: bool
-    issues: List[str] = Field(default_factory=list)
-    recommendations: List[str] = Field(default_factory=list)
-    raw_analysis: str = ""
-    metadata: Dict[str, Any] = Field(default_factory=dict)
+    analysis: str
+    metadata: dict[str, Any] = Field(default_factory=dict)
+    timestamp: str
+    tokens_used: int = 0
+
+
+class SEOGenerationResponse(BaseModel):
+    """SEO generation response."""
+
+    success: bool
+    filename: str
+    marketplace: str = "general"
+    seo_content: str
+    metadata: dict[str, Any] = Field(default_factory=dict)
+    timestamp: str
+    tokens_used: int = 0
 
 
 class CompetitorCompareResponse(BaseModel):
@@ -101,22 +106,21 @@ class CompetitorCompareResponse(BaseModel):
     success: bool
     product_filename: str
     competitor_filename: str
-    comparison: str
-    advantages: List[str] = Field(default_factory=list)
-    disadvantages: List[str] = Field(default_factory=list)
-    recommendations: List[str] = Field(default_factory=list)
-    metadata: Dict[str, Any] = Field(default_factory=dict)
+    analysis: str
+    marketplace: str = "general"
+    metadata: dict[str, Any] = Field(default_factory=dict)
+    timestamp: str
+    tokens_used: int = 0
 
 
 class BatchProductResult(BaseModel):
     """Single item in batch product analysis."""
 
     filename: str
-    description: str
-    seo_title: str = ""
-    seo_tags: List[str] = Field(default_factory=list)
-    quality_score: float = 0.0
-    error: Optional[str] = None
+    analysis: str = ""
+    success: bool
+    metadata: dict[str, Any] = Field(default_factory=dict)
+    error: str | None = None
 
 
 class BatchAnalysisResponse(BaseModel):
@@ -125,8 +129,27 @@ class BatchAnalysisResponse(BaseModel):
     success: bool
     total_files: int
     processed: int
-    results: List[BatchProductResult] = Field(default_factory=list)
-    metadata: Dict[str, Any] = Field(default_factory=dict)
+    results: list[BatchProductResult] = Field(default_factory=list)
+    csv_data: str = ""
+    timestamp: str
+
+
+class AttributeExtractionResponse(BaseModel):
+    """Attribute extraction response."""
+
+    success: bool
+    filename: str
+    attributes: str
+    metadata: dict[str, Any] = Field(default_factory=dict)
+    timestamp: str
+    tokens_used: int = 0
+
+
+class MarketplaceSource(BaseModel):
+    """Source document for marketplace rules."""
+
+    label: str
+    url: str
 
 
 class MarketplaceInfo(BaseModel):
@@ -136,6 +159,73 @@ class MarketplaceInfo(BaseModel):
     name: str
     min_image_width: int
     min_image_height: int
+    recommended_image_width: int | None = None
+    recommended_image_height: int | None = None
     max_file_size_mb: float
     required_background: str
-    forbidden_elements: List[str] = Field(default_factory=list)
+    aspect_ratio: str | None = None
+    allowed_formats: list[str] = Field(default_factory=list)
+    forbidden_elements: list[str] = Field(default_factory=list)
+    main_image_rules: list[str] = Field(default_factory=list)
+    recommendations: list[str] = Field(default_factory=list)
+    composition_policy: dict[str, dict[str, float]] = Field(
+        default_factory=dict
+    )
+    sources: list[MarketplaceSource] = Field(default_factory=list)
+    notes: str | None = None
+
+
+class MarketplaceListResponse(BaseModel):
+    """Marketplace list response."""
+
+    marketplaces: list[MarketplaceInfo] = Field(default_factory=list)
+
+
+class ComplianceFixSuggestion(BaseModel):
+    """Suggested deterministic action for improving compliance."""
+
+    id: str
+    title: str
+    description: str
+    action: str
+    automated: bool = True
+    priority: str = "medium"
+
+
+class CanvasTransformPayload(BaseModel):
+    """Canvas export settings for lightweight manual adjustments."""
+
+    target_width: int
+    target_height: int
+    zoom: float = 1.0
+    offset_x: float = 0.0
+    offset_y: float = 0.0
+    background: str = "white"
+
+
+class ComplianceFixSuggestionsResponse(BaseModel):
+    """Available fixes for a compliance image."""
+
+    success: bool
+    filename: str
+    marketplace: str
+    image_width: int
+    image_height: int
+    suggestions: list[ComplianceFixSuggestion] = Field(default_factory=list)
+    timestamp: str
+
+
+class ComplianceFixResultResponse(BaseModel):
+    """Image produced by a compliance fix action."""
+
+    success: bool
+    filename: str
+    fixed_filename: str
+    marketplace: str
+    applied_action: str
+    image_data_url: str
+    before_analysis: str = ""
+    after_analysis: str = ""
+    metadata: dict[str, Any] = Field(default_factory=dict)
+    timestamp: str
+    tokens_used: int = 0

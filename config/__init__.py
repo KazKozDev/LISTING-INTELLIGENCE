@@ -1,13 +1,18 @@
 """Configuration management for Vision Agent Analyst."""
 
 import os
-import yaml
+import sys
 from pathlib import Path
-from typing import Optional, Dict, Any, Tuple
+from typing import Any
 
-from pydantic_settings import BaseSettings
-from pydantic import Field, model_validator
+import yaml
 from dotenv import load_dotenv
+from pydantic import Field, model_validator
+from pydantic_settings import BaseSettings
+
+# Enable safe PyTorch fallback for unsupported Metal ops on Apple Silicon.
+if sys.platform == "darwin":
+    os.environ.setdefault("PYTORCH_ENABLE_MPS_FALLBACK", "1")
 
 # Load environment variables
 load_dotenv()
@@ -15,11 +20,12 @@ load_dotenv()
 CONFIG_DIR = Path(__file__).parent
 MODEL_CONFIG_PATH = CONFIG_DIR / "model_config.yaml"
 PROMPTS_CONFIG_PATH = CONFIG_DIR / "prompts.yaml"
+COMPOSITION_POLICIES_PATH = CONFIG_DIR / "composition_policies.yaml"
 
 
-def load_yaml_config(path: Path) -> Dict[str, Any]:
+def load_yaml_config(path: Path) -> dict[str, Any]:
     if path.exists():
-        with open(path, "r") as f:
+        with open(path) as f:
             return yaml.safe_load(f) or {}
     return {}
 
@@ -30,11 +36,14 @@ class Config(BaseSettings):
     # LLM Provider settings
     provider: str = Field(default="ollama", alias="LLM_PROVIDER")
     model: str = Field(default="", alias="LLM_MODEL")
-    api_key: Optional[str] = Field(default=None, alias="LLM_API_KEY")
-    base_url: Optional[str] = Field(default=None, alias="LLM_BASE_URL")
+    api_key: str | None = Field(default=None, alias="LLM_API_KEY")
+    base_url: str | None = Field(default=None, alias="LLM_BASE_URL")
 
     # Backward compatibility - Ollama settings
-    ollama_host: str = Field(default="http://localhost:11434", alias="OLLAMA_HOST")
+    ollama_host: str = Field(
+        default="http://localhost:11434",
+        alias="OLLAMA_HOST",
+    )
     ollama_model: str = Field(default="qwen3-vl:8b", alias="OLLAMA_MODEL")
 
     # Model parameters
@@ -46,12 +55,19 @@ class Config(BaseSettings):
     report_format: str = Field(default="markdown", alias="REPORT_FORMAT")
 
     # Processing settings
-    max_image_size: Tuple[int, int] = (1920, 1080)
+    max_image_size: tuple[int, int] = (1920, 1080)
     pdf_dpi: int = 150
 
     # Loaded configs (not from env)
-    model_config_data: Dict[str, Any] = Field(default_factory=dict, exclude=True)
-    prompts_config: Dict[str, Any] = Field(default_factory=dict, exclude=True)
+    model_config_data: dict[str, Any] = Field(
+        default_factory=dict,
+        exclude=True,
+    )
+    prompts_config: dict[str, Any] = Field(default_factory=dict, exclude=True)
+    composition_policies_config: dict[str, Any] = Field(
+        default_factory=dict,
+        exclude=True,
+    )
 
     model_config = {
         "populate_by_name": True,
@@ -67,21 +83,32 @@ class Config(BaseSettings):
         # Load YAML configs
         self.model_config_data = load_yaml_config(MODEL_CONFIG_PATH)
         self.prompts_config = load_yaml_config(PROMPTS_CONFIG_PATH)
+        self.composition_policies_config = load_yaml_config(
+            COMPOSITION_POLICIES_PATH
+        )
 
         # Set default model if not specified, using model_config
         if not self.model:
-            provider_cfg = self.model_config_data.get("models", {}).get(self.provider, {})
+            provider_cfg = self.model_config_data.get("models", {}).get(
+                self.provider,
+                {},
+            )
             self.model = provider_cfg.get("model_name", "")
 
             if not self.model:
                 default_models = {
                     "ollama": self.ollama_model,
                     "openai": "gpt-4o",
+                    "grok": "grok-2-vision-latest",
+                    "groq": "llama-3.3-70b-versatile",
                     "anthropic": "claude-3-5-sonnet-20241022",
                     "google": "gemini-1.5-pro",
                     "azure": "gpt-4o",
                 }
-                self.model = default_models.get(self.provider, self.ollama_model)
+                self.model = default_models.get(
+                    self.provider,
+                    self.ollama_model,
+                )
 
         # Set default base URL for Ollama if not specified
         if self.provider == "ollama" and not self.base_url:
@@ -96,7 +123,10 @@ class Config(BaseSettings):
         }
 
         if self.provider == "azure":
-            config["api_version"] = os.getenv("AZURE_API_VERSION", "2024-02-01")
+            config["api_version"] = os.getenv(
+                "AZURE_API_VERSION",
+                "2024-02-01",
+            )
 
         return config
 

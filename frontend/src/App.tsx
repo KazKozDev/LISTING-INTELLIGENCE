@@ -1,5 +1,4 @@
 import { useState, useEffect } from 'react'
-import { ScanSearch } from 'lucide-react'
 import './App.css'
 import './splash.css'
 
@@ -10,95 +9,153 @@ import { HelpSection } from './components/HelpSection'
 import { ErrorBoundary } from './components/ErrorBoundary'
 import { ProductAnalysis } from './components/ecommerce/ProductAnalysis'
 import { ComplianceReport } from './components/ecommerce/ComplianceReport'
-import { SEOPreview } from './components/ecommerce/SEOPreview'
-import { BulkUpload } from './components/ecommerce/BulkUpload'
-import { CompetitorCompare } from './components/ecommerce/CompetitorCompare'
 import { EcommerceTools } from './components/ecommerce/EcommerceTools'
+import { ComplianceFixStudio } from './components/ecommerce/ComplianceFixStudio'
+import type { ComplianceFixStudioLaunchState, CustomSettings } from './api/types'
 import { useConfig } from './hooks/useConfig'
 import { useHistory } from './hooks/useHistory'
+import {
+  type AppActiveNav,
+  getPersistedAppActiveNav,
+  setPersistedAppActiveNav,
+} from './utils/analysisCache'
+import { loadCustomSettings, saveCustomSettings } from './utils/customSettings'
+
+const SPLASH_FRAMES = [
+  {
+    word: 'READ',
+    line: 'Parses listings, signals weak copy, and finds what should rank.',
+  },
+  {
+    word: 'CHECK',
+    line: 'Reads compliance risk before the image goes live on the marketplace.',
+  },
+  {
+    word: 'FIX',
+    line: 'Cleans visuals, relights frames, and prepares export-ready assets.',
+  },
+] as const
 
 function App() {
-  const [activeNav, setActiveNav] = useState('ecom-product')
+  const [activeNav, setActiveNav] = useState(
+    () => getPersistedAppActiveNav() ?? 'ecom-product',
+  )
   const [showSplash, setShowSplash] = useState(true)
-  const [customSettings, setCustomSettings] = useState(() => {
-    try {
-      const saved = localStorage.getItem('customSettings')
-      return saved ? JSON.parse(saved) : { provider: '', model: '', apiKey: '' }
-    } catch {
-      return { provider: '', model: '', apiKey: '' }
-    }
-  })
+  const [splashFrameIndex, setSplashFrameIndex] = useState(0)
+  const [customSettings, setCustomSettings] = useState<CustomSettings>(loadCustomSettings)
+  const [fixStudioLaunchState, setFixStudioLaunchState] = useState<ComplianceFixStudioLaunchState | null>(null)
 
-  const handleSettingsChange = (settings: { provider: string; model: string; apiKey: string }) => {
+  const handleSettingsChange = (settings: CustomSettings) => {
     setCustomSettings(settings)
-    localStorage.setItem('customSettings', JSON.stringify(settings))
+    saveCustomSettings(settings)
   }
 
   const { config } = useConfig()
-  const { history, addToHistory, clearHistory, totalTokens, uniqueFiles } = useHistory()
+  const { history, clearHistory, totalTokens, uniqueFiles } = useHistory()
 
   useEffect(() => {
+    const frameTimer = setInterval(() => {
+      setSplashFrameIndex((current) => (current + 1) % SPLASH_FRAMES.length)
+    }, 900)
     const timer = setTimeout(() => setShowSplash(false), 3500)
-    return () => clearTimeout(timer)
+    return () => {
+      clearInterval(frameTimer)
+      clearTimeout(timer)
+    }
   }, [])
 
-  const renderContent = () => {
-    switch (activeNav) {
-      case 'ecom-product':
-        return <ProductAnalysis />
-      case 'ecom-compliance':
-        return <ComplianceReport />
-      case 'ecom-seo':
-        return <SEOPreview />
-      case 'ecom-bulk':
-        return <BulkUpload />
-      case 'ecom-compare':
-        return <CompetitorCompare />
-      case 'ecom-tools':
-        return <EcommerceTools />
-      case 'history':
-        return (
-          <HistoryView
-            history={history}
-            totalTokens={totalTokens}
-            uniqueFiles={uniqueFiles}
-            onClear={clearHistory}
-          />
-        )
-      case 'settings':
-        return (
-          <SettingsPanel
-            config={config}
-            customSettings={customSettings}
-            onSettingsChange={handleSettingsChange}
-          />
-        )
-      case 'help':
-        return <HelpSection />
-      default:
-        return <ProductAnalysis />
-    }
+  useEffect(() => {
+    setPersistedAppActiveNav(activeNav)
+  }, [activeNav])
+
+  const openFixStudioFromCompliance = (file: File, marketplace: string) => {
+    setFixStudioLaunchState({
+      id: Date.now(),
+      file,
+      marketplace,
+      source: 'compliance',
+    })
+    setActiveNav('ecom-fix')
   }
+
+  const handleNavChange = (id: string) => {
+    setActiveNav(id as AppActiveNav)
+  }
+
+  const activeSplashFrame = SPLASH_FRAMES[splashFrameIndex]
 
   return (
     <ErrorBoundary>
       <div className="app">
-        <Sidebar activeNav={activeNav} onNavChange={setActiveNav} config={config} />
+        <Sidebar activeNav={activeNav} onNavChange={handleNavChange} config={config} />
 
         <main className="main-content">
           <div className={`splash-screen ${!showSplash ? 'hidden' : ''}`}>
-            <div className="splash-logo-container">
-              <div className="splash-ring"></div>
-              <div className="splash-ring"></div>
-              <div className="splash-ring"></div>
-              <div className="splash-core"><ScanSearch size={40} /></div>
+            <div className="splash-headline" aria-label={activeSplashFrame.word}>
+              {SPLASH_FRAMES.map((frame, index) => {
+                const isActive = index === splashFrameIndex
+                const isPrevious = index === (splashFrameIndex + SPLASH_FRAMES.length - 1) % SPLASH_FRAMES.length
+                const isNext = index === (splashFrameIndex + 1) % SPLASH_FRAMES.length
+
+                return (
+                  <div
+                    key={frame.word}
+                    className={[
+                      'splash-word',
+                      isActive ? 'is-active' : '',
+                      isPrevious ? 'is-previous' : '',
+                      isNext ? 'is-next' : '',
+                    ].filter(Boolean).join(' ')}
+                  >
+                    {frame.word}
+                  </div>
+                )
+              })}
             </div>
-            <div className="splash-text">Vision Agent</div>
-            <div className="splash-subtext">Initializing Core Systems...</div>
+            <div className="splash-signature" aria-label="Listing Intelligence">
+              <span className="splash-signature-primary">Listing</span>
+              <span className="splash-signature-secondary">Intelligence</span>
+            </div>
+            <div className="splash-subtext">{activeSplashFrame.line}</div>
           </div>
 
-          <div className="content-wrapper">
-            {renderContent()}
+          <div className={`content-wrapper ${activeNav === 'help' ? 'content-wrapper-wide' : ''}`}>
+            <div hidden={activeNav !== 'ecom-product'}>
+              <ProductAnalysis />
+            </div>
+
+            <div hidden={activeNav !== 'ecom-compliance'}>
+              <ComplianceReport onOpenFixStudio={openFixStudioFromCompliance} />
+            </div>
+
+            <div hidden={activeNav !== 'ecom-fix'}>
+              <ComplianceFixStudio launchState={fixStudioLaunchState} />
+            </div>
+
+            <div hidden={activeNav !== 'ecom-tools'}>
+              <EcommerceTools />
+            </div>
+
+            <div hidden={activeNav !== 'history'}>
+              <HistoryView
+                history={history}
+                totalTokens={totalTokens}
+                uniqueFiles={uniqueFiles}
+                onClear={clearHistory}
+              />
+            </div>
+
+            <div hidden={activeNav !== 'settings'}>
+              <SettingsPanel
+                config={config}
+                customSettings={customSettings}
+                onSettingsChange={handleSettingsChange}
+              />
+            </div>
+
+            <div hidden={activeNav !== 'help'}>
+              <HelpSection onNavigate={setActiveNav} />
+            </div>
           </div>
         </main>
       </div>

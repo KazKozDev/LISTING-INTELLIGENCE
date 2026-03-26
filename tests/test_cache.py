@@ -1,7 +1,6 @@
 """Tests for Cache utility."""
 
 import time
-import pytest
 
 from src.utils.cache import Cache
 

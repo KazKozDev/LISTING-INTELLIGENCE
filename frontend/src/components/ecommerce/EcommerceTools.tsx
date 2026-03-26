@@ -1,92 +1,177 @@
-import { useState, useCallback } from 'react'
+import { useState, useCallback, useRef } from 'react'
 import {
-  ScanSearch, Cloud, File, Wrench, Lightbulb, Star, DollarSign,
-  MessageSquare, BoxIcon, Search, ClipboardList, Zap, Copy, Check
+  ScanSearch, Cloud, File, DollarSign,
+  MessageSquare, ClipboardList, Zap, Copy, Check, Target, Search, BadgePercent,
 } from 'lucide-react'
 import { api } from '../../api/client'
+import type {
+  AnalysisResult,
+  DetectedObject,
+  InventoryCheckMetadata,
+  ObjectDetectionResult,
+  TextDetectionResult,
+  TextRegion,
+} from '../../api/types'
 import { saveToHistory } from '../../hooks/useHistory'
+import { useObjectUrlPreview } from '../../hooks/useObjectUrlPreviews'
+import { MarkdownContent } from '../MarkdownContent'
+import { formatFileSize } from '../../utils/analysis'
 
-function formatFileSize(bytes: number) {
-  if (bytes < 1024) return bytes + ' B'
-  if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB'
-  return (bytes / (1024 * 1024)).toFixed(1) + ' MB'
+type ToolResponse = AnalysisResult
+type ToolInputMode = 'image' | 'listing'
+type ListingSourceMode = 'url' | 'manual'
+
+interface Tool {
+  id: string
+  name: string
+  description: string
+  icon: React.ComponentType<{ size?: number }>
+  templateKey?: string
+  inputMode: ToolInputMode
 }
 
-const TOOLS = [
+interface InventoryBox {
+  id: string
+  label: string
+  bbox: number[]
+  kind: 'object' | 'text'
+  confidence?: number
+}
+
+function isInventoryMetadata(metadata: AnalysisResult['metadata']): metadata is InventoryCheckMetadata {
+  return Boolean(
+    metadata
+    && typeof metadata === 'object'
+    && 'object_detection' in metadata
+    && 'text_detection' in metadata,
+  )
+}
+
+function getInventoryMetadata(result: ToolResponse | null): InventoryCheckMetadata | null {
+  if (!result || !isInventoryMetadata(result.metadata)) return null
+  return result.metadata
+}
+
+function getDetectedObjects(objectDetection?: ObjectDetectionResult): DetectedObject[] {
+  return objectDetection?.objects ?? []
+}
+
+function getObjectMix(objects: DetectedObject[]): Array<{ label: string; count: number; avgConfidence: number }> {
+  const byLabel = new Map<string, { count: number; confidenceSum: number }>()
+
+  objects.forEach((object) => {
+    const current = byLabel.get(object.label) ?? { count: 0, confidenceSum: 0 }
+    current.count += 1
+    current.confidenceSum += object.confidence
+    byLabel.set(object.label, current)
+  })
+
+  return Array.from(byLabel.entries())
+    .map(([label, value]) => ({
+      label,
+      count: value.count,
+      avgConfidence: value.confidenceSum / Math.max(1, value.count),
+    }))
+    .sort((left, right) => right.count - left.count)
+}
+
+function getTopObjectMix(objectMix: Array<{ label: string; count: number; avgConfidence: number }>) {
+  return objectMix.slice(0, 6)
+}
+
+function getInventoryBoxes(
+  objectDetection?: ObjectDetectionResult,
+  textDetection?: TextDetectionResult,
+): InventoryBox[] {
+  const objectBoxes = getDetectedObjects(objectDetection).map((object, index) => ({
+    id: `object-${object.label}-${index}`,
+    label: object.label,
+    bbox: object.bbox,
+    kind: 'object' as const,
+    confidence: object.confidence,
+  }))
+  const textBoxes = (textDetection?.regions ?? []).map((region: TextRegion, index) => ({
+    id: `text-${index}`,
+    label: region.text || 'text',
+    bbox: region.bbox,
+    kind: 'text' as const,
+    confidence: region.confidence,
+  }))
+
+  return [...objectBoxes, ...textBoxes]
+}
+
+const TOOLS: Tool[] = [
   {
-    id: 'improvements',
-    name: 'Photo Improvements',
-    description: 'AI suggestions to boost conversion rates',
-    icon: Lightbulb,
-    apiMethod: 'suggestImprovements' as const,
+    id: 'competitor-insights',
+    name: 'Competitor Insights',
+    description: 'See the angle',
+    icon: Target,
+    templateKey: 'ecommerce_competitor_insights',
+    inputMode: 'listing',
   },
   {
-    id: 'attributes',
-    name: 'Extract Attributes',
-    description: 'Auto-detect product characteristics from photo',
-    icon: ClipboardList,
-    apiMethod: 'extractAttributes' as const,
+    id: 'keyword-gap',
+    name: 'Keyword Gap',
+    description: 'Find missing demand',
+    icon: Search,
+    templateKey: 'ecommerce_keyword_gap',
+    inputMode: 'listing',
   },
   {
-    id: 'listing',
-    name: 'Listing Audit',
-    description: 'Optimize title, images, and description for conversion',
-    icon: Star,
-    templateKey: 'ecommerce_listing',
+    id: 'usp-extractor',
+    name: 'USP Extractor',
+    description: 'Surface ownable claims',
+    icon: BadgePercent,
+    templateKey: 'ecommerce_usp_extractor',
+    inputMode: 'listing',
   },
   {
     id: 'pricing',
     name: 'Pricing Analysis',
-    description: 'Compare pricing strategies and value propositions',
+    description: 'Read value signals',
     icon: DollarSign,
     templateKey: 'ecommerce_price',
+    inputMode: 'listing',
   },
   {
     id: 'sentiment',
     name: 'Review Sentiment',
-    description: 'Analyze customer reviews and feedback themes',
+    description: 'Hear buyer patterns',
     icon: MessageSquare,
     templateKey: 'ecommerce_sentiment',
-  },
-  {
-    id: 'packaging',
-    name: 'Packaging Critique',
-    description: 'Evaluate shelf appeal and unboxing experience',
-    icon: BoxIcon,
-    templateKey: 'ecommerce_packaging',
-  },
-  {
-    id: 'visual_search',
-    name: 'Visual Search SEO',
-    description: 'Optimize images for Google/Pinterest Lens',
-    icon: Search,
-    templateKey: 'ecommerce_search',
+    inputMode: 'listing',
   },
   {
     id: 'inventory',
-    name: 'Inventory Check',
-    description: 'Estimate stock levels and shelf arrangement',
+    name: 'Object Scan',
+    description: 'Detect every object',
     icon: ClipboardList,
-    templateKey: 'ecommerce_inventory',
+    inputMode: 'image',
   },
 ]
 
 export function EcommerceTools() {
   const [selectedTool, setSelectedTool] = useState(TOOLS[0])
   const [file, setFile] = useState<File | null>(null)
-  const [preview, setPreview] = useState<string | null>(null)
+  const [listingSourceMode, setListingSourceMode] = useState<ListingSourceMode>('url')
+  const [listingUrl, setListingUrl] = useState('')
+  const [listingText, setListingText] = useState('')
+  const [dragActive, setDragActive] = useState<string | null>(null)
+  const singleInputRef = useRef<HTMLInputElement>(null)
+
   const [loading, setLoading] = useState(false)
-  const [result, setResult] = useState<string | null>(null)
-  const [tokensUsed, setTokensUsed] = useState(0)
+  const [result, setResult] = useState<ToolResponse | null>(null)
   const [error, setError] = useState<string | null>(null)
-  const [dragActive, setDragActive] = useState(false)
   const [copied, setCopied] = useState(false)
+  const [previewImageSize, setPreviewImageSize] = useState<{ width: number; height: number } | null>(null)
+  const preview = useObjectUrlPreview(file)
 
   const handleFile = useCallback((f: File) => {
     setFile(f)
     setResult(null)
     setError(null)
-    setPreview(URL.createObjectURL(f))
+    setPreviewImageSize(null)
   }, [])
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -95,34 +180,47 @@ export function EcommerceTools() {
 
   const handleDrop = useCallback((e: React.DragEvent) => {
     e.preventDefault()
-    setDragActive(false)
-    if (e.dataTransfer.files?.[0]) handleFile(e.dataTransfer.files[0])
+    setDragActive(null)
+    if (e.dataTransfer.files?.[0]) {
+      handleFile(e.dataTransfer.files[0])
+    }
   }, [handleFile])
 
   const handleAnalyze = async () => {
-    if (!file) return
     setLoading(true)
     setError(null)
     try {
-      let analysisText = ''
-      let tokens = 0
-      if (selectedTool.id === 'improvements') {
-        const data = await api.suggestImprovements(file)
-        analysisText = data.analysis
-        tokens = data.tokens_used
-      } else if (selectedTool.id === 'attributes') {
-        const data = await api.extractAttributes(file)
-        analysisText = data.attributes
-        tokens = data.tokens_used
-      } else if ('templateKey' in selectedTool && selectedTool.templateKey) {
-        const data = await api.analyze(file, '', { templateKey: selectedTool.templateKey })
-        analysisText = data.analysis
-        tokens = data.tokens_used || 0
+      let response: ToolResponse | null = null
+
+      if (selectedTool.id === 'inventory') {
+        if (!file) return
+        response = await api.inventoryCheck(file)
+      } else if (selectedTool.inputMode === 'listing' && selectedTool.templateKey) {
+        response = await api.analyzeListing(listingSourceMode, {
+          listingUrl,
+          listingText,
+          templateKey: selectedTool.templateKey,
+        })
+      } else if (selectedTool.templateKey) {
+        if (!file) return
+        response = await api.analyze(file, '', { templateKey: selectedTool.templateKey })
       }
-      setResult(analysisText)
-      setTokensUsed(tokens)
-      if (analysisText) {
-        saveToHistory({ success: true, filename: file.name, analysis: analysisText, metadata: { tool: selectedTool.name }, timestamp: new Date().toISOString(), tokens_used: tokens })
+
+      setResult(response)
+      if (response) {
+        const analysisResponse = response as AnalysisResult
+        const historyFilename = selectedTool.inputMode === 'listing'
+          ? analysisResponse.filename
+          : file?.name ?? analysisResponse.filename
+
+        saveToHistory({
+          success: true,
+          filename: historyFilename,
+          analysis: analysisResponse.analysis,
+          metadata: analysisResponse.metadata,
+          timestamp: analysisResponse.timestamp,
+          tokens_used: analysisResponse.tokens_used,
+        })
       }
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Analysis failed')
@@ -131,14 +229,36 @@ export function EcommerceTools() {
     }
   }
 
+  const resultText = result?.analysis ?? null
+  const tokensUsed = result?.tokens_used ?? 0
+  const isListingTool = selectedTool.inputMode === 'listing'
+  const inventoryMetadata = selectedTool.id === 'inventory' ? getInventoryMetadata(result) : null
+  const inventoryObjectDetection = inventoryMetadata?.object_detection
+  const inventoryTextDetection = inventoryMetadata?.text_detection
+  const detectedObjects = getDetectedObjects(inventoryObjectDetection)
+  const objectMix = getObjectMix(detectedObjects)
+  const topObjectMix = getTopObjectMix(objectMix)
+  const maxObjectMixCount = topObjectMix[0]?.count ?? 0
+  const inventoryBoxes = getInventoryBoxes(inventoryObjectDetection, inventoryTextDetection)
+  const inventoryFlags = Array.from(new Set([
+    ...(inventoryObjectDetection?.warnings ?? []),
+    ...(inventoryTextDetection?.warnings ?? []),
+  ]))
+  const inventoryVisionReview = inventoryMetadata?.vision_review
+  const inventoryTextSamples = (inventoryTextDetection?.regions ?? [])
+    .map((region) => region.text.trim())
+    .filter(Boolean)
+    .slice(0, 6)
+  const canAnalyze = isListingTool
+      ? (listingSourceMode === 'url' ? Boolean(listingUrl.trim()) : Boolean(listingText.trim()))
+      : Boolean(file)
+
   return (
     <>
-      <div className="hero-header-row">
-        <div className="hero-icon-inline"><Wrench /></div>
-        <div className="hero-text-col">
-          <h1 className="hero-title">E-Commerce Tools</h1>
-          <p className="hero-subtitle">Specialized analysis tools for online retail</p>
-        </div>
+      <div className="hero-header-row hero-header-stacked">
+        <span className="hero-kicker">Focused analyses</span>
+        <h1 className="hero-title hero-title-inline">Additional Tools</h1>
+        <p className="hero-subtitle hero-subtitle-inline">Extra checks for listings</p>
       </div>
 
       {/* Tools Grid */}
@@ -149,9 +269,13 @@ export function EcommerceTools() {
             <div
               key={tool.id}
               className={`tool-card ${selectedTool.id === tool.id ? 'active' : ''}`}
-              onClick={() => { setSelectedTool(tool); setResult(null); setError(null) }}
+              onClick={() => {
+                setSelectedTool(tool)
+                setResult(null)
+                setError(null)
+              }}
             >
-              <div className="tool-card-icon"><IconComp size={20} /></div>
+              <div className="tool-card-icon"><IconComp size={17} /></div>
               <div className="tool-card-info">
                 <div className="tool-card-name">{tool.name}</div>
                 <div className="tool-card-desc">{tool.description}</div>
@@ -165,45 +289,137 @@ export function EcommerceTools() {
       <div className="selected-tool-banner">
         {(() => { const IC = selectedTool.icon; return <IC size={18} /> })()}
         <span>{selectedTool.name}</span>
-        <span className="selected-tool-desc">— {selectedTool.description}</span>
+        {selectedTool.id === 'inventory' && (
+          <span className="selected-tool-pill">YOLO + OCR</span>
+        )}
       </div>
 
-      {preview && (
-        <div className="image-preview">
-          <img src={preview} alt="Product preview" />
-          <div className="image-preview-info">
-            <span>{file?.name}</span>
-            <span>{file ? formatFileSize(file.size) : ''}</span>
+      {isListingTool && (
+        <div className="listing-tool-panel">
+          <div className="listing-source-toggle" role="tablist" aria-label="Listing input mode">
+            <button
+              type="button"
+              className={`listing-source-button ${listingSourceMode === 'url' ? 'active' : ''}`}
+              onClick={() => setListingSourceMode('url')}
+            >
+              Try Parse by Link
+            </button>
+            <button
+              type="button"
+              className={`listing-source-button ${listingSourceMode === 'manual' ? 'active' : ''}`}
+              onClick={() => setListingSourceMode('manual')}
+            >
+              Paste Manually
+            </button>
           </div>
+
+          {listingSourceMode === 'url' ? (
+            <div className="listing-input-card">
+              <div className="listing-input-title">Public product URL</div>
+              <div className="listing-input-note">Pull a public listing when the page is readable.</div>
+              <input
+                type="url"
+                className="setting-input"
+                placeholder="https://marketplace.example.com/product/..."
+                value={listingUrl}
+                onChange={(event) => setListingUrl(event.target.value)}
+              />
+            </div>
+          ) : (
+            <div className="listing-input-card">
+              <div className="listing-input-title">Paste card content manually</div>
+              <div className="listing-input-note">Paste the core listing copy when parsing falls short.</div>
+              <textarea
+                className="setting-input listing-textarea"
+                placeholder="Paste the listing title, price, bullets, seller notes, and customer reviews here..."
+                value={listingText}
+                onChange={(event) => setListingText(event.target.value)}
+                rows={10}
+              />
+            </div>
+          )}
         </div>
       )}
 
-      <div
-        className={`file-drop ${file ? 'has-file' : ''} ${dragActive ? 'drag-active' : ''}`}
-        onClick={() => document.getElementById('tools-input')?.click()}
-        onDragOver={e => { e.preventDefault(); setDragActive(true) }}
-        onDragLeave={() => setDragActive(false)}
-        onDrop={handleDrop}
-      >
-        <input id="tools-input" type="file" accept=".png,.jpg,.jpeg,.webp" onChange={handleFileChange} style={{ display: 'none' }} />
-        <div className="drop-content">
-          {file ? (
-            <div className="file-info">
-              <span className="drop-icon"><File /></span>
-              <span className="file-name">{file.name}</span>
-              <span className="file-size">{formatFileSize(file.size)}</span>
-            </div>
-          ) : (
-            <>
-              <span className="drop-icon"><Cloud /></span>
-              <span className="drop-text">Drop product photo here</span>
-              <span className="drop-hint">PNG, JPG, WebP</span>
-            </>
-          )}
-        </div>
-      </div>
+      {isListingTool ? null : (
+        /* ===== SINGLE UPLOAD ===== */
+        <>
+          {preview && (
+            <div className="image-preview">
+              <div className="image-preview-stage">
+                <img
+                  src={preview}
+                  alt="Product preview"
+                  onLoad={(event) => {
+                    setPreviewImageSize({
+                      width: event.currentTarget.naturalWidth,
+                      height: event.currentTarget.naturalHeight,
+                    })
+                  }}
+                />
+                {selectedTool.id === 'inventory' && inventoryBoxes.length > 0 && previewImageSize && (
+                  <div className="inventory-preview-overlay" aria-hidden="true">
+                    {inventoryBoxes.map((box) => {
+                      const [x1, y1, x2, y2] = box.bbox
+                      const left = (x1 / previewImageSize.width) * 100
+                      const top = (y1 / previewImageSize.height) * 100
+                      const width = ((x2 - x1) / previewImageSize.width) * 100
+                      const height = ((y2 - y1) / previewImageSize.height) * 100
 
-      <button className="scan-btn" onClick={handleAnalyze} disabled={!file || loading}>
+                      return (
+                        <div
+                          key={box.id}
+                          className={`inventory-box inventory-box-${box.kind}`}
+                          style={{ left: `${left}%`, top: `${top}%`, width: `${width}%`, height: `${height}%` }}
+                        >
+                          <span className="inventory-box-label">{box.label}</span>
+                        </div>
+                      )
+                    })}
+                  </div>
+                )}
+              </div>
+              <div className="image-preview-info">
+                <span>{file?.name}</span>
+                <span>{file ? formatFileSize(file.size) : ''}</span>
+              </div>
+              {selectedTool.id === 'inventory' && inventoryBoxes.length > 0 && (
+                <div className="inventory-overlay-legend">
+                  <span className="inventory-legend-chip inventory-legend-chip-object">Objects</span>
+                  <span className="inventory-legend-chip inventory-legend-chip-text">OCR Text</span>
+                </div>
+              )}
+            </div>
+          )}
+
+          <div
+            className={`file-drop ${file ? 'has-file' : ''} ${dragActive === 'single' ? 'drag-active' : ''}`}
+            onClick={() => singleInputRef.current?.click()}
+            onDragOver={e => { e.preventDefault(); setDragActive('single') }}
+            onDragLeave={() => setDragActive(null)}
+            onDrop={handleDrop}
+          >
+            <input ref={singleInputRef} type="file" accept=".png,.jpg,.jpeg,.webp" onChange={handleFileChange} style={{ display: 'none' }} />
+            <div className="drop-content">
+              {file ? (
+                <div className="file-info">
+                  <span className="drop-icon"><File /></span>
+                  <span className="file-name">{file.name}</span>
+                  <span className="file-size">{formatFileSize(file.size)}</span>
+                </div>
+              ) : (
+                <>
+                  <span className="drop-icon"><Cloud /></span>
+                  <span className="drop-text">{selectedTool.id === 'inventory' ? 'Drop scene photo here' : 'Drop product photo here'}</span>
+                  <span className="drop-hint">PNG, JPG, WebP</span>
+                </>
+              )}
+            </div>
+          </div>
+        </>
+      )}
+
+      <button className="scan-btn" onClick={handleAnalyze} disabled={!canAnalyze || loading}>
         {loading
           ? (<><span className="spinner"></span>Running {selectedTool.name}...</>)
           : (<><ScanSearch size={20} />{selectedTool.name}</>)}
@@ -215,23 +431,178 @@ export function EcommerceTools() {
         </div>
       )}
 
-      {result && (
+      {resultText && (
         <div style={{ marginTop: '2rem' }}>
+          {selectedTool.id === 'inventory' && inventoryMetadata ? (
+            <>
+              <div className="inventory-summary-grid">
+                <div className="inventory-summary-card">
+                  <span className="inventory-summary-label">Detected Objects</span>
+                  <strong className="inventory-summary-value">{detectedObjects.length}</strong>
+                  <span className="inventory-summary-note">Every visible detection in frame</span>
+                </div>
+                <div className="inventory-summary-card">
+                  <span className="inventory-summary-label">Object Classes</span>
+                  <strong className="inventory-summary-value">{objectMix.length}</strong>
+                  <span className="inventory-summary-note">Distinct labels found by the model</span>
+                </div>
+                <div className="inventory-summary-card">
+                  <span className="inventory-summary-label">OCR Reads</span>
+                  <strong className="inventory-summary-value">{inventoryTextDetection?.total_text_regions ?? 0}</strong>
+                  <span className="inventory-summary-note">Readable text extracted from frame</span>
+                </div>
+                <div className="inventory-summary-card">
+                  <span className="inventory-summary-label">Scene Flags</span>
+                  <strong className="inventory-summary-value">{inventoryFlags.length}</strong>
+                  <span className="inventory-summary-note">Detection or OCR caveats surfaced</span>
+                </div>
+              </div>
+
+              <div className="result-section inventory-chart-card">
+                <div className="result-section-header">
+                  <span className="result-section-title">
+                    <Target size={16} />
+                    Object Mix
+                  </span>
+                </div>
+                {topObjectMix.length > 0 ? (
+                  <div className="inventory-bar-chart" aria-label="Object distribution chart">
+                    {topObjectMix.map((entry) => {
+                      const width = maxObjectMixCount > 0
+                        ? Math.max(12, Math.round((entry.count / maxObjectMixCount) * 100))
+                        : 0
+
+                      return (
+                        <div key={entry.label} className="inventory-bar-row">
+                          <div className="inventory-bar-meta">
+                            <span className="inventory-bar-label">{entry.label}</span>
+                            <span className="inventory-bar-value">{entry.count}</span>
+                          </div>
+                          <div className="inventory-bar-track" aria-hidden="true">
+                            <div className="inventory-bar-fill" style={{ width: `${width}%` }} />
+                          </div>
+                        </div>
+                      )
+                    })}
+                  </div>
+                ) : (
+                  <div className="inventory-empty-state">No object distribution is available for this frame.</div>
+                )}
+                <div className="inventory-footnote">
+                  Top detected classes by count. This chart is generated directly from YOLO detections.
+                </div>
+              </div>
+
+              <div className="inventory-detail-grid">
+                <div className="result-section inventory-detail-card">
+                  <div className="result-section-header">
+                    <span className="result-section-title">
+                      <ClipboardList size={16} />
+                      Detection Breakdown
+                    </span>
+                  </div>
+                  <div className="inventory-detail-list">
+                    {objectMix.length > 0 ? objectMix.map((entry) => (
+                      <div key={entry.label} className="inventory-detail-item">
+                        <div>
+                          <strong>{entry.label}</strong>
+                          <span>{entry.count} detection{entry.count === 1 ? '' : 's'}</span>
+                        </div>
+                        <span>{Math.round(entry.avgConfidence * 100)}% conf</span>
+                      </div>
+                    )) : (
+                      <div className="inventory-empty-state">No object detections found in this frame.</div>
+                    )}
+                  </div>
+                </div>
+
+                <div className="result-section inventory-detail-card">
+                  <div className="result-section-header">
+                    <span className="result-section-title">
+                      <MessageSquare size={16} />
+                      OCR Text
+                    </span>
+                  </div>
+                  {inventoryTextSamples.length > 0 ? (
+                    <div className="inventory-chip-list">
+                      {inventoryTextSamples.map((textSample, index) => (
+                        <span key={`${textSample}-${index}`} className="inventory-text-chip">{textSample}</span>
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="inventory-empty-state">No readable text detected.</div>
+                  )}
+                  {typeof inventoryTextDetection?.text_coverage_ratio === 'number' && (
+                    <div className="inventory-footnote">
+                      Text covers {Math.round(inventoryTextDetection.text_coverage_ratio * 100)}% of the image area.
+                    </div>
+                  )}
+                </div>
+
+                <div className="result-section inventory-detail-card">
+                  <div className="result-section-header">
+                    <span className="result-section-title">
+                      <Target size={16} />
+                      Model Notes
+                    </span>
+                  </div>
+                  <div className="inventory-flag-list">
+                    {inventoryFlags.length > 0 ? inventoryFlags.map((flag, index) => (
+                      <div key={`${flag}-${index}`} className="inventory-flag-item">{flag}</div>
+                    )) : (
+                      <div className="inventory-empty-state">No major detection issues were flagged.</div>
+                    )}
+                  </div>
+                </div>
+              </div>
+
+              {inventoryVisionReview?.text && (
+                <div className="result-section inventory-detail-card">
+                  <div className="result-section-header">
+                    <span className="result-section-title">
+                      <ScanSearch size={16} />
+                      Vision Review
+                    </span>
+                    <div className="fix-stage-status-row">
+                      {inventoryVisionReview.provider && (
+                        <div className="cache-badge">{inventoryVisionReview.provider}</div>
+                      )}
+                      {inventoryVisionReview.model && (
+                        <div className="cache-badge">{inventoryVisionReview.model}</div>
+                      )}
+                    </div>
+                  </div>
+                  <div className="result-section-body">
+                    <MarkdownContent content={inventoryVisionReview.text} />
+                  </div>
+                </div>
+              )}
+
+              {!inventoryVisionReview?.text && inventoryVisionReview?.reason && (
+                <div className="inventory-footnote">{inventoryVisionReview.reason}</div>
+              )}
+            </>
+          ) : null}
+
           <div className="result-section">
             <div className="result-section-header">
               <span className="result-section-title">
                 {(() => { const IC = selectedTool.icon; return <IC size={16} /> })()}
-                {selectedTool.name} Results
+                {`${selectedTool.name} Results`}
               </span>
               <button className="copy-btn-small" onClick={() => {
-                navigator.clipboard.writeText(result)
+                navigator.clipboard.writeText(resultText)
                 setCopied(true)
                 setTimeout(() => setCopied(false), 1500)
               }}>
                 {copied ? <><Check size={11} /> Copied</> : <><Copy size={11} /> Copy</>}
               </button>
             </div>
-            <div className="result-section-body" style={{ whiteSpace: 'pre-wrap' }}>{result}</div>
+            <div className="result-section-body">
+              {selectedTool.id === 'inventory' && inventoryMetadata
+                ? <div className="inventory-footnote">This view is driven by model detections and OCR, not LLM guesswork. The narrative summary remains available for copy and export.</div>
+                : <MarkdownContent content={resultText} />}
+            </div>
           </div>
 
           {tokensUsed > 0 && (

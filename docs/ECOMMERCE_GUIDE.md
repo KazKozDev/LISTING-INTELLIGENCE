@@ -6,10 +6,10 @@ Vision Agent Analyst includes specialized tools for e-commerce product photo ana
 
 | Marketplace | Min Resolution | Background | Aspect Ratio |
 |-------------|---------------|------------|-------------|
-| Wildberries | 900x1200 | White/transparent | 3:4 |
-| Ozon | 200x200 (900x1200 recommended) | White preferred | 1:1 or 3:4 |
-| Amazon | 1000x1000 | Pure white (255,255,255) | 1:1 |
-| eBay | 500x500 | White/neutral preferred | 1:1 |
+| Allegro | 500 px on the longer side | Any clear background | Any ratio |
+| Walmart | 1500x1500 minimum for zoom, 2200x2200 preferred | Seamless white (255,255,255) | 1:1 |
+| Amazon | 500 px technical minimum, 1000+ recommended for zoom | Pure white (255,255,255) on main image | Not fixed; square common |
+| eBay | 500x500 minimum | White/neutral recommended | Not fixed |
 
 ## Features
 
@@ -17,6 +17,7 @@ Vision Agent Analyst includes specialized tools for e-commerce product photo ana
 Upload a product photo to get:
 - Product description and category
 - SEO-optimized title (60-80 characters)
+- Bullet points and full listing description
 - 10-15 search tags/keywords
 - Photo quality score (1-10)
 - Extracted product attributes
@@ -29,20 +30,17 @@ Verify that your product photo meets marketplace requirements:
 - Forbidden elements detection (watermarks, text overlays, etc.)
 - Compliance score with specific violation details
 
-### SEO Generator
-Generate marketplace-optimized listing content:
-- SEO title with key search terms
-- 5 benefit-focused bullet points
-- Product description (150-200 words)
-- 15 search tags (broad + long-tail)
-- Backend keywords
-- Category suggestion
+The Compliance Check flow now uses marketplace-specific requirements collected from:
+- Amazon Seller Central Product image guide
+- Walmart Marketplace Learn image guidelines
+- eBay Picture policy and Seller Center photo requirements
+- Allegro Help rules for gallery and description images
 
 ### Batch Processing
 Analyze multiple product photos at once:
-1. Go to **E-commerce > Bulk Upload**
+1. Open **Product Analysis**
 2. Select target marketplace
-3. Upload multiple images
+3. Upload multiple images in one drop
 4. Download results as CSV
 
 ## API Usage
@@ -58,7 +56,7 @@ curl -X POST http://localhost:8000/api/ecommerce/analyze-product \
 ```bash
 curl -X POST http://localhost:8000/api/ecommerce/compliance-check \
   -F "file=@product.jpg" \
-  -F "marketplace=wildberries"
+  -F "marketplace=amazon"
 ```
 
 ### Generate SEO
@@ -73,3 +71,9 @@ curl -X POST http://localhost:8000/api/ecommerce/generate-seo \
 ```bash
 curl http://localhost:8000/api/ecommerce/marketplaces
 ```
+
+## Current UI Structure
+
+- Product Analysis: single-item analysis, SEO output, and batch mode in one screen
+- Compliance Check: marketplace pass/fail validation using marketplace-specific image rules sourced from official documentation
+- Tools: secondary specialized analyses such as compare, improvements, and attribute extraction

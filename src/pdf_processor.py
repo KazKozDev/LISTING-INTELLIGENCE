@@ -2,7 +2,6 @@
 
 import logging
 from pathlib import Path
-from typing import List, Tuple, Optional
 
 import fitz  # PyMuPDF
 
@@ -15,7 +14,7 @@ logger = logging.getLogger(__name__)
 class PDFProcessor:
     """Process PDF documents for vision analysis."""
 
-    def __init__(self, config: Optional[Config] = None):
+    def __init__(self, config: Config | None = None):
         """Initialize PDF processor.
 
         Args:
@@ -28,9 +27,9 @@ class PDFProcessor:
     def extract_pages_as_images(
         self,
         pdf_path: Path,
-        pages: Optional[List[int]] = None,
-        dpi: Optional[int] = None
-    ) -> List[Tuple[int, Path]]:
+        pages: list[int] | None = None,
+        dpi: int | None = None
+    ) -> list[tuple[int, Path]]:
         """Extract PDF pages as images.
 
         Args:
@@ -96,7 +95,7 @@ class PDFProcessor:
             logger.error(f"Error processing PDF: {e}")
             raise
 
-    def extract_text(self, pdf_path: Path) -> List[Tuple[int, str]]:
+    def extract_text(self, pdf_path: Path) -> list[tuple[int, str]]:
         """Extract text content from PDF pages.
 
         Args:

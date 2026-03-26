@@ -1,7 +1,7 @@
 """In-memory cost and usage tracker for LLM API calls."""
 
 import threading
-from typing import Dict, Any
+from typing import Any
 
 
 class CostTracker:
@@ -9,7 +9,7 @@ class CostTracker:
 
     def __init__(self):
         self._lock = threading.Lock()
-        self._stats: Dict[str, Dict[str, int]] = {}
+        self._stats: dict[str, dict[str, int]] = {}
         self._total_requests = 0
         self._total_tokens = 0
 
@@ -31,7 +31,7 @@ class CostTracker:
             self._stats[key]["requests"] += 1
             self._stats[key]["tokens"] += tokens
 
-    def get_stats(self) -> Dict[str, Any]:
+    def get_stats(self) -> dict[str, Any]:
         """Get usage statistics.
 
         Returns:

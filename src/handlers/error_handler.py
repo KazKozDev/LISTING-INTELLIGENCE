@@ -1,9 +1,10 @@
 """Error handling utilities."""
 
-import time
 import functools
 import logging
-from typing import Type, Tuple, Callable, Any
+import time
+from collections.abc import Callable
+from typing import Any
 
 logger = logging.getLogger(__name__)
 
@@ -19,7 +20,7 @@ def retry_on_error(
     max_retries: int = 3,
     delay: float = 1.0,
     backoff: float = 2.0,
-    exceptions: Tuple[Type[Exception], ...] = (Exception,)
+    exceptions: tuple[type[Exception], ...] = (Exception,)
 ) -> Callable:
     """Decorator for retrying functions on error.
 
@@ -43,7 +44,7 @@ def retry_on_error(
                     if attempt == max_retries:
                         logger.error(f"Function {func.__name__} failed after {max_retries} retries: {e}")
                         raise
-                    
+
                     logger.warning(
                         f"Attempt {attempt + 1}/{max_retries + 1} failed for {func.__name__}: {e}. "
                         f"Retrying in {current_delay}s..."

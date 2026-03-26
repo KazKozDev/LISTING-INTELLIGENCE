@@ -1,14 +1,16 @@
 """Batch processor for multiple product images."""
 
-import io
 import csv
+import io
 import logging
 import tempfile
 import zipfile
+from collections.abc import Callable
 from pathlib import Path
-from typing import List, Dict, Any, Optional, Callable, Union
+from typing import Any
 
 from src.vision_agent import VisionAgent
+
 from .product_analyzer import ProductAnalyzer
 
 logger = logging.getLogger(__name__)
@@ -25,15 +27,17 @@ class BatchProcessor:
 
     def process_zip(
         self,
-        zip_path: Union[str, Path],
+        zip_path: str | Path,
         marketplace: str = "general",
-        progress_callback: Optional[Callable[[int, int, str], None]] = None,
-    ) -> List[Dict[str, Any]]:
+        keywords: str = "",
+        progress_callback: Callable[[int, int, str], None] | None = None,
+    ) -> list[dict[str, Any]]:
         """Extract and analyze all images from a ZIP archive.
 
         Args:
             zip_path: Path to the ZIP file.
             marketplace: Target marketplace for analysis.
+            keywords: Target SEO keywords to include.
             progress_callback: Optional callback(current, total, filename).
 
         Returns:
@@ -62,7 +66,9 @@ class BatchProcessor:
                     progress_callback(i, total, Path(name).name)
 
                 try:
-                    result = self.analyzer.analyze_product(image_path, marketplace)
+                    result = self.analyzer.analyze_product_full(
+                        image_path, marketplace, keywords
+                    )
                     results.append(
                         {
                             "filename": Path(name).name,
@@ -90,15 +96,17 @@ class BatchProcessor:
 
     def process_files(
         self,
-        file_paths: List[Union[str, Path]],
+        file_paths: list[str | Path],
         marketplace: str = "general",
-        progress_callback: Optional[Callable[[int, int, str], None]] = None,
-    ) -> List[Dict[str, Any]]:
+        keywords: str = "",
+        progress_callback: Callable[[int, int, str], None] | None = None,
+    ) -> list[dict[str, Any]]:
         """Analyze a list of image files.
 
         Args:
             file_paths: List of image paths.
             marketplace: Target marketplace.
+            keywords: Target SEO keywords to include.
             progress_callback: Optional callback(current, total, filename).
 
         Returns:
@@ -113,7 +121,7 @@ class BatchProcessor:
                 progress_callback(i, total, fp.name)
 
             try:
-                result = self.analyzer.analyze_product(fp, marketplace)
+                result = self.analyzer.analyze_product_full(fp, marketplace, keywords)
                 results.append(
                     {
                         "filename": fp.name,
@@ -140,7 +148,7 @@ class BatchProcessor:
         return results
 
     @staticmethod
-    def results_to_csv(results: List[Dict[str, Any]]) -> str:
+    def results_to_csv(results: list[dict[str, Any]]) -> str:
         """Convert batch results to CSV string."""
         output = io.StringIO()
         writer = csv.writer(output)

@@ -1,11 +1,11 @@
 """Tests for VisionAgent core functionality."""
 
-import pytest
 from pathlib import Path
-from unittest.mock import patch, MagicMock
+from unittest.mock import patch
 
-from src.vision_agent import VisionAgent, AnalysisResult
-from src.llm.base import ProviderResponse
+import pytest
+
+from src.vision_agent import AnalysisResult, VisionAgent
 
 
 class TestAnalysisResult:

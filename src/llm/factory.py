@@ -1,14 +1,20 @@
 """Provider factory for creating LLM provider instances."""
 
 import logging
-from typing import Optional, Dict, Any
+from typing import Any
 
-from .base import BaseLLMProvider
-from .ollama_provider import OllamaProvider
-from .openai_provider import OpenAIProvider
 from .anthropic_provider import AnthropicProvider
-from .google_provider import GoogleProvider
 from .azure_provider import AzureOpenAIProvider
+from .base import BaseLLMProvider
+from .google_provider import GoogleProvider
+from .ollama_provider import OllamaProvider
+from .openai_provider import (
+    GROK_BASE_URL,
+    GROQ_BASE_URL,
+    GrokProvider,
+    GroqProvider,
+    OpenAIProvider,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -19,6 +25,8 @@ class ProviderFactory:
     PROVIDERS = {
         "ollama": OllamaProvider,
         "openai": OpenAIProvider,
+        "grok": GrokProvider,
+        "groq": GroqProvider,
         "anthropic": AnthropicProvider,
         "google": GoogleProvider,
         "azure": AzureOpenAIProvider,
@@ -29,14 +37,14 @@ class ProviderFactory:
         cls,
         provider_name: str,
         model: str,
-        api_key: Optional[str] = None,
-        base_url: Optional[str] = None,
+        api_key: str | None = None,
+        base_url: str | None = None,
         **kwargs
     ) -> BaseLLMProvider:
         """Create a provider instance.
 
         Args:
-            provider_name: Name of the provider (ollama, openai, anthropic, google, azure)
+            provider_name: Name of the provider.
             model: Model name (required)
             api_key: API key (if required)
             base_url: Base URL (if applicable)
@@ -57,7 +65,9 @@ class ProviderFactory:
             )
 
         if not model:
-            raise ValueError("Model name is required. Please set LLM_MODEL in .env file")
+            raise ValueError(
+                "Model name is required. Please set LLM_MODEL in .env file"
+            )
 
         provider_class = cls.PROVIDERS[provider_name]
 
@@ -85,7 +95,7 @@ class ProviderFactory:
         return list(cls.PROVIDERS.keys())
 
     @classmethod
-    def get_provider_info(cls) -> Dict[str, Any]:
+    def get_provider_info(cls) -> dict[str, Any]:
         """Get information about all providers.
 
         Returns:
@@ -103,24 +113,44 @@ class ProviderFactory:
                 "name": "OpenAI",
                 "requires_api_key": True,
                 "requires_base_url": False,
+                "default_base_url": "https://api.openai.com/v1",
+                "supports_vision": True,
+            },
+            "grok": {
+                "name": "xAI Grok",
+                "requires_api_key": True,
+                "requires_base_url": False,
+                "default_base_url": GROK_BASE_URL,
+                "supports_vision": True,
+            },
+            "groq": {
+                "name": "Groq",
+                "requires_api_key": True,
+                "requires_base_url": False,
+                "default_base_url": GROQ_BASE_URL,
                 "supports_vision": True,
             },
             "anthropic": {
                 "name": "Anthropic (Claude)",
                 "requires_api_key": True,
                 "requires_base_url": False,
+                "default_base_url": "https://api.anthropic.com",
                 "supports_vision": True,
             },
             "google": {
                 "name": "Google AI (Gemini)",
                 "requires_api_key": True,
                 "requires_base_url": False,
+                "default_base_url": (
+                    "https://generativelanguage.googleapis.com"
+                ),
                 "supports_vision": True,
             },
             "azure": {
                 "name": "Azure OpenAI",
                 "requires_api_key": True,
                 "requires_base_url": True,
+                "default_base_url": "https://your-resource.openai.azure.com",
                 "supports_vision": True,
                 "additional_config": ["api_version"],
             },

@@ -2,313 +2,219 @@
 
 # Vision Agent Analyst
 
-**AI-powered product photo optimization for e-commerce sellers**
+Full-stack AI product for marketplace listing intelligence and deterministic image operations.
 
-Turn product photos into marketplace-ready listings — SEO titles, descriptions, tags, compliance reports, and competitor analysis. In seconds, not hours.
-
-[![CI](https://github.com/KazKozDev/vision-agent-analyst/actions/workflows/ci.yml/badge.svg)](https://github.com/KazKozDev/vision-agent-analyst/actions)
-[![Python 3.10+](https://img.shields.io/badge/python-3.10+-blue.svg)](https://www.python.org/downloads/)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
-[![Tests](https://img.shields.io/badge/tests-passing-brightgreen.svg)](#tests)
+[![Status: Beta](https://img.shields.io/badge/status-beta-2563eb.svg)](#)
+[![CI](https://github.com/KazKozDev/LISTING-INTELLIGENCE/actions/workflows/ci.yml/badge.svg)](https://github.com/KazKozDev/LISTING-INTELLIGENCE/actions)
+[![Python 3.10+](https://img.shields.io/badge/python-3.10%2B-blue.svg)](https://www.python.org/downloads/)
+[![License: PolyForm Noncommercial](https://img.shields.io/badge/license-PolyForm%20Noncommercial-orange.svg)](LICENSE)
 
 </div>
 
----
+## Highlights
 
-## The Problem
+- Product-shaped AI system, not a single-model demo
+- End-to-end React, FastAPI, and multimodal backend architecture
+- Listing, compliance, compare, batch, and fix workflows in one app
+- Deterministic CV tools where repeatability matters most
+- Local-first execution path with Ollama support
 
-Sellers spend hours writing descriptions, guessing keywords, and hoping their photos pass marketplace moderation. For every SKU. On every platform. Multiply that by 200 products and you have a full-time job that adds zero value.
+## Demo
 
-## The Solution
+<!-- TODO: Add demo GIF or screenshot -->
 
-Drop a product photo. Get everything you need to list it:
+## Overview
 
-- **SEO-optimized title, bullet points, description, and 15+ search tags** — tuned for your marketplace
-- **Compliance check** — pass/fail against Wildberries, Ozon, Amazon, or eBay requirements before you upload
-- **Quality score** — lighting, composition, background rated 1-10 with specific improvement suggestions
-- **Competitor comparison** — side-by-side analysis of your product vs competitor listings
-- **Batch processing** — analyze 100+ photos at once, export results as CSV
+Vision Agent Analyst is a full-stack AI application built around a clear operational workflow: take raw product visuals and turn them into listing, compliance, comparison, and image-fix outputs that are usable in marketplace contexts. From a single image, the system can generate listing copy, extract attributes, score quality, compare against competitors, validate marketplace rules, and route work into deterministic fix flows. As a portfolio project, it is meant to show end-to-end product ownership across UX, backend architecture, model orchestration, and production-oriented engineering.
 
-All of this runs **locally with Ollama** — your product data never leaves your machine.
+## Why This Project Matters
 
----
+Most AI portfolio projects stop at a chat interface or a single inference call. This repository goes further by packaging model behavior into a product with explicit user flows, typed contracts, deterministic fallbacks, CI, and deployment primitives. It demonstrates the ability to make engineering decisions about when to use LLM generation, when to use deterministic computer vision, how to structure a multi-provider backend, and how to turn that into a coherent interface that looks and behaves like a real product rather than an experiment.
 
-## Quick Start
+## Motivation
 
-**Prerequisites:** Python 3.10+, Node.js 18+, [Ollama](https://ollama.com/) (default LLM provider)
-
-```bash
-# 1. Install Ollama and pull a vision model
-ollama pull qwen3-vl:8b
-
-# 2. Clone and setup
-git clone https://github.com/KazKozDev/vision-agent-analyst.git
-cd vision-agent-analyst
-cp .env.example .env
-
-# 3. Backend
-pip install -e ".[dev]"
-uvicorn api.main:app --reload --port 8000
-
-# 4. Frontend (new terminal)
-cd frontend && npm install && npm run dev
-```
-
-Open [http://localhost:5173](http://localhost:5173)
-
-### Docker (one command)
-
-```bash
-docker-compose up
-# Backend :8000 | Frontend :3000
-```
-
----
+Marketplace operations are messy because the work is split across copywriting, visual QA, compliance interpretation, competitive review, and repetitive image cleanup. Generic AI tools can help with parts of that process, but they do not usually provide workflow-specific structure or reliable deterministic steps when precision matters. This project packages those responsibilities into one system and deliberately mixes LLM generation with OCR, detection, relighting, upscaling, and export-focused utilities so the product can support both creative and operational tasks.
 
 ## Features
 
-### Product Analysis
-
-Upload a product photo and receive a structured breakdown: description, category, attributes, SEO title, search tags, quality score (1-10), and actionable improvement tips.
-
-### SEO Generator
-
-Generate marketplace-optimized listing content from a single photo. Includes title (60-80 chars), bullet points, full description, search tags, and backend keywords. Specify target keywords to fine-tune output.
-
-### Compliance Check
-
-Verify photos against specific marketplace requirements before uploading. Checks resolution, background color, aspect ratio, forbidden elements (watermarks, text overlays, logos). Returns pass/fail with severity-rated issues and fix recommendations.
-
-### Competitor Compare
-
-Upload your product photo and a competitor's listing side by side. Get a structured analysis: your strengths, weaknesses, competitive edge opportunities, and 3 specific action items to outperform.
-
-### E-Commerce Tools
-
-Eight specialized analysis modes accessible from a single interface:
-
-| Tool | What It Does |
-|------|-------------|
-| Photo Improvements | AI suggestions ranked by expected conversion impact |
-| Extract Attributes | Auto-detect product characteristics (color, material, size, brand) |
-| Listing Audit | Grade your listing A-F with missing keyword suggestions |
-| Pricing Analysis | Deconstruct competitor pricing strategy and positioning |
-| Review Sentiment | Analyze customer reviews — top praise, top complaints, action items |
-| Packaging Critique | Evaluate shelf appeal and unboxing experience |
-| Visual Search SEO | Optimize images for Google Lens and Pinterest visual search |
-| Inventory Check | Estimate stock levels and planogram compliance from shelf photos |
-
-### Batch Processing
-
-Drag multiple product photos (or a folder). Track real-time progress with thumbnail status indicators. Export all results as a CSV ready for marketplace upload.
-
----
-
-## Supported Marketplaces
-
-| Marketplace | Min Resolution | Background | Aspect Ratio | Key Rules |
-|------------|---------------|-----------|-------------|-----------|
-| **Wildberries** | 900 x 1200 | White / transparent | 3:4 | No watermarks, no promo text, no collages |
-| **Ozon** | 900 x 1200 (rec.) | White preferred | 1:1 or 3:4 | No contact info, no URLs, no price comparisons |
-| **Amazon** | 1000 x 1000 | Pure white RGB(255,255,255) | 1:1 | Product fills 85% of frame, no badges or borders |
-| **eBay** | 500 x 500 | White / neutral | 1:1 | No stock photos for used items, no obscuring text |
-
-Marketplace rules are shown inline in the UI when you select a platform.
-
----
-
-## LLM Providers
-
-Switch between 5 providers by changing one environment variable:
-
-| Provider | `LLM_PROVIDER` | API Key Required |
-|----------|----------------|------------------|
-| Ollama | `ollama` | No (local) |
-| OpenAI | `openai` | Yes |
-| Anthropic | `anthropic` | Yes |
-| Google Gemini | `google` | Yes |
-| Azure OpenAI | `azure` | Yes |
-
-Ollama is the default — no API key needed, everything stays on your machine.
-
----
-
-## API
-
-13 REST endpoints + WebSocket for real-time progress.
-
-| Method | Endpoint | Purpose |
-|--------|---------|---------|
-| `GET` | `/` | Root status |
-| `GET` | `/api/config` | Current LLM provider configuration |
-| `POST` | `/api/analyze` | Universal file analysis (image or PDF) |
-| `GET` | `/api/health` | Provider connectivity status |
-| `GET` | `/api/usage` | Token usage statistics |
-| `GET` | `/api/ecommerce/marketplaces` | Marketplace rules and requirements |
-| `POST` | `/api/ecommerce/analyze-product` | Product photo analysis |
-| `POST` | `/api/ecommerce/compliance-check` | Marketplace compliance verification |
-| `POST` | `/api/ecommerce/generate-seo` | SEO content generation |
-| `POST` | `/api/ecommerce/batch-analyze` | Batch analysis with CSV export |
-| `POST` | `/api/ecommerce/compare` | Competitor photo comparison |
-| `POST` | `/api/ecommerce/suggest-improvements` | Photo improvement suggestions |
-| `POST` | `/api/ecommerce/extract-attributes` | Product attribute extraction |
-| `WS` | `/api/ws/batch-progress` | Real-time batch processing progress |
-
-**Quick example:**
-
-```bash
-# Analyze a product photo
-curl -X POST http://localhost:8000/api/ecommerce/analyze-product \
-  -F "file=@product.jpg" \
-  -F "marketplace=amazon"
-
-# Generate SEO listing
-curl -X POST http://localhost:8000/api/ecommerce/generate-seo \
-  -F "file=@product.jpg" \
-  -F "marketplace=wildberries" \
-  -F "keywords=wireless,bluetooth,headphones"
-```
-
-Interactive docs at [http://localhost:8000/docs](http://localhost:8000/docs) when server is running. Full reference in [docs/API.md](docs/API.md).
-
----
+- Product workspace for full listing generation from product images
+- Competitor comparison with structured strengths, weaknesses, and next actions
+- Marketplace compliance checks for publish-ready image validation
+- Additional e-commerce tools for pricing, reviews, keywords, USP, and inventory workflows
+- Fix Studio for deterministic image cleanup, relighting, outpainting, and export
+- Batch analysis pipeline with CSV export
+- Multi-provider model routing with local and hosted backends
+- Core multimodal engine for visual and PDF analysis
 
 ## Architecture
 
+Components:
+- Frontend app in React 19 and TypeScript for product, compliance, fix, tools, history, settings, and help flows
+- FastAPI backend exposing REST endpoints for analysis, e-commerce workflows, and image-intelligence operations
+- Core VisionAgent service for multimodal analysis, provider selection, caching, token counting, and rate limiting
+- E-commerce services for listing generation, compliance, comparison, SEO, batch processing, and image operations
+- Config-driven prompt and model layer in `config/` for provider, logging, and template control
+
+Flow:
+- User uploads an image or document
+- Frontend sends a typed request to the backend
+- Backend routes the request to VisionAgent or a specialized e-commerce service
+- Service combines LLM inference and, where needed, deterministic CV utilities
+- API returns structured results for UI rendering, export, and follow-up actions
+
+## Tech Stack
+
+- Python 3.10+, FastAPI, Pydantic, Uvicorn
+- React 19, TypeScript, Vite
+- Ollama, OpenAI, Anthropic, Google Gemini, Azure OpenAI
+- Ultralytics YOLO, EasyOCR, diffusers, Real-ESRGAN, Florence-based image tooling
+- Pytest, Black, Ruff, Mypy
+- Docker and Docker Compose
+
+## Quick Start
+
+1. Clone the repository and create your environment file.
+
+```bash
+git clone https://github.com/KazKozDev/LISTING-INTELLIGENCE.git
+cd LISTING-INTELLIGENCE
+cp .env.example .env
 ```
-Frontend (React 19 + TypeScript + Vite)    Backend (FastAPI + Python 3.10+)
-┌──────────────────────────────┐     ┌──────────────────────────────────┐
-│  8 E-commerce Components    │     │  VisionAgent (core engine)       │
-│  6 Core Components          │     │  ProductAnalyzer / SEOGenerator  │
-│  2 Custom Hooks             │────▶│  BatchProcessor                  │
-│  Typed API Client           │     │  LLM Factory (5 providers)       │
-│  Error Boundaries           │     │  Cache / RateLimiter / Tokens    │
-└──────────────────────────────┘     └──────────────┬───────────────────┘
-                                                    │
-                                         ┌──────────▼──────────┐
-                                         │  Ollama  │  OpenAI  │
-                                         │  Claude  │  Gemini  │
-                                         │        Azure       │
-                                         └────────────────────┘
+
+2. Install backend dependencies.
+
+```bash
+pip install -e ".[dev]"
 ```
 
-**Backend patterns:** Factory pattern for LLM providers, Pydantic v2 BaseSettings for configuration, file-based caching with TTL, token-bucket rate limiting, structured JSON logging, cost tracking per provider.
+3. Start the backend.
 
-**Frontend patterns:** Custom hooks for state management, centralized API client with full TypeScript types, drag-and-drop file upload, parsed LLM response rendering.
+```bash
+uvicorn api.main:app --reload --port 8000
+```
 
----
+4. Start the frontend in a new terminal.
+
+```bash
+cd frontend
+npm install
+npm run dev
+```
+
+Default local URLs:
+- Frontend: http://localhost:5173
+- Backend: http://localhost:8000
+- API docs: http://localhost:8000/docs
+
+### Docker
+
+```bash
+docker-compose up
+```
+
+Docker exposes:
+- Frontend on port `3000`
+- Backend on port `8000`
+
+## Usage
+
+1. Open Product Workspace to generate listing copy, compare products, or run batch image analysis.
+2. Open Compliance Check to validate marketplace image rules before publishing.
+3. Open Fix Studio to run deterministic image cleanup, relighting, outpainting, upscaling, and export tasks.
+4. Open Additional Tools for focused workflows such as keyword gaps, competitor insights, pricing analysis, and inventory checks.
+
+## API
+
+Key routes:
+
+| Method | Endpoint | Purpose |
+| --- | --- | --- |
+| `GET` | `/api/config` | Active provider and app configuration |
+| `POST` | `/api/analyze` | General file analysis |
+| `GET` | `/api/ecommerce/marketplaces` | Marketplace rules metadata |
+| `POST` | `/api/ecommerce/analyze-product-full` | Full listing analysis from a product image |
+| `POST` | `/api/ecommerce/compliance-check` | Marketplace compliance workflow |
+| `POST` | `/api/ecommerce/compare` | Competitor comparison |
+| `POST` | `/api/ecommerce/batch-analyze` | Batch workflow with CSV export |
+| `POST` | `/api/ecommerce/inventory-check` | Deterministic object detection and OCR shelf analysis |
+
+Full API reference: [docs/API.md](docs/API.md)
 
 ## Project Structure
 
-```
+```text
 vision-agent-analyst/
-├── api/                          # FastAPI backend
-│   ├── main.py                   # 13 endpoints + WebSocket + middleware
-│   └── schemas.py                # Pydantic v2 request/response models
-├── src/
-│   ├── vision_agent.py           # Core analysis engine with caching
-│   ├── ecommerce/                # E-commerce module
-│   │   ├── product_analyzer.py   # Product analysis, compliance, comparison
-│   │   ├── marketplace_rules.py  # WB, Ozon, Amazon, eBay rules
-│   │   ├── seo_generator.py      # SEO title, description, tags
-│   │   └── batch_processor.py    # Multi-file processing + CSV export
-│   ├── llm/                      # LLM provider abstraction
-│   │   ├── factory.py            # Provider factory (Strategy pattern)
-│   │   ├── ollama_provider.py
-│   │   ├── openai_provider.py
-│   │   ├── anthropic_provider.py
-│   │   ├── google_provider.py
-│   │   └── azure_provider.py
-│   └── utils/                    # Cache, RateLimiter, TokenCounter, CostTracker
-├── frontend/src/
-│   ├── components/               # 6 core + 8 e-commerce UI components
-│   │   └── ecommerce/            # ProductAnalysis, SEOPreview, ComplianceReport,
-│   │                             # CompetitorCompare, BulkUpload, EcommerceTools,
-│   │                             # MarketplaceSelector, ExportCSV
-│   ├── hooks/                    # useHistory, useConfig
-│   └── api/                      # Typed API client + TypeScript interfaces
-├── config/                       # prompts.yaml, model_config.yaml, logging
-├── tests/                        # 80 tests (all mocked, no API keys needed)
-│   └── fixtures/                 # Test images + PDF
-├── docs/                         # API.md, ECOMMERCE_GUIDE.md, QUICKSTART.md
-├── examples/                     # Python usage examples
-├── docker-compose.yml
-├── Dockerfile                    # Multi-stage build (Node + Python)
-├── pyproject.toml                # Dependencies, black, ruff, mypy, pytest config
-└── .github/workflows/ci.yml     # Lint + Test + Build + Docker
+├── api/                 FastAPI routes and response schemas
+├── config/              Model, prompt, policy, and logging configuration
+├── docs/                API and feature documentation
+├── examples/            Python usage examples
+├── frontend/            React + TypeScript client application
+├── src/                 Core agent, providers, utilities, and e-commerce services
+├── tests/               Pytest suite and fixtures
+├── Dockerfile           Backend container build
+├── docker-compose.yml   Full local stack orchestration
+└── pyproject.toml       Python package metadata and tooling config
 ```
 
----
+## Testing
 
-## Configuration
-
-```env
-# .env
-LLM_PROVIDER=ollama              # ollama | openai | anthropic | google | azure
-LLM_MODEL=qwen3-vl:8b           # any vision-capable model
-LLM_API_KEY=                     # not needed for Ollama
-LLM_BASE_URL=http://localhost:11434
-MAX_TOKENS=2048
-TEMPERATURE=0.7
-CORS_ORIGINS=http://localhost:5173,http://localhost:3000
-```
-
-Configuration uses Pydantic BaseSettings — values come from `.env`, environment variables, or constructor arguments. See [.env.example](.env.example) for all options.
-
----
-
-## Tests
+Backend checks:
 
 ```bash
-pytest tests/ -v
-# 80 tests passed — VisionAgent, providers, API, PDF processor,
-# cache, rate limiter, export, config, cost tracker
+black --check src/ api/ config/ tests/
+ruff check src/ api/ config/ tests/
+mypy src/ api/ --ignore-missing-imports
+pytest --cov=src --cov=api --cov-report=term-missing --cov-fail-under=70
 ```
 
-All tests run without API keys (fully mocked). Coverage report:
+Frontend checks:
 
 ```bash
-pytest tests/ --cov=src --cov=api --cov=config --cov-report=term-missing
+cd frontend
+npm run lint
+npm run build
 ```
 
----
+CI in [.github/workflows/ci.yml](.github/workflows/ci.yml) runs Python linting, mypy, pytest coverage, frontend lint/build, and Docker image build.
 
 ## Documentation
 
-| Document | Description |
-|---------|-------------|
-| [docs/API.md](docs/API.md) | Full REST API reference with request/response examples |
-| [docs/ECOMMERCE_GUIDE.md](docs/ECOMMERCE_GUIDE.md) | E-commerce module usage guide |
-| [docs/QUICKSTART.md](docs/QUICKSTART.md) | 2-minute quick start for new features |
-| [docs/INDUSTRY_TEMPLATES.md](docs/INDUSTRY_TEMPLATES.md) | 50+ analysis template documentation |
-| [docs/EXPORT_GUIDE.md](docs/EXPORT_GUIDE.md) | Export to JSON, CSV, PDF |
+- [docs/API.md](docs/API.md) — REST API reference
+- [docs/ECOMMERCE_GUIDE.md](docs/ECOMMERCE_GUIDE.md) — e-commerce workflows and usage
+- [docs/QUICKSTART.md](docs/QUICKSTART.md) — startup notes
+- [docs/EXPORT_GUIDE.md](docs/EXPORT_GUIDE.md) — export flows and formats
+- [docs/INDUSTRY_TEMPLATES.md](docs/INDUSTRY_TEMPLATES.md) — configured analysis templates
+- [docs/NEW_FEATURES.md](docs/NEW_FEATURES.md) — recent product additions
 
----
+## License
+
+This project is available under the PolyForm Noncommercial 1.0.0 license for personal, educational, research, portfolio, and other non-commercial use.
+
+Commercial use requires a separate paid license.
+
+See [LICENSE](LICENSE) for the non-commercial terms and [COMMERCIAL-LICENSE.md](COMMERCIAL-LICENSE.md) for commercial licensing details.
+
+## Commercial Use
+
+This repository is source-available.
+
+Commercial licensing contact:
+
+- Email: KazKozDev@gmail.com
+- [GitHub](https://github.com/KazKozDev)
+- [LinkedIn](https://www.linkedin.com/in/kazkozdev/)
 
 ## Contributing
 
-1. Fork the repo and create a branch from `main`
-2. Install dependencies:
-   ```bash
-   pip install -e ".[dev]"
-   cd frontend && npm install
-   ```
-3. Make your changes
-4. Make sure everything passes before pushing:
-   ```bash
-   black --check src/ api/ tests/
-   ruff check src/ api/ tests/
-   pytest tests/ -v
-   cd frontend && npm run build
-   ```
-5. Open a Pull Request
-
-CI runs lint, tests, frontend build, and Docker build automatically on every PR.
+1. Fork the repository.
+2. Create a feature branch.
+3. Run backend and frontend checks before opening a pull request.
+4. Submit a pull request with a concise change summary.
 
 ---
 
 <div align="center">
 
-[Artem KK](https://www.linkedin.com/in/kazkozdev/) | MIT [LICENSE](LICENSE)
+[Artem KK](https://www.linkedin.com/in/kazkozdev/) | PolyForm Noncommercial [LICENSE](LICENSE) | [Commercial Licensing](COMMERCIAL-LICENSE.md)
 
 </div>

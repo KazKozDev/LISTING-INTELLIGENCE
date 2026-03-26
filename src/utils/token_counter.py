@@ -1,7 +1,7 @@
 """Token counting utility."""
 
-from typing import Optional
 import tiktoken
+
 
 class TokenCounter:
     """Token counter using tiktoken."""
@@ -45,5 +45,5 @@ class TokenCounter:
         tokens = self.encoding.encode(text)
         if len(tokens) <= max_tokens:
             return text
-        
+
         return self.encoding.decode(tokens[:max_tokens])

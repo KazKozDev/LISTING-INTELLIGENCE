@@ -19,12 +19,17 @@ wheels/
 *.egg-info/
 .installed.cfg
 *.egg
+.mypy_cache/
+.ruff_cache/
+.pyre/
+.hypothesis/
+.ipynb_checkpoints/
 
 # Virtual Environment
 venv/
 env/
 ENV/
-.venv
+.venv/
 
 # IDE
 .vscode/
@@ -32,22 +37,43 @@ ENV/
 *.swp
 *.swo
 *~
+.claude/
+.zencoder/
+.zenflow/
 
 # Environment variables
 .env
 .env.local
+.env.*
+!.env.example
 
-# Output files
+# Build and runtime artifacts
 outputs/
 reports/
-*.pdf
-*.png
-*.jpg
-*.jpeg
+test-results/
+playwright-report/
+frontend/node_modules/
+frontend/dist/
+frontend/dist-ssr/
+frontend/test-results/
+frontend/playwright-report/
+frontend/.vite/
+frontend/.eslintcache
+
+# Local models and large binaries
+yolo11n.pt
+*.safetensors
+*.ckpt
+*.pth
+*.onnx
 
 # Logs
 *.log
 logs/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
 
 # OS
 .DS_Store
@@ -56,4 +82,5 @@ Thumbs.db
 # Testing
 .pytest_cache/
 .coverage
+.coverage.*
 htmlcov/
