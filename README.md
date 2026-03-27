@@ -42,6 +42,13 @@ The app is built for e-commerce teams working with product visuals at scale. You
 
 ## Quick Start
 
+### Clone the repository
+
+```bash
+git clone https://github.com/KazKozDev/LISTING-INTELLIGENCE.git
+cd LISTING-INTELLIGENCE
+```
+
 ### Local development
 
 From the repository root:
