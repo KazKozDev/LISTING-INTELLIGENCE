@@ -13,6 +13,7 @@ import numpy as np
 from PIL import Image
 
 from config import Config
+
 from .foreground_masking import ForegroundMaskExtractor
 
 logger = logging.getLogger(__name__)
@@ -153,7 +154,6 @@ class ICLightRelighter:
         prompt: str,
         light_direction: str,
     ) -> Image.Image:
-        import torch
 
         width, height = self._resolve_target_size(image.size)
         foreground = self._prepare_foreground(image)
@@ -331,6 +331,7 @@ class ICLightRelighter:
         negative_prompt: str,
     ):
         import math
+
         import torch
 
         def encode_prompt_inner(text: str):
@@ -387,8 +388,8 @@ class ICLightRelighter:
         device: str,
         cache_dir: str,
     ) -> dict[str, Any]:
-        import torch
         import safetensors.torch as safetensors_torch
+        import torch
         from diffusers import (
             AutoencoderKL,
             DPMSolverMultistepScheduler,

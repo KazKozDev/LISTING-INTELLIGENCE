@@ -13,6 +13,7 @@ from typing import Any
 from PIL import Image
 
 from config import Config
+
 from .foreground_masking import ForegroundMaskExtractor
 
 logger = logging.getLogger(__name__)

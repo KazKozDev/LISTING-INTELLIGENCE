@@ -6,7 +6,6 @@ import logging
 from dataclasses import dataclass
 from functools import lru_cache
 from pathlib import Path
-from typing import Any
 
 import numpy as np
 from PIL import Image

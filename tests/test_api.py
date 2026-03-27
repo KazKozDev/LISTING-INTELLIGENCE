@@ -13,7 +13,7 @@ from src.ecommerce.florence_analyzer import FlorenceAnalysisResult
 from src.ecommerce.foreground_masking import ForegroundMaskResult
 from src.ecommerce.ic_light_relighting import RelightResult
 from src.ecommerce.image_upscaler import UpscaleResult
-from src.ecommerce.object_detector import DetectionResult, DetectedObject
+from src.ecommerce.object_detector import DetectedObject, DetectionResult
 from src.ecommerce.outpainter import OutpaintResult
 from src.ecommerce.text_detector import TextDetectionResult, TextRegion
 from src.vision_agent import AnalysisResult

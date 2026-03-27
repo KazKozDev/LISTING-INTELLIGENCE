@@ -1,8 +1,8 @@
 """FastAPI backend for Listing Intelligence."""
 
 import asyncio
-from collections import Counter
 import html
+import io
 import json
 import logging
 import os
@@ -12,7 +12,7 @@ import re
 import sys
 import tempfile
 import time
-import io
+from collections import Counter
 from contextlib import asynccontextmanager
 from datetime import datetime
 from pathlib import Path
@@ -39,8 +39,8 @@ from api.schemas import (  # noqa: E402
     ConfigResponse,
     HealthResponse,
     MarketplaceListResponse,
-    ProductContext,
     ProductAnalysisResponse,
+    ProductContext,
     SEOGenerationResponse,
     UsageStats,
 )
@@ -56,11 +56,11 @@ from src.ecommerce import (  # noqa: E402
     SEOGenerator,
 )
 from src.ecommerce.image_upscaler import ImageUpscaler  # noqa: E402
+from src.ecommerce.lama_eraser import LamaEraser  # noqa: E402
 from src.ecommerce.marketplace_rules import get_marketplace_info, list_marketplaces  # noqa: E402
 from src.ecommerce.object_detector import ObjectDetector  # noqa: E402
 from src.ecommerce.quality_scorer import QualityScorer  # noqa: E402
 from src.ecommerce.text_detector import TextDetector  # noqa: E402
-from src.ecommerce.lama_eraser import LamaEraser  # noqa: E402
 from src.llm.factory import ProviderFactory  # noqa: E402
 from src.utils.cost_tracker import CostTracker  # noqa: E402
 from src.utils.logger import setup_logging  # noqa: E402
@@ -161,7 +161,7 @@ def _average_hash(image_path: Path) -> str:
 def _hash_distance(left: str, right: str) -> int:
     if len(left) != len(right):
         return max(len(left), len(right))
-    return sum(1 for l, r in zip(left, right) if l != r)
+    return sum(1 for l, r in zip(left, right, strict=False) if l != r)
 
 
 def _rules_text_blob(rules: dict[str, object]) -> str:
