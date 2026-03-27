@@ -13,9 +13,9 @@ Full-stack AI application for marketplace listing intelligence, compliance revie
 
 ## Overview
 
-Listing Intelligence is built for evaluating sellable product imagery and turning that analysis into marketplace-ready outputs. It combines multimodal LLM analysis with deterministic computer-vision workflows so the system can move from interpretation into operational tasks such as compliance review, quality checks, OCR, object detection, grounded verification signals, and controlled image correction.
+Listing Intelligence is an AI workspace for marketplace image review, compliance checks, and correction workflows. It helps sellers, agencies, and catalog teams turn raw product imagery into marketplace-ready outputs with analysis, verification signals, and deterministic image operations.
 
-The current app is centered on e-commerce use cases. From the frontend you can analyze a product image, review marketplace compliance, launch Fix Studio for corrective edits, compare against a competitor image, run batch analysis, and inspect usage or history. The compliance and correction flow now includes structured findings with `source`, `confidence`, `verification_tier`, `evidence`, bounding-box overlays, and product-context inputs such as category, attributes, and optional reference imagery. Under the hood, the repository reflects product-shaped engineering concerns rather than a single-model demo: multi-provider routing, typed API schemas, caching, token accounting, rate limiting, CI, and Dockerized local deployment.
+The app is built for e-commerce teams working with product visuals at scale. You can analyze a product image, review marketplace compliance, launch Fix Studio for corrective edits, compare against competitors, and export approved results from one workflow. Under the hood, the system combines multimodal analysis, structured verification, typed APIs, caching, usage tracking, and multi-provider model routing.
 
 ## Features
 
