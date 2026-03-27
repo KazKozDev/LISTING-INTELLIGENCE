@@ -150,6 +150,7 @@ const SHIPPING_CARDS = [
 
 export function HelpSection({ onNavigate }: HelpSectionProps) {
   const [activeSection, setActiveSection] = useState<HelpSectionId>('overview')
+  const rootRef = useRef<HTMLDivElement>(null)
   const overviewRef = useRef<HTMLDivElement>(null)
   const workflowsRef = useRef<HTMLDivElement>(null)
   const shippingRef = useRef<HTMLDivElement>(null)
@@ -189,18 +190,23 @@ export function HelpSection({ onNavigate }: HelpSectionProps) {
       setActiveSection(nextSection)
     }
 
+    const scrollContainer =
+      rootRef.current?.closest('.main-content') instanceof HTMLElement
+        ? rootRef.current.closest('.main-content')
+        : window
+
     updateActiveSection()
-    window.addEventListener('scroll', updateActiveSection, { passive: true })
+    scrollContainer.addEventListener('scroll', updateActiveSection, { passive: true })
     window.addEventListener('resize', updateActiveSection)
 
     return () => {
-      window.removeEventListener('scroll', updateActiveSection)
+      scrollContainer.removeEventListener('scroll', updateActiveSection)
       window.removeEventListener('resize', updateActiveSection)
     }
   }, [])
 
   return (
-    <>
+    <div ref={rootRef}>
       <div className="hero-header-row hero-header-stacked">
         <span className="hero-kicker">Usage guide</span>
         <h1 className="hero-title hero-title-inline">Help Center</h1>
@@ -454,6 +460,6 @@ export function HelpSection({ onNavigate }: HelpSectionProps) {
           </section>
         </div>
       </div>
-    </>
+    </div>
   )
 }
