@@ -4,21 +4,21 @@ Full-stack AI application for marketplace listing intelligence, compliance revie
 
 ## Features
 
-- End-to-end marketplace image workflow: analyze, verify, correct, compare, and export from one workspace
-- Compliance review with structured findings, evidence overlays, and verifier-backed diffs instead of prose-only output
-- Fix Studio for deterministic correction steps such as relighting, outpainting, upscaling, and text or watermark cleanup
-- Product-context-aware verification with category, attributes, and optional reference imagery
-- Marketplace-aware analysis for channels such as Amazon, Walmart, Allegro, and Etsy
-- Competitor comparison, SEO generation, and batch processing for repeatable catalog work
-- Product-grade engineering around the workflow: typed APIs, caching, usage tracking, multi-provider routing, and Dockerized local deployment
+- **End-to-end workflow:** analyze, verify, correct, compare, and export from one workspace.
+- **Compliance review:** structured findings, evidence overlays, and verifier-backed diffs instead of prose-only output.
+- **Fix Studio:** deterministic correction steps such as relighting, outpainting, upscaling, and text or watermark cleanup.
+- **Product context:** category, attributes, and optional reference imagery to strengthen verification.
+- **Marketplace coverage:** workflows for channels such as Amazon, Walmart, Allegro, and Etsy.
+- **Catalog operations:** competitor comparison, SEO generation, and batch processing for repeatable listing work.
+- **Product-grade system design:** typed APIs, caching, usage tracking, multi-provider routing, and Dockerized local deployment.
 
 ## Tech Stack
 
-- React 19, TypeScript, and Vite for the frontend application
-- FastAPI and Pydantic for the backend and typed API contracts
-- Multimodal provider routing across Ollama, OpenAI, Anthropic, Google, and Azure
-- OCR, object detection, quality scoring, relighting, upscaling, outpainting, and inpainting pipelines
-- Pytest, Playwright, GitHub Actions, and Docker for validation and local deployment
+- **Frontend:** React 19, TypeScript, and Vite
+- **Backend:** FastAPI and Pydantic
+- **Models:** Ollama, OpenAI, Anthropic, Google, and Azure
+- **Pipelines:** OCR, object detection, quality scoring, relighting, upscaling, outpainting, and inpainting
+- **DevOps:** Pytest, Playwright, GitHub Actions, and Docker
 
 ## Quick Start
 
@@ -147,9 +147,9 @@ PolyForm Noncommercial 1.0.0 - see [LICENSE](LICENSE) and [COMMERCIAL-LICENSE.md
 
 ## Contact
 
-If you like this project, please give it a star
+If you like this project, please give it a star.
 
-For questions, feedback, or support, reach out to:
+For questions, feedback, or support:
 
 [LinkedIn](https://www.linkedin.com/in/kazkozdev/)
 [Email](mailto:kazkozdev@gmail.com)
