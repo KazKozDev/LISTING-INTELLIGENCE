@@ -9,13 +9,14 @@ Analyze the product, fix image issues, and generate better content with LLMs, OC
 
 ## Features
 
-- **End-to-end workflow:** analyze, verify, correct, compare, and export from one workspace.
-- **Compliance review:** structured findings, evidence overlays, and verifier-backed diffs.
-- **Fix Studio:** deterministic correction steps such as relighting, outpainting, upscaling, and text or watermark cleanup.
-- **Product context:** category, attributes, and optional reference imagery to strengthen verification.
-- **Marketplace coverage:** workflows for channels such as Amazon, Walmart, Allegro, and Etsy.
-- **Catalog operations:** competitor comparison, SEO generation, and batch processing for repeatable listing work.
-- **Product-grade system design:** typed APIs, caching, usage tracking, multi-provider routing, and Dockerized local deployment.
+- **Single-photo start:** begin with one product photo and turn it into a stronger marketplace listing.
+- **Listing intelligence:** analyze product visuals, extract context, and catch issues before you publish.
+- **Compliance checks:** spot marketplace policy problems early instead of after upload.
+- **Image fixes:** clean up, relight, outpaint, upscale, and improve product images with deterministic and AI-assisted tools.
+- **Content generation:** create and refine listing copy, SEO fields, and marketplace-specific content with LLMs.
+- **Competitor review:** compare against competing listings to find gaps and opportunities.
+- **Marketplace workflows:** adapt outputs for Amazon, Walmart, Allegro, Etsy, and other marketplaces.
+- **Batch operations:** run repeatable listing workflows across multiple products faster.
 
 ![Listing Intelligence demo](docs/assets/demo.png)
 
