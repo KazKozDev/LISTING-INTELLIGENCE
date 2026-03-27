@@ -10,7 +10,7 @@ Analyze the product, fix image issues, and generate better content with LLMs, OC
 ## Features
 
 - **End-to-end workflow:** analyze, verify, correct, compare, and export from one workspace.
-- **Compliance review:** structured findings, evidence overlays, and verifier-backed diffs instead of prose-only output.
+- **Compliance review:** structured findings, evidence overlays, and verifier-backed diffs.
 - **Fix Studio:** deterministic correction steps such as relighting, outpainting, upscaling, and text or watermark cleanup.
 - **Product context:** category, attributes, and optional reference imagery to strengthen verification.
 - **Marketplace coverage:** workflows for channels such as Amazon, Walmart, Allegro, and Etsy.
