@@ -6,15 +6,16 @@ Full-stack AI application for marketplace listing intelligence, compliance revie
 
 - React + FastAPI application for image-first listing workflows
 - Marketplace-aware product analysis, SEO generation, and competitor comparison
-- Compliance review with deterministic fix suggestions and image repair tools
+- Compliance review with structured verification signals, evidence overlays, and verifier-based diffs
+- Fix Studio workflow with product context, reference-image input, and deterministic image repair tools
 - Typed API, usage tracking, caching, rate limiting, and export-oriented reporting
 - Works with local and hosted model providers, including Ollama, OpenAI, Anthropic, Google, and Azure
 
 ## Overview
 
-Listing Intelligence is built for evaluating sellable product imagery and turning that analysis into marketplace-ready outputs. It combines multimodal LLM analysis with deterministic computer-vision workflows so the system can move from interpretation into operational tasks such as compliance review, quality checks, OCR, object detection, and controlled image correction.
+Listing Intelligence is built for evaluating sellable product imagery and turning that analysis into marketplace-ready outputs. It combines multimodal LLM analysis with deterministic computer-vision workflows so the system can move from interpretation into operational tasks such as compliance review, quality checks, OCR, object detection, grounded verification signals, and controlled image correction.
 
-The current app is centered on e-commerce use cases. From the frontend you can analyze a product image, review marketplace compliance, launch Fix Studio for corrective edits, compare against a competitor image, run batch analysis, and inspect usage or history. Under the hood, the repository reflects product-shaped engineering concerns rather than a single-model demo: multi-provider routing, typed API schemas, caching, token accounting, rate limiting, CI, and Dockerized local deployment.
+The current app is centered on e-commerce use cases. From the frontend you can analyze a product image, review marketplace compliance, launch Fix Studio for corrective edits, compare against a competitor image, run batch analysis, and inspect usage or history. The compliance and correction flow now includes structured findings with `source`, `confidence`, `verification_tier`, `evidence`, bounding-box overlays, and product-context inputs such as category, attributes, and optional reference imagery. Under the hood, the repository reflects product-shaped engineering concerns rather than a single-model demo: multi-provider routing, typed API schemas, caching, token accounting, rate limiting, CI, and Dockerized local deployment.
 
 ## Features
 
@@ -23,9 +24,11 @@ The current app is centered on e-commerce use cases. From the frontend you can a
 - SEO generation from product imagery
 - Competitor image comparison
 - Batch analysis for multiple product images
-- Compliance scoring and issue detection
+- Compliance scoring, structured issue detection, and verifier-backed evidence
+- Product-context-aware compliance review with title, category, attributes, and optional reference image input
 - Deterministic fix suggestions and apply flows for relighting, outpainting, upscaling, and text or watermark removal
 - Deterministic inventory-style analysis using object detection and OCR
+- Verification overlays and before/after finding diffs inside Compliance and Fix Studio
 - Provider overrides for model, API key, and base URL from the UI or API
 - Report export and usage tracking
 
@@ -95,8 +98,10 @@ Default ports:
 
 1. Open Compliance.
 2. Upload an image and select the marketplace.
-3. Review the verdict, score, and issues.
-4. Launch Fix Studio to apply deterministic corrections such as relighting, outpainting, upscaling, or text removal.
+3. Optionally add product title, category, attributes, and a reference image to strengthen verification.
+4. Review the assessment, structured findings, source tiers, confidence, and evidence overlays.
+5. Launch Fix Studio to apply deterministic corrections such as relighting, outpainting, upscaling, or text removal.
+6. Compare before/after findings using structured verification diffs instead of prose-only changes.
 
 ### Review a listing source
 
@@ -132,6 +137,21 @@ The FastAPI backend includes endpoints for:
 - object detection, OCR, quality scoring, relighting, outpainting, upscaling, and region erase operations
 
 For endpoint details, see [docs/API.md](docs/API.md).
+
+## Verification Model
+
+- Rule-based checks cover dimensions, aspect-ratio guidance, file size, and selected marketplace background heuristics.
+- OCR-backed checks surface visible text, screen-like UI content, and text-linked evidence excerpts.
+- Detector-backed checks surface people, multi-object clutter, and text or logo-like overlay regions when available.
+- Product context can be passed from the UI or API to inform category-aware heuristics and lightweight reference-image comparison.
+- Fix Studio and Compliance prefer structured findings for diffs and ranking when verifier output is available.
+
+## Current Boundaries
+
+- Exact product correctness is not fully solved without SKU-level catalog truth or reference metadata.
+- Category-specific policy logic is partial: the verifier includes category-aware heuristics, but not a complete rule engine for every marketplace/category combination.
+- Background semantics and deep screen-state interpretation are stronger than plain prose analysis, but still not a full semantic verifier for every edge case.
+- When structured verification is unavailable or incomplete, parts of the UI still fall back to model-generated analysis text.
 
 ## Architecture
 
