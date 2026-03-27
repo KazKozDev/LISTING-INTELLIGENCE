@@ -4,7 +4,7 @@
 
 
 
-From a single product photo to a marketplace-ready listing.
+From a single product photo to a marketplace-ready listing.<br>
 Analyze the product, fix image issues, and generate better content with LLMs, OCR, and generative image models.
 
 ## Features
