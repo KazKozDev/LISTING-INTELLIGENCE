@@ -4,21 +4,13 @@ Full-stack AI application for marketplace listing intelligence, compliance revie
 
 ## Features
 
-- React + FastAPI application for image-first marketplace workflows
-- Product image analysis with listing-oriented output
-- Marketplace-specific rules for channels such as Amazon, Walmart, Allegro, and Etsy
-- SEO generation from product imagery
-- Competitor image comparison
-- Batch analysis for multiple product images
-- Compliance scoring, structured issue detection, and verifier-backed evidence
-- Product-context-aware compliance review with title, category, attributes, and optional reference image input
-- Deterministic fix suggestions and apply flows for relighting, outpainting, upscaling, and text or watermark removal
-- Deterministic inventory-style analysis using object detection and OCR
-- Verification overlays and before/after finding diffs inside Compliance and Fix Studio
-- Provider overrides for model, API key, and base URL from the UI or API
-- Typed API, usage tracking, caching, rate limiting, and export-oriented reporting
-- Works with local and hosted model providers, including Ollama, OpenAI, Anthropic, Google, and Azure
-- Report export and usage tracking
+- End-to-end marketplace image workflow: analyze, verify, correct, compare, and export from one workspace
+- Compliance review with structured findings, evidence overlays, and verifier-backed diffs instead of prose-only output
+- Fix Studio for deterministic correction steps such as relighting, outpainting, upscaling, and text or watermark cleanup
+- Product-context-aware verification with category, attributes, and optional reference imagery
+- Marketplace-aware analysis for channels such as Amazon, Walmart, Allegro, and Etsy
+- Competitor comparison, SEO generation, and batch processing for repeatable catalog work
+- Product-grade engineering around the workflow: typed APIs, caching, usage tracking, multi-provider routing, and Dockerized local deployment
 
 ## Tech Stack
 
