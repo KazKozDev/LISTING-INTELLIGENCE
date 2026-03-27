@@ -11,12 +11,6 @@ Full-stack AI application for marketplace listing intelligence, compliance revie
 - Typed API, usage tracking, caching, rate limiting, and export-oriented reporting
 - Works with local and hosted model providers, including Ollama, OpenAI, Anthropic, Google, and Azure
 
-## Overview
-
-Listing Intelligence is an AI workspace for marketplace image review, compliance checks, and correction workflows. It helps sellers, agencies, and catalog teams turn raw product imagery into marketplace-ready outputs with analysis, verification signals, and deterministic image operations.
-
-The app is built for e-commerce teams working with product visuals at scale. You can analyze a product image, review marketplace compliance, launch Fix Studio for corrective edits, compare against competitors, and export approved results from one workflow. Under the hood, the system combines multimodal analysis, structured verification, typed APIs, caching, usage tracking, and multi-provider model routing.
-
 ## Features
 
 - Product image analysis with listing-oriented output
@@ -152,39 +146,6 @@ For endpoint details, see [docs/API.md](docs/API.md).
 - Detector-backed checks surface people, multi-object clutter, and text or logo-like overlay regions when available.
 - Product context can be passed from the UI or API to inform category-aware heuristics and lightweight reference-image comparison.
 - Fix Studio and Compliance prefer structured findings for diffs and ranking when verifier output is available.
-
-## Current Boundaries
-
-- Exact product correctness is not fully solved without SKU-level catalog truth or reference metadata.
-- Category-specific policy logic is partial: the verifier includes category-aware heuristics, but not a complete rule engine for every marketplace/category combination.
-- Background semantics and deep screen-state interpretation are stronger than plain prose analysis, but still not a full semantic verifier for every edge case.
-- When structured verification is unavailable or incomplete, parts of the UI still fall back to model-generated analysis text.
-
-## Architecture
-
-- [api/main.py](api/main.py) exposes the FastAPI app and e-commerce/image-intelligence endpoints.
-- [src/vision_agent.py](src/vision_agent.py) coordinates multimodal analysis, caching, rate limiting, PDF processing, and report generation.
-- [src/ecommerce/](src/ecommerce) contains marketplace logic, listing generation, compliance analysis, batch processing, and deterministic image operations.
-- [frontend/src/App.tsx](frontend/src/App.tsx) wires the React UI around Product Analysis, Compliance, Fix Studio, Tools, History, Settings, and Help.
-
-## Development
-
-Backend checks:
-
-```bash
-pytest
-```
-
-Frontend checks:
-
-```bash
-cd frontend
-npm run lint
-npm run build
-npm run test:e2e
-```
-
-CI is configured in GitHub Actions for backend linting, type checking, tests, frontend lint/build, and Docker image builds.
 
 ## Documentation
 
