@@ -33,11 +33,13 @@ from api.schemas import (  # noqa: E402
     BatchAnalysisResponse,
     CompetitorCompareResponse,
     ComplianceCheckResponse,
+    ComplianceFinding,
     ComplianceFixResultResponse,
     ComplianceFixSuggestionsResponse,
     ConfigResponse,
     HealthResponse,
     MarketplaceListResponse,
+    ProductContext,
     ProductAnalysisResponse,
     SEOGenerationResponse,
     UsageStats,
@@ -54,7 +56,7 @@ from src.ecommerce import (  # noqa: E402
     SEOGenerator,
 )
 from src.ecommerce.image_upscaler import ImageUpscaler  # noqa: E402
-from src.ecommerce.marketplace_rules import list_marketplaces  # noqa: E402
+from src.ecommerce.marketplace_rules import get_marketplace_info, list_marketplaces  # noqa: E402
 from src.ecommerce.object_detector import ObjectDetector  # noqa: E402
 from src.ecommerce.quality_scorer import QualityScorer  # noqa: E402
 from src.ecommerce.text_detector import TextDetector  # noqa: E402
@@ -72,6 +74,590 @@ _agent: VisionAgent | None = None
 _config: Config | None = None
 _cost_tracker = CostTracker()
 ECOMMERCE_OPERATION_TIMEOUT_SECONDS = 180
+
+
+def _clamp_confidence(value: float) -> float:
+    return round(max(0.0, min(1.0, value)), 2)
+
+
+def _tier_for_source(source: str) -> str:
+    if source == "rule":
+        return "rule_verified"
+    if source == "ocr":
+        return "ocr_supported"
+    if source == "detector":
+        return "detector_supported"
+    if source == "quality":
+        return "quality_supported"
+    return "model_assessed"
+
+
+def _parse_product_context(product_context_json: str | None) -> ProductContext:
+    if not product_context_json:
+        return ProductContext()
+    try:
+        payload = json.loads(product_context_json)
+        if not isinstance(payload, dict):
+            return ProductContext()
+        return ProductContext(**payload)
+    except Exception:
+        return ProductContext()
+
+
+def _detect_category_profile(product_context: ProductContext) -> str:
+    text = " ".join(
+        value.lower()
+        for value in (
+            product_context.category,
+            product_context.title,
+            product_context.attributes,
+        )
+        if value
+    )
+    if any(token in text for token in ("iphone", "phone", "smartphone", "tablet", "laptop", "monitor", "tv", "watch", "electronics")):
+        return "electronics"
+    if any(token in text for token in ("shirt", "dress", "shoe", "fashion", "clothing", "jacket", "sneaker")):
+        return "fashion"
+    if any(token in text for token in ("beauty", "cosmetic", "serum", "cream", "makeup", "skincare", "perfume")):
+        return "beauty"
+    if any(token in text for token in ("used", "preowned", "pre-owned", "second hand", "refurbished")):
+        return "used_goods"
+    if any(token in text for token in ("pack", "set of", "bundle", "multipack", "multi-pack")):
+        return "multipack"
+    if any(token in text for token in ("handmade", "craft", "etsy")):
+        return "handmade"
+    return "general"
+
+
+def _average_hash(image_path: Path) -> str:
+    with Image.open(image_path) as image:
+        grayscale = image.convert("L").resize((16, 16))
+        pixels = list(grayscale.getdata())
+    avg = sum(pixels) / max(1, len(pixels))
+    return "".join("1" if value >= avg else "0" for value in pixels)
+
+
+def _hash_distance(left: str, right: str) -> int:
+    if len(left) != len(right):
+        return max(len(left), len(right))
+    return sum(1 for l, r in zip(left, right) if l != r)
+
+
+def _rules_text_blob(rules: dict[str, object]) -> str:
+    parts: list[str] = []
+    for key in ("required_background", "aspect_ratio", "notes"):
+        value = rules.get(key)
+        if isinstance(value, str):
+            parts.append(value.lower())
+    for key in ("forbidden_elements", "main_image_rules", "recommendations"):
+        value = rules.get(key)
+        if isinstance(value, list):
+            parts.extend(str(item).lower() for item in value)
+    return " ".join(parts)
+
+
+def _sample_edge_background_stats(image_path: Path) -> dict[str, float]:
+    with Image.open(image_path) as image:
+        rgb = image.convert("RGB")
+        width, height = rgb.size
+        margin_x = max(1, width // 16)
+        margin_y = max(1, height // 16)
+
+        pixels: list[tuple[int, int, int]] = []
+        for x in range(0, width, max(1, width // 120)):
+            for y in range(0, margin_y):
+                pixels.append(rgb.getpixel((x, y)))
+            for y in range(max(0, height - margin_y), height):
+                pixels.append(rgb.getpixel((x, y)))
+        for y in range(0, height, max(1, height // 120)):
+            for x in range(0, margin_x):
+                pixels.append(rgb.getpixel((x, y)))
+            for x in range(max(0, width - margin_x), width):
+                pixels.append(rgb.getpixel((x, y)))
+
+    if not pixels:
+        return {"brightness": 0.0, "channel_delta": 0.0}
+
+    total = len(pixels)
+    brightness = sum((r + g + b) / 3 for r, g, b in pixels) / total
+    channel_delta = sum((max(r, g, b) - min(r, g, b)) for r, g, b in pixels) / total
+    return {
+        "brightness": round(brightness, 2),
+        "channel_delta": round(channel_delta, 2),
+    }
+
+
+def _detect_screen_like_text(text: str) -> list[str]:
+    candidates = [
+        "facetime",
+        "photos",
+        "calendar",
+        "messages",
+        "mail",
+        "maps",
+        "weather",
+        "search",
+        "breezy",
+        "notification",
+        "notifications",
+        "no more today",
+        "rockway",
+        "tv",
+        "podcasts",
+        "app store",
+        "safari",
+        "settings",
+        "health",
+        "wallet",
+        "news",
+    ]
+    lower = text.lower()
+    return [term for term in candidates if term in lower]
+
+
+def _build_structured_verification_findings(
+    image_path: Path,
+    marketplace: str,
+    product_context: ProductContext | None = None,
+    reference_image_path: Path | None = None,
+) -> list[ComplianceFinding]:
+    """Run rule-based and detector-based checks and return structured findings."""
+    config = _config or Config()
+    rules = get_marketplace_info(marketplace)
+    product_context = product_context or ProductContext()
+    category_profile = _detect_category_profile(product_context)
+
+    findings: list[ComplianceFinding] = []
+
+    with Image.open(image_path) as image:
+        width, height = image.width, image.height
+
+    min_width = int(rules.get("min_image_width") or 0)
+    min_height = int(rules.get("min_image_height") or 0)
+    recommended_width = int(rules.get("recommended_image_width") or 0)
+    recommended_height = int(rules.get("recommended_image_height") or 0)
+    aspect_ratio_rule = str(rules.get("aspect_ratio") or "").lower()
+    rules_blob = _rules_text_blob(rules)
+    file_size_bytes = image_path.stat().st_size
+    max_file_size_mb = float(rules.get("max_file_size_mb") or 0)
+    requires_square = "1:1" in aspect_ratio_rule or "square" in aspect_ratio_rule
+    prefers_horizontal = "4:3" in aspect_ratio_rule or "horizontal" in aspect_ratio_rule
+    strict_white_background = "white" in str(rules.get("required_background") or "").lower()
+    text_is_forbidden = any(
+        token in rules_blob
+        for token in ("text overlay", "added text", "store-added text", "misleading text")
+    )
+    logo_is_forbidden = any(
+        token in rules_blob
+        for token in ("logo", "watermark", "store logos", "seller logo")
+    )
+
+    if width < min_width or height < min_height:
+        findings.append(
+            ComplianceFinding(
+                code="image.dimension.minimum",
+                label="Below minimum dimensions",
+                severity="critical",
+                summary=(
+                    f"Image measures {width}x{height}px, below the documented "
+                    f"minimum of {min_width}x{min_height}px."
+                ),
+                source="rule",
+                verification_tier=_tier_for_source("rule"),
+                confidence=1.0,
+                evidence={
+                    "measured": {
+                        "width": width,
+                        "height": height,
+                        "min_width": min_width,
+                        "min_height": min_height,
+                    }
+                },
+            )
+        )
+
+    if recommended_width and recommended_height and (
+        width < recommended_width or height < recommended_height
+    ):
+        findings.append(
+            ComplianceFinding(
+                code="image.dimension.recommended",
+                label="Below recommended dimensions",
+                severity="warning",
+                summary=(
+                    f"Image measures {width}x{height}px, below the recommended "
+                    f"target of {recommended_width}x{recommended_height}px."
+                ),
+                source="rule",
+                verification_tier=_tier_for_source("rule"),
+                confidence=1.0,
+                evidence={
+                    "measured": {
+                        "width": width,
+                        "height": height,
+                        "recommended_width": recommended_width,
+                        "recommended_height": recommended_height,
+                    }
+                },
+            )
+        )
+
+    if requires_square:
+        aspect_ratio = width / max(1, height)
+        if abs(aspect_ratio - 1.0) > 0.08:
+            findings.append(
+                ComplianceFinding(
+                    code="image.aspect.square_recommended",
+                    label="Aspect ratio differs from square guidance",
+                    severity="warning",
+                    summary=(
+                        f"Image aspect ratio is {width}:{height} "
+                        f"({aspect_ratio:.3f}:1), while this marketplace guidance "
+                        "calls for a square main image."
+                    ),
+                    source="rule",
+                    verification_tier=_tier_for_source("rule"),
+                    confidence=1.0,
+                    evidence={
+                        "measured": {
+                            "width": width,
+                            "height": height,
+                            "aspect_ratio": round(aspect_ratio, 4),
+                        }
+                    },
+                )
+            )
+
+    if prefers_horizontal:
+        aspect_ratio = width / max(1, height)
+        target_ratio = 4 / 3
+        if abs(aspect_ratio - target_ratio) > 0.18:
+            findings.append(
+                ComplianceFinding(
+                    code="image.aspect.horizontal_recommended",
+                    label="Aspect ratio differs from horizontal guidance",
+                    severity="warning",
+                    summary=(
+                        f"Image aspect ratio is {width}:{height} "
+                        f"({aspect_ratio:.3f}:1), while this marketplace guidance "
+                        "leans toward a 4:3 horizontal image."
+                    ),
+                    source="rule",
+                    verification_tier=_tier_for_source("rule"),
+                    confidence=1.0,
+                    evidence={
+                        "measured": {
+                            "width": width,
+                            "height": height,
+                            "aspect_ratio": round(aspect_ratio, 4),
+                            "target_ratio": round(target_ratio, 4),
+                        }
+                    },
+                )
+            )
+
+    if max_file_size_mb > 0 and file_size_bytes > max_file_size_mb * 1024 * 1024:
+        findings.append(
+            ComplianceFinding(
+                code="image.file_size.maximum",
+                label="File size exceeds marketplace limit",
+                severity="critical",
+                summary=(
+                    f"File size is {(file_size_bytes / (1024 * 1024)):.2f} MB, "
+                    f"above the documented limit of {max_file_size_mb:.2f} MB."
+                ),
+                source="rule",
+                verification_tier=_tier_for_source("rule"),
+                confidence=1.0,
+                evidence={
+                    "measured": {
+                        "file_size_bytes": file_size_bytes,
+                        "file_size_mb": round(file_size_bytes / (1024 * 1024), 4),
+                        "max_file_size_mb": max_file_size_mb,
+                    }
+                },
+            )
+        )
+
+    edge_stats = _sample_edge_background_stats(image_path)
+    if strict_white_background and (
+        edge_stats["brightness"] < 238 or edge_stats["channel_delta"] > 18
+    ):
+        findings.append(
+            ComplianceFinding(
+                code="image.background.non_white_edge",
+                label="Background does not read as white",
+                severity="critical",
+                summary=(
+                    "Edge sampling suggests the image background is not close to a clean white "
+                    "main-image background."
+                ),
+                source="rule",
+                verification_tier=_tier_for_source("rule"),
+                confidence=0.92,
+                evidence={
+                    "measured": {
+                        "edge_brightness": edge_stats["brightness"],
+                        "edge_channel_delta": edge_stats["channel_delta"],
+                    }
+                },
+            )
+        )
+
+    text_detector = TextDetector(config)
+    text_result = text_detector.detect(image_path)
+    if text_result.has_text:
+        excerpts = [region.text for region in text_result.regions[:5] if region.text]
+        findings.append(
+            ComplianceFinding(
+                code="image.text.present",
+                label="Visible text detected",
+                severity="critical" if text_is_forbidden else "warning",
+                summary=(
+                    f"OCR detected {text_result.total_text_regions} text region(s) "
+                    "that may require marketplace review."
+                ),
+                source="ocr",
+                verification_tier=_tier_for_source("ocr"),
+                confidence=_clamp_confidence(
+                    max((region.confidence for region in text_result.regions), default=0.0)
+                ),
+                evidence={
+                    "measured": {
+                        "text_regions": text_result.total_text_regions,
+                        "coverage_ratio": text_result.text_coverage_ratio,
+                    },
+                    "excerpts": excerpts,
+                    "warning": text_result.warnings[0] if text_result.warnings else None,
+                },
+            )
+        )
+
+        screen_like_terms = _detect_screen_like_text(text_result.combined_text)
+        if screen_like_terms:
+            findings.append(
+                ComplianceFinding(
+                    code="image.screen.active_ui_text",
+                    label="Active device UI text detected",
+                    severity="critical",
+                    summary=(
+                        "OCR detected interface-like text that suggests the product is shown in an active "
+                        "screen state rather than a neutral product presentation."
+                    ),
+                    source="ocr",
+                    verification_tier=_tier_for_source("ocr"),
+                    confidence=_clamp_confidence(min(0.98, 0.55 + len(screen_like_terms) * 0.08)),
+                    evidence={
+                        "excerpts": screen_like_terms[:6],
+                        "measured": {
+                            "matched_terms": len(screen_like_terms),
+                            "text_regions": text_result.total_text_regions,
+                            "category_profile": category_profile,
+                        },
+                    },
+                )
+            )
+
+    object_detector = ObjectDetector(config)
+    object_result = object_detector.detect(image_path)
+    if object_result.has_watermark:
+        watermark_obj = next(
+            (obj for obj in object_result.objects if obj.label in {"logo", "watermark", "stamp", "seal", "badge"}),
+            None,
+        )
+        findings.append(
+            ComplianceFinding(
+                code="image.overlay.logo_or_watermark",
+                label="Logo or watermark-like overlay detected",
+                severity="critical" if logo_is_forbidden else "warning",
+                summary="Object detection flagged a logo or watermark-like element in the image.",
+                source="detector",
+                verification_tier=_tier_for_source("detector"),
+                confidence=_clamp_confidence(watermark_obj.confidence if watermark_obj else 0.6),
+                evidence={
+                    "bbox": list(watermark_obj.bbox) if watermark_obj else None,
+                    "measured": {
+                        "total_objects": object_result.total_count,
+                        "image_width": width,
+                        "image_height": height,
+                    },
+                    "warning": object_result.warnings[0] if object_result.warnings else None,
+                },
+            )
+        )
+
+    if object_result.has_text_overlay:
+        text_obj = next(
+            (obj for obj in object_result.objects if obj.label in {"text", "label", "sign", "banner", "caption"}),
+            None,
+        )
+        findings.append(
+            ComplianceFinding(
+                code="image.overlay.text_like",
+                label="Text-like overlay detected",
+                severity="critical" if text_is_forbidden else "warning",
+                summary="Object detection flagged a text-like overlay element in the image.",
+                source="detector",
+                verification_tier=_tier_for_source("detector"),
+                confidence=_clamp_confidence(text_obj.confidence if text_obj else 0.6),
+                evidence={
+                    "bbox": list(text_obj.bbox) if text_obj else None,
+                    "measured": {
+                        "total_objects": object_result.total_count,
+                        "image_width": width,
+                        "image_height": height,
+                    },
+                    "warning": object_result.warnings[0] if object_result.warnings else None,
+                },
+            )
+        )
+
+    person_obj = next((obj for obj in object_result.objects if obj.label == "person"), None)
+    if person_obj is not None:
+        findings.append(
+            ComplianceFinding(
+                code="image.non_product.person_detected",
+                label="Person detected in frame",
+                severity=(
+                    "warning"
+                    if category_profile in {"fashion", "beauty", "handmade"}
+                    else ("warning" if not strict_white_background else "critical")
+                ),
+                summary="Object detection flagged a person in frame, which may require manual marketplace review.",
+                source="detector",
+                verification_tier=_tier_for_source("detector"),
+                confidence=_clamp_confidence(person_obj.confidence),
+                evidence={
+                    "bbox": list(person_obj.bbox),
+                    "measured": {
+                        "area_ratio": person_obj.area_ratio,
+                        "image_width": width,
+                        "image_height": height,
+                    },
+                },
+            )
+        )
+
+    cell_phone_obj = next((obj for obj in object_result.objects if obj.label in {"cell phone", "mobile phone"}), None)
+    if cell_phone_obj and object_result.total_count > 2:
+        findings.append(
+            ComplianceFinding(
+                code="image.composition.multiple_objects",
+                label="Multiple objects detected around the main subject",
+                severity="warning" if not strict_white_background else "critical",
+                summary=(
+                    "Object detection found several objects in frame, which may reduce main-image clarity "
+                    "for marketplace review."
+                ),
+                source="detector",
+                verification_tier=_tier_for_source("detector"),
+                confidence=_clamp_confidence(cell_phone_obj.confidence),
+                evidence={
+                    "measured": {
+                        "total_objects": object_result.total_count,
+                    }
+                },
+            )
+        )
+
+    if category_profile == "electronics" and not text_result.has_text and cell_phone_obj is not None:
+        findings.append(
+            ComplianceFinding(
+                code="image.device_state.neutral_uncertain",
+                label="Neutral device state not verified",
+                severity="info",
+                summary="Electronics profile is active, but the verifier could not confirm whether the displayed device state is neutral or active.",
+                source="rule",
+                verification_tier=_tier_for_source("rule"),
+                confidence=0.72,
+                evidence={
+                    "measured": {
+                        "category_profile": category_profile,
+                        "text_regions": text_result.total_text_regions,
+                    }
+                },
+            )
+        )
+
+    if reference_image_path is not None:
+        try:
+          current_hash = _average_hash(image_path)
+          reference_hash = _average_hash(reference_image_path)
+          hash_distance = _hash_distance(current_hash, reference_hash)
+          if hash_distance > 96:
+              findings.append(
+                  ComplianceFinding(
+                      code="reference.visual_similarity.low",
+                      label="Low similarity to reference image",
+                      severity="warning",
+                      summary="The uploaded image differs materially from the provided reference image under a lightweight visual similarity check.",
+                      source="rule",
+                      verification_tier=_tier_for_source("rule"),
+                      confidence=0.78,
+                      evidence={
+                          "measured": {
+                              "hash_distance": hash_distance,
+                              "category_profile": category_profile,
+                          }
+                      },
+                  )
+              )
+        except Exception:
+          pass
+
+    if product_context.title or product_context.attributes:
+        context_text = " ".join(value.lower() for value in (product_context.title, product_context.attributes) if value)
+        matched_context_tokens = [
+            token for token in re.findall(r"[a-zA-Z0-9]{4,}", context_text)
+            if token in text_result.combined_text.lower()
+        ]
+        if category_profile == "electronics" and text_result.has_text and not matched_context_tokens:
+            findings.append(
+                ComplianceFinding(
+                    code="reference.context_match.uncertain",
+                    label="Product context match is uncertain",
+                    severity="info",
+                    summary="The verifier found screen or image text, but could not confidently align it with the provided product context.",
+                    source="ocr",
+                    verification_tier=_tier_for_source("ocr"),
+                    confidence=0.61,
+                    evidence={
+                        "excerpts": text_result.combined_text.split()[:8],
+                        "measured": {
+                            "matched_context_tokens": len(matched_context_tokens),
+                            "category_profile": category_profile,
+                        },
+                    },
+                )
+            )
+
+    quality_scorer = QualityScorer(config)
+    quality_result = quality_scorer.score(image_path)
+    if quality_result.rating in {"poor", "below_average"}:
+        findings.append(
+            ComplianceFinding(
+                code="image.quality.low",
+                label="Low visual quality score",
+                severity="warning",
+                summary=(
+                    f"Quality scorer rated the image as {quality_result.rating.replace('_', ' ')} "
+                    f"with a normalized score of {quality_result.score_normalized}."
+                ),
+                source="quality",
+                verification_tier=_tier_for_source("quality"),
+                confidence=0.85,
+                evidence={
+                    "measured": {
+                        "score_normalized": quality_result.score_normalized,
+                        "rating": quality_result.rating,
+                        "model_id": quality_result.model_id,
+                    },
+                    "warning": quality_result.warning,
+                },
+            )
+        )
+
+    return findings
 
 
 @asynccontextmanager
@@ -992,12 +1578,15 @@ async def analyze_product_full(
 async def compliance_check(
     file: UploadFile = File(...),
     marketplace: str = Form(...),
+    product_context_json: str | None = Form(None),
+    reference_image: UploadFile | None = File(None),
     provider: str | None = Form(None),
     model: str | None = Form(None),
     api_key: str | None = Form(None),
     base_url: str | None = Form(None),
 ):
     """Check product photo compliance with marketplace rules."""
+    reference_path: Path | None = None
     try:
         agent = resolve_agent(provider, model, api_key, base_url)
         analyzer = ProductAnalyzer(agent)
@@ -1008,7 +1597,22 @@ async def compliance_check(
             tmp.write(content)
             tmp_path = Path(tmp.name)
 
+        product_context = _parse_product_context(product_context_json)
+        if reference_image is not None and reference_image.filename:
+            reference_suffix = Path(reference_image.filename).suffix or ".png"
+            with tempfile.NamedTemporaryFile(delete=False, suffix=reference_suffix) as tmp:
+                reference_content = await reference_image.read()
+                tmp.write(reference_content)
+                reference_path = Path(tmp.name)
+            product_context.reference_image_filename = reference_image.filename
+
         result = analyzer.check_compliance(tmp_path, marketplace=marketplace)
+        findings = _build_structured_verification_findings(
+            tmp_path,
+            marketplace,
+            product_context=product_context,
+            reference_image_path=reference_path,
+        )
         tmp_path.unlink(missing_ok=True)
 
         tokens = result.metadata.get("usage", {}).get("total_tokens", 0)
@@ -1023,7 +1627,16 @@ async def compliance_check(
             "filename": file.filename,
             "marketplace": marketplace,
             "analysis": result.text,
-            "metadata": result.metadata,
+            "findings": findings,
+            "metadata": {
+                **result.metadata,
+                "verification": {
+                    "mode": "structured_signals",
+                    "scope": "general marketplace verification",
+                    "coverage_note": "Structured checks cover general marketplace rules. Category-specific requirements still need manual review.",
+                },
+                "product_context": product_context.model_dump(),
+            },
             "timestamp": datetime.now().isoformat(),
             "tokens_used": tokens,
         }
@@ -1033,6 +1646,9 @@ async def compliance_check(
     except Exception as e:
         logger.error(f"Compliance check failed: {e}", exc_info=True)
         raise HTTPException(status_code=500, detail=str(e))
+    finally:
+        if reference_path is not None:
+            reference_path.unlink(missing_ok=True)
 
 
 @app.post(
@@ -1042,9 +1658,12 @@ async def compliance_check(
 async def suggest_compliance_fixes(
     file: UploadFile = File(...),
     marketplace: str = Form(...),
+    product_context_json: str | None = Form(None),
+    reference_image: UploadFile | None = File(None),
 ):
     """Suggest deterministic image fixes for marketplace compliance."""
     tmp_path: Path | None = None
+    reference_path: Path | None = None
     try:
         fixer = ComplianceFixer()
 
@@ -1053,6 +1672,15 @@ async def suggest_compliance_fixes(
             content = await file.read()
             tmp.write(content)
             tmp_path = Path(tmp.name)
+
+        product_context = _parse_product_context(product_context_json)
+        if reference_image is not None and reference_image.filename:
+            reference_suffix = Path(reference_image.filename).suffix or ".png"
+            with tempfile.NamedTemporaryFile(delete=False, suffix=reference_suffix) as tmp:
+                reference_content = await reference_image.read()
+                tmp.write(reference_content)
+                reference_path = Path(tmp.name)
+            product_context.reference_image_filename = reference_image.filename
 
         suggestion_data = fixer.suggest_fixes(
             tmp_path,
@@ -1080,6 +1708,8 @@ async def suggest_compliance_fixes(
     finally:
         if tmp_path is not None:
             tmp_path.unlink(missing_ok=True)
+        if reference_path is not None:
+            reference_path.unlink(missing_ok=True)
 
 
 @app.post(
@@ -1091,6 +1721,8 @@ async def apply_compliance_fix(
     marketplace: str = Form(...),
     action: str = Form(...),
     transform_payload: str | None = Form(None),
+    product_context_json: str | None = Form(None),
+    reference_image: UploadFile | None = File(None),
     provider: str | None = Form(None),
     model: str | None = Form(None),
     api_key: str | None = Form(None),
@@ -1099,6 +1731,7 @@ async def apply_compliance_fix(
     """Apply a deterministic fix and return compliance before and after."""
     source_path: Path | None = None
     fixed_path: Path | None = None
+    reference_path: Path | None = None
     try:
         agent = resolve_agent(provider, model, api_key, base_url)
         analyzer = ProductAnalyzer(agent)
@@ -1110,6 +1743,15 @@ async def apply_compliance_fix(
             tmp.write(content)
             source_path = Path(tmp.name)
 
+        product_context = _parse_product_context(product_context_json)
+        if reference_image is not None and reference_image.filename:
+            reference_suffix = Path(reference_image.filename).suffix or ".png"
+            with tempfile.NamedTemporaryFile(delete=False, suffix=reference_suffix) as tmp:
+                reference_content = await reference_image.read()
+                tmp.write(reference_content)
+                reference_path = Path(tmp.name)
+            product_context.reference_image_filename = reference_image.filename
+
         parsed_transform_payload = None
         if transform_payload:
             parsed_transform_payload = json.loads(transform_payload)
@@ -1117,6 +1759,12 @@ async def apply_compliance_fix(
         before_result = analyzer.check_compliance(
             source_path,
             marketplace=marketplace,
+        )
+        before_findings = _build_structured_verification_findings(
+            source_path,
+            marketplace,
+            product_context=product_context,
+            reference_image_path=reference_path,
         )
 
         fixed_image, fix_metadata = fixer.apply_fix(
@@ -1133,6 +1781,12 @@ async def apply_compliance_fix(
         after_result = analyzer.check_compliance(
             fixed_path,
             marketplace=marketplace,
+        )
+        after_findings = _build_structured_verification_findings(
+            fixed_path,
+            marketplace,
+            product_context=product_context,
+            reference_image_path=reference_path,
         )
 
         before_tokens = before_result.metadata.get("usage", {}).get(
@@ -1166,10 +1820,18 @@ async def apply_compliance_fix(
             "image_data_url": fixer.image_to_data_url(fixed_image),
             "before_analysis": before_result.text,
             "after_analysis": after_result.text,
+            "before_findings": before_findings,
+            "after_findings": after_findings,
             "metadata": {
                 "fix": fix_metadata,
                 "before": before_result.metadata,
                 "after": after_result.metadata,
+                "verification": {
+                    "mode": "structured_signals",
+                    "scope": "general marketplace verification",
+                    "coverage_note": "Structured checks cover general marketplace rules. Category-specific requirements still need manual review.",
+                },
+                "product_context": product_context.model_dump(),
             },
             "timestamp": datetime.now().isoformat(),
             "tokens_used": total_tokens,
@@ -1185,6 +1847,8 @@ async def apply_compliance_fix(
             source_path.unlink(missing_ok=True)
         if fixed_path is not None:
             fixed_path.unlink(missing_ok=True)
+        if reference_path is not None:
+            reference_path.unlink(missing_ok=True)
 
 
 @app.post("/api/ecommerce/generate-seo", response_model=SEOGenerationResponse)

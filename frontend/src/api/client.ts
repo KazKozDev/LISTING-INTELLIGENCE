@@ -16,6 +16,7 @@ import type {
   ObjectDetectionResult,
   OutpaintApplyResult,
   ProductAnalysisResponse,
+  ProductContext,
   QualityResult,
   RelightApplyResult,
   SEOGenerationResponse,
@@ -73,6 +74,25 @@ function applyOverrides(formData: FormData) {
     if (settings.apiKey) formData.append('api_key', settings.apiKey)
     if (settings.baseUrl) formData.append('base_url', settings.baseUrl)
   } catch { /* ignore */ }
+}
+
+function appendProductContext(formData: FormData, productContext?: ProductContext) {
+  if (!productContext) return
+
+  const payload = {
+    title: productContext.title ?? '',
+    category: productContext.category ?? '',
+    attributes: productContext.attributes ?? '',
+    reference_image_filename: productContext.referenceImage?.name ?? productContext.referenceImageName ?? null,
+  }
+
+  if (payload.title || payload.category || payload.attributes || payload.reference_image_filename) {
+    formData.append('product_context_json', JSON.stringify(payload))
+  }
+
+  if (productContext.referenceImage) {
+    formData.append('reference_image', productContext.referenceImage)
+  }
 }
 
 export const api = {
@@ -142,18 +162,21 @@ export const api = {
     return request<ProductAnalysisResponse>('/ecommerce/analyze-product-full', { method: 'POST', body: formData })
   },
 
-  checkCompliance: (file: File, marketplace: string) => {
+  checkCompliance: (file: File, marketplace: string, productContext?: ProductContext) => {
     const formData = new FormData()
     formData.append('file', file)
     formData.append('marketplace', marketplace)
+    appendProductContext(formData, productContext)
     applyOverrides(formData)
     return request<ComplianceCheckResponse>('/ecommerce/compliance-check', { method: 'POST', body: formData })
   },
 
-  suggestComplianceFixes: (file: File, marketplace: string) => {
+  suggestComplianceFixes: (file: File, marketplace: string, productContext?: ProductContext) => {
     const formData = new FormData()
     formData.append('file', file)
     formData.append('marketplace', marketplace)
+    appendProductContext(formData, productContext)
+    applyOverrides(formData)
     return request<ComplianceFixSuggestionsResponse>('/ecommerce/compliance-fix/suggestions', { method: 'POST', body: formData })
   },
 
@@ -162,6 +185,7 @@ export const api = {
     marketplace: string,
     action: string,
     transformPayload?: CanvasTransformPayload,
+    productContext?: ProductContext,
   ) => {
     const formData = new FormData()
     formData.append('file', file)
@@ -170,6 +194,7 @@ export const api = {
     if (transformPayload) {
       formData.append('transform_payload', JSON.stringify(transformPayload))
     }
+    appendProductContext(formData, productContext)
     applyOverrides(formData)
     return request<ComplianceFixResultResponse>('/ecommerce/compliance-fix/apply', { method: 'POST', body: formData })
   },

@@ -95,7 +95,34 @@ export interface ProductAnalysisResponse extends AnalysisResult {
 
 export interface ComplianceCheckResponse extends AnalysisResult {
   marketplace: string
+  findings?: ComplianceFinding[]
   tokens_used: number
+}
+
+export interface ProductContext {
+  title: string
+  category: string
+  attributes: string
+  referenceImage?: File | null
+  referenceImageName?: string | null
+}
+
+export interface ComplianceFindingEvidence {
+  bbox?: number[] | null
+  measured?: Record<string, unknown>
+  excerpts?: string[]
+  warning?: string | null
+}
+
+export interface ComplianceFinding {
+  code: string
+  label: string
+  severity: 'critical' | 'warning' | 'info' | string
+  summary: string
+  source: 'rule' | 'ocr' | 'detector' | 'quality' | 'vlm' | string
+  verification_tier?: 'rule_verified' | 'ocr_supported' | 'detector_supported' | 'quality_supported' | 'model_assessed' | string
+  confidence?: number | null
+  evidence?: ComplianceFindingEvidence
 }
 
 export interface ComplianceFixSuggestion {
@@ -145,6 +172,8 @@ export interface ComplianceFixResultResponse {
   image_data_url: string
   before_analysis: string
   after_analysis: string
+  before_findings?: ComplianceFinding[]
+  after_findings?: ComplianceFinding[]
   metadata: AnalysisMetadata
   timestamp: string
   tokens_used: number
@@ -161,6 +190,7 @@ export interface ComplianceFixStudioLaunchState {
   id: number
   file: File
   marketplace: string
+  productContext?: ProductContext
   source: 'compliance'
 }
 

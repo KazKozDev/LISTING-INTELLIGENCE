@@ -1,7 +1,7 @@
-import { useState, useCallback, useEffect, useRef } from 'react'
+import { useState, useCallback, useEffect, useMemo, useRef } from 'react'
 import { ArrowRight, ChevronDown, ScanSearch, Download, File, ShieldCheck, ShieldX, CheckCircle, XCircle, AlertTriangle, Info, Copy, Check, Zap, WandSparkles } from 'lucide-react'
 import { api } from '../../api/client'
-import type { ComplianceCheckResponse } from '../../api/types'
+import type { ComplianceCheckResponse, ComplianceFinding, ProductContext } from '../../api/types'
 import { saveToHistory } from '../../hooks/useHistory'
 import { useObjectUrlPreview } from '../../hooks/useObjectUrlPreviews'
 import { MarkdownContent } from '../MarkdownContent'
@@ -16,7 +16,86 @@ import {
 import { formatFileSize, parseCompliance } from '../../utils/analysis'
 
 interface ComplianceReportProps {
-  onOpenFixStudio?: (file: File, marketplace: string) => void
+  onOpenFixStudio?: (file: File, marketplace: string, productContext?: ProductContext) => void
+}
+
+function buildProductContextCacheToken(productContext?: ProductContext) {
+  if (!productContext) {
+    return 'no-context'
+  }
+
+  return JSON.stringify({
+    title: productContext.title.trim(),
+    category: productContext.category.trim(),
+    attributes: productContext.attributes.trim(),
+    referenceImageName: productContext.referenceImage?.name ?? productContext.referenceImageName ?? '',
+  })
+}
+
+function buildOverlayRects(findings: ComplianceFinding[]) {
+  return findings
+    .map((finding) => {
+      const bbox = finding.evidence?.bbox
+      const measured = finding.evidence?.measured ?? {}
+      const imageWidth = Number(measured.image_width)
+      const imageHeight = Number(measured.image_height)
+
+      if (!bbox || bbox.length !== 4 || !imageWidth || !imageHeight) {
+        return null
+      }
+
+      const [x1, y1, x2, y2] = bbox
+      return {
+        key: `${finding.source}:${finding.code}`,
+        label: finding.label,
+        severity: finding.severity,
+        left: `${(x1 / imageWidth) * 100}%`,
+        top: `${(y1 / imageHeight) * 100}%`,
+        width: `${((x2 - x1) / imageWidth) * 100}%`,
+        height: `${((y2 - y1) / imageHeight) * 100}%`,
+      }
+    })
+    .filter((value): value is NonNullable<typeof value> => Boolean(value))
+}
+
+function renderFindingEvidence(finding: ComplianceFinding) {
+  const measuredEntries = Object.entries(finding.evidence?.measured ?? {})
+  const excerpts = finding.evidence?.excerpts ?? []
+
+  return (
+    <div className="compliance-finding-evidence">
+      <div className="compliance-finding-meta">
+        <span className={`history-meta-chip finding-source-chip source-${finding.source}`}>Source: {finding.source}</span>
+        {finding.verification_tier && (
+          <span className={`history-meta-chip finding-tier-chip tier-${finding.verification_tier}`}>{finding.verification_tier.replace(/_/g, ' ')}</span>
+        )}
+        {typeof finding.confidence === 'number' && (
+          <span className="history-meta-chip">Confidence: {Math.round(finding.confidence * 100)}%</span>
+        )}
+        {finding.evidence?.bbox?.length === 4 && (
+          <span className="history-meta-chip">BBox: {finding.evidence.bbox.join(', ')}</span>
+        )}
+      </div>
+      {measuredEntries.length > 0 && (
+        <div className="compliance-finding-detail">
+          <span className="fix-workspace-label">Measured</span>
+          <span>{measuredEntries.map(([key, value]) => `${key}: ${String(value)}`).join(' · ')}</span>
+        </div>
+      )}
+      {excerpts.length > 0 && (
+        <div className="compliance-finding-detail">
+          <span className="fix-workspace-label">Excerpts</span>
+          <span>{excerpts.join(' · ')}</span>
+        </div>
+      )}
+      {finding.evidence?.warning && (
+        <div className="compliance-finding-detail">
+          <span className="fix-workspace-label">Detector Note</span>
+          <span>{finding.evidence.warning}</span>
+        </div>
+      )}
+    </div>
+  )
 }
 
 export function ComplianceReport({ onOpenFixStudio }: ComplianceReportProps) {
@@ -28,13 +107,42 @@ export function ComplianceReport({ onOpenFixStudio }: ComplianceReportProps) {
   const [error, setError] = useState<string | null>(null)
   const [dragActive, setDragActive] = useState(false)
   const [copied, setCopied] = useState(false)
+  const [productTitle, setProductTitle] = useState('')
+  const [productCategory, setProductCategory] = useState('')
+  const [productAttributes, setProductAttributes] = useState('')
+  const [referenceImage, setReferenceImage] = useState<File | null>(null)
   const [loadedFromCache, setLoadedFromCache] = useState(false)
   const [isFullReportOpen, setIsFullReportOpen] = useState(persistedUiPreferences?.fullReportOpen ?? false)
   const [isIssuesOpen, setIsIssuesOpen] = useState(persistedUiPreferences?.issuesOpen ?? true)
   const [isRecommendationsOpen, setIsRecommendationsOpen] = useState(persistedUiPreferences?.recommendationsOpen ?? true)
   const inputRef = useRef<HTMLInputElement>(null)
+  const referenceInputRef = useRef<HTMLInputElement>(null)
   const preview = useObjectUrlPreview(file)
   const auditSessionLabel = file?.name ?? 'Waiting for product image'
+  const productContext = useMemo<ProductContext | undefined>(() => {
+    const title = productTitle.trim()
+    const category = productCategory.trim()
+    const attributes = productAttributes.trim()
+    const referenceImageName = referenceImage?.name ?? null
+
+    if (!title && !category && !attributes && !referenceImageName) {
+      return undefined
+    }
+
+    return {
+      title,
+      category,
+      attributes,
+      referenceImage,
+      referenceImageName,
+    }
+  }, [productAttributes, productCategory, productTitle, referenceImage])
+  const complianceCacheKey = useMemo(
+    () => (file && marketplace !== 'general'
+      ? `${buildComplianceCacheKey(file, marketplace)}::${buildProductContextCacheToken(productContext)}`
+      : null),
+    [file, marketplace, productContext],
+  )
 
   useEffect(() => {
     setIsFullReportOpen((currentValue) => currentValue)
@@ -51,6 +159,7 @@ export function ComplianceReport({ onOpenFixStudio }: ComplianceReportProps) {
   const restoreCachedResult = useCallback((
     nextFile: File | null,
     nextMarketplace: string,
+    nextProductContext?: ProductContext,
   ) => {
     if (!nextFile || nextMarketplace === 'general') {
       setResult(null)
@@ -60,7 +169,7 @@ export function ComplianceReport({ onOpenFixStudio }: ComplianceReportProps) {
     }
 
     const cachedResult = getCachedCompliance(
-      buildComplianceCacheKey(nextFile, nextMarketplace)
+      `${buildComplianceCacheKey(nextFile, nextMarketplace)}::${buildProductContextCacheToken(nextProductContext)}`
     )
 
     setResult(cachedResult)
@@ -71,8 +180,8 @@ export function ComplianceReport({ onOpenFixStudio }: ComplianceReportProps) {
   const handleFile = useCallback((f: File) => {
     setFile(f)
     setCopied(false)
-    restoreCachedResult(f, marketplace)
-  }, [marketplace, restoreCachedResult])
+    restoreCachedResult(f, marketplace, productContext)
+  }, [marketplace, productContext, restoreCachedResult])
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files?.[0]) handleFile(e.target.files[0])
@@ -87,8 +196,8 @@ export function ComplianceReport({ onOpenFixStudio }: ComplianceReportProps) {
   const handleCheck = async () => {
     if (!file || marketplace === 'general') return
 
-    const cacheKey = buildComplianceCacheKey(file, marketplace)
-    const cachedResult = getCachedCompliance(cacheKey)
+    const cacheKey = complianceCacheKey
+    const cachedResult = cacheKey ? getCachedCompliance(cacheKey) : null
     if (cachedResult) {
       setResult(cachedResult)
       setError(null)
@@ -99,9 +208,11 @@ export function ComplianceReport({ onOpenFixStudio }: ComplianceReportProps) {
     setLoading(true)
     setError(null)
     try {
-      const data = await api.checkCompliance(file, marketplace)
+      const data = await api.checkCompliance(file, marketplace, productContext)
       setResult(data)
-      setCachedCompliance(cacheKey, data)
+      if (cacheKey) {
+        setCachedCompliance(cacheKey, data)
+      }
       setLoadedFromCache(false)
       saveToHistory(data)
     } catch (err) {
@@ -114,10 +225,16 @@ export function ComplianceReport({ onOpenFixStudio }: ComplianceReportProps) {
   const handleMarketplaceChange = useCallback((nextMarketplace: string) => {
     setMarketplace(nextMarketplace)
     setCopied(false)
-    restoreCachedResult(file, nextMarketplace)
-  }, [file, restoreCachedResult])
+    restoreCachedResult(file, nextMarketplace, productContext)
+  }, [file, productContext, restoreCachedResult])
+
+  useEffect(() => {
+    restoreCachedResult(file, marketplace, productContext)
+  }, [file, marketplace, productContext, restoreCachedResult])
 
   const parsed = result ? parseCompliance(result.analysis) : null
+  const structuredFindings = result?.findings ?? []
+  const overlayRects = buildOverlayRects(structuredFindings)
 
   const severityIcon = (s: string) => {
     switch (s) {
@@ -150,9 +267,82 @@ export function ComplianceReport({ onOpenFixStudio }: ComplianceReportProps) {
           </div>
         </div>
 
+        <div className="compliance-context-panel">
+          <div className="compliance-context-grid">
+            <label className="compliance-context-field">
+              <span className="fix-workspace-label">Product Title</span>
+              <input
+                className="setting-input"
+                type="text"
+                value={productTitle}
+                onChange={(event) => setProductTitle(event.target.value)}
+                placeholder="Optional title or SKU naming"
+              />
+            </label>
+
+            <label className="compliance-context-field">
+              <span className="fix-workspace-label">Category Profile</span>
+              <input
+                className="setting-input"
+                type="text"
+                value={productCategory}
+                onChange={(event) => setProductCategory(event.target.value)}
+                placeholder="electronics, fashion, beauty..."
+              />
+            </label>
+          </div>
+
+          <label className="compliance-context-field">
+            <span className="fix-workspace-label">Attributes</span>
+            <textarea
+              className="setting-input compliance-context-textarea"
+              value={productAttributes}
+              onChange={(event) => setProductAttributes(event.target.value)}
+              placeholder="Color, variant, pack count, model, condition, allowed accessories..."
+            />
+          </label>
+
+          <div className="compliance-context-reference">
+            <div>
+              <span className="fix-workspace-label">Reference Image</span>
+              <strong>{referenceImage?.name ?? 'Optional catalog or official reference image'}</strong>
+            </div>
+            <button
+              type="button"
+              className="secondary-btn compliance-context-action"
+              onClick={() => referenceInputRef.current?.click()}
+            >
+              {referenceImage ? 'Replace Reference' : 'Add Reference'}
+            </button>
+            <input
+              ref={referenceInputRef}
+              type="file"
+              accept=".png,.jpg,.jpeg,.webp"
+              onChange={(event) => setReferenceImage(event.target.files?.[0] ?? null)}
+              style={{ display: 'none' }}
+            />
+          </div>
+        </div>
+
         {preview && (
           <div className="image-preview">
-            <img src={preview} alt="Product preview" />
+            <div className="image-preview-stage">
+              <img src={preview} alt="Product preview" />
+              {overlayRects.length > 0 && (
+                <div className="verification-overlay">
+                  {overlayRects.map((rect) => (
+                    <div
+                      key={rect.key}
+                      className={`verification-box severity-${rect.severity}`}
+                      style={{ left: rect.left, top: rect.top, width: rect.width, height: rect.height }}
+                      title={rect.label}
+                    >
+                      <span>{rect.label}</span>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
             <div className="image-preview-info">
               <span>{file?.name}</span>
               <span>{file ? formatFileSize(file.size) : ''}</span>
@@ -187,7 +377,7 @@ export function ComplianceReport({ onOpenFixStudio }: ComplianceReportProps) {
       </div>
 
       <button className="scan-btn workspace-primary-action compliance-primary-action" onClick={handleCheck} disabled={!file || loading || marketplace === 'general'}>
-        {loading ? (<><span className="spinner"></span>Checking compliance...</>) : (<><ScanSearch size={20} />Check Compliance</>)}
+        {loading ? (<><span className="spinner"></span>Running assessment...</>) : (<><ScanSearch size={20} />Run Assessment</>)}
       </button>
 
       {error && (
@@ -202,8 +392,8 @@ export function ComplianceReport({ onOpenFixStudio }: ComplianceReportProps) {
           {parsed.status !== 'unknown' && (
             <div className={`compliance-banner ${parsed.status}`}>
               {parsed.status === 'pass'
-                ? <><CheckCircle size={22} /> Compliant with {result.marketplace} requirements</>
-                : <><ShieldX size={22} /> Does not meet {result.marketplace} requirements</>
+                ? <><CheckCircle size={22} /> Assessment suggests alignment with {result.marketplace} requirements</>
+                : <><ShieldX size={22} /> Assessment flags likely issues against {result.marketplace} requirements</>
               }
             </div>
           )}
@@ -212,12 +402,12 @@ export function ComplianceReport({ onOpenFixStudio }: ComplianceReportProps) {
             <div className="compliance-decision-card compliance-decision-card-wide">
               <span className="compliance-decision-label">Assessment</span>
               <strong>
-                {parsed.status === 'pass' && 'Ready for upload'}
-                {parsed.status === 'fail' && 'Needs correction'}
+                {parsed.status === 'pass' && 'Likely ready for review'}
+                {parsed.status === 'fail' && 'Likely needs correction'}
                 {parsed.status === 'unknown' && 'Review report manually'}
               </strong>
               <span className="compliance-decision-note">
-                {parsed.issues.length} issues found · {parsed.recommendations.length} suggested actions
+                {parsed.issues.length} analysis findings · {parsed.recommendations.length} suggested actions
               </span>
             </div>
 
@@ -239,7 +429,7 @@ export function ComplianceReport({ onOpenFixStudio }: ComplianceReportProps) {
             <div className="compliance-decision-card compliance-stat-card">
               <span className="compliance-decision-label">Issues</span>
               <strong>{parsed.issues.length}</strong>
-              <span className="compliance-decision-note">Critical, warning, and info findings in the current audit.</span>
+              <span className="compliance-decision-note">Critical, warning, and info findings in the current assessment.</span>
             </div>
 
             <div className="compliance-decision-card compliance-stat-card">
@@ -258,7 +448,7 @@ export function ComplianceReport({ onOpenFixStudio }: ComplianceReportProps) {
                 <button
                   className="secondary-btn compliance-open-fix-btn"
                   data-testid="open-fix-studio-button"
-                  onClick={() => onOpenFixStudio(file, marketplace)}
+                  onClick={() => onOpenFixStudio(file, marketplace, productContext)}
                 >
                   <WandSparkles size={15} />Open in Fix Studio<ArrowRight size={15} />
                 </button>
@@ -267,6 +457,35 @@ export function ComplianceReport({ onOpenFixStudio }: ComplianceReportProps) {
           </div>
 
           <div className="compliance-detail-grid">
+            {structuredFindings.length > 0 && (
+              <div className="result-section compliance-detail-section compliance-detail-section-wide">
+                <div className="result-section-header">
+                  <span className="result-section-title"><ShieldCheck size={16} /> Verification Signals</span>
+                  <span className="compliance-report-toggle-meta">
+                    <span className="compliance-section-counter">{structuredFindings.length}</span>
+                  </span>
+                </div>
+                <div className="fix-rail-note-block">
+                  <span className="fix-workspace-label">Verifier Scope</span>
+                  <span className="fix-rail-note">
+                    Rule, OCR, detector, and quality signals rerun on the current image. Category-specific requirements may still need manual review.
+                  </span>
+                </div>
+                <div data-testid="verified-findings-body">
+                  {structuredFindings.map((finding) => (
+                    <div key={`${finding.source}-${finding.code}`} className="issue-item issue-item-verified">
+                      {severityIcon(finding.severity)}
+                      <div className="issue-text">
+                        <strong>{finding.label}</strong>
+                        <p>{finding.summary}</p>
+                        {renderFindingEvidence(finding)}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
             {/* Issues */}
             {parsed.issues.length > 0 && (
               <div className="result-section compliance-detail-section">
@@ -347,7 +566,7 @@ export function ComplianceReport({ onOpenFixStudio }: ComplianceReportProps) {
             {isFullReportOpen && (
               <div data-testid="full-report-body">
                 <div className="result-section-header compliance-report-actions">
-                  <span className="compliance-report-hint">Expanded report keeps the original analysis text intact.</span>
+                  <span className="compliance-report-hint">Expanded report keeps the original model analysis text intact.</span>
                   <button className="copy-btn-small" onClick={() => {
                     navigator.clipboard.writeText(result.analysis)
                     setCopied(true)

@@ -19,6 +19,7 @@ import { api } from '../../api/client'
 import type {
   AnalysisResult,
   CanvasPreset,
+  ComplianceFinding,
   ComplianceCanvasDraft,
   ComplianceFixAiMetadata,
   ComplianceFixStudioLaunchState,
@@ -29,14 +30,17 @@ import type {
   ComplianceFixSuggestionsResponse,
   ImageUsage,
   MarketplaceInfo,
+  ProductContext,
   UpscaleResult,
 } from '../../api/types'
 import { saveToHistory } from '../../hooks/useHistory'
 import { useObjectUrlPreview } from '../../hooks/useObjectUrlPreviews'
 import {
   buildComplianceDeltaSummary,
+  buildVerificationDeltaSummary,
   formatFileSize,
   rankComplianceDelta,
+  rankVerificationDelta,
 } from '../../utils/analysis'
 import {
   buildComplianceFixCanvasDraftKey,
@@ -86,6 +90,19 @@ const CANVAS_RESISTANCE_FACTOR = 0.22
 const MAX_CANVAS_UNDO_STEPS = 20
 const MIN_CANVAS_VISIBLE_OVERLAP = 48
 const AUTO_CANVAS_EXPORT_DEBOUNCE_MS = 500
+
+function buildProductContextCacheToken(productContext?: ProductContext) {
+  if (!productContext) {
+    return 'no-context'
+  }
+
+  return JSON.stringify({
+    title: productContext.title.trim(),
+    category: productContext.category.trim(),
+    attributes: productContext.attributes.trim(),
+    referenceImageName: productContext.referenceImage?.name ?? productContext.referenceImageName ?? '',
+  })
+}
 
 type CanvasCompositionSnapshot = {
   preset: CanvasPreset
@@ -278,6 +295,83 @@ function renderFixDeltaIssues(issues: string[]) {
   )
 }
 
+function renderVerificationFindings(findings: ComplianceFinding[]) {
+  return (
+    <ul className="improvement-list">
+      {findings.map((finding) => (
+        <li
+          key={`${finding.source}:${finding.code}`}
+          className={`fix-delta-issue severity-${finding.severity === 'critical' ? 'critical' : finding.severity === 'warning' ? 'warning' : 'info'}`}
+        >
+          <div className="list-item-markdown verification-finding-content">
+            <MarkdownContent
+              content={`**${finding.severity.charAt(0).toUpperCase()}${finding.severity.slice(1)}**: ${finding.summary}`}
+            />
+            <div className="compliance-finding-evidence">
+              <div className="compliance-finding-meta">
+                <span className={`history-meta-chip finding-source-chip source-${finding.source}`}>Source: {finding.source}</span>
+                {finding.verification_tier && (
+                  <span className={`history-meta-chip finding-tier-chip tier-${finding.verification_tier}`}>{finding.verification_tier.replace(/_/g, ' ')}</span>
+                )}
+                {typeof finding.confidence === 'number' && (
+                  <span className="history-meta-chip">Confidence: {Math.round(finding.confidence * 100)}%</span>
+                )}
+                {finding.evidence?.bbox?.length === 4 && (
+                  <span className="history-meta-chip">BBox: {finding.evidence.bbox.join(', ')}</span>
+                )}
+              </div>
+              {finding.evidence?.measured && Object.keys(finding.evidence.measured).length > 0 && (
+                <div className="compliance-finding-detail">
+                  <span className="fix-workspace-label">Measured</span>
+                  <span>{Object.entries(finding.evidence.measured).map(([key, value]) => `${key}: ${String(value)}`).join(' · ')}</span>
+                </div>
+              )}
+              {finding.evidence?.excerpts && finding.evidence.excerpts.length > 0 && (
+                <div className="compliance-finding-detail">
+                  <span className="fix-workspace-label">Excerpts</span>
+                  <span>{finding.evidence.excerpts.join(' · ')}</span>
+                </div>
+              )}
+              {finding.evidence?.warning && (
+                <div className="compliance-finding-detail">
+                  <span className="fix-workspace-label">Detector Note</span>
+                  <span>{finding.evidence.warning}</span>
+                </div>
+              )}
+            </div>
+          </div>
+        </li>
+      ))}
+    </ul>
+  )
+}
+
+function buildOverlayRects(findings: ComplianceFinding[]) {
+  return findings
+    .map((finding) => {
+      const bbox = finding.evidence?.bbox
+      const measured = finding.evidence?.measured ?? {}
+      const imageWidth = Number(measured.image_width)
+      const imageHeight = Number(measured.image_height)
+
+      if (!bbox || bbox.length !== 4 || !imageWidth || !imageHeight) {
+        return null
+      }
+
+      const [x1, y1, x2, y2] = bbox
+      return {
+        key: `${finding.source}:${finding.code}`,
+        label: finding.label,
+        severity: finding.severity,
+        left: `${(x1 / imageWidth) * 100}%`,
+        top: `${(y1 / imageHeight) * 100}%`,
+        width: `${((x2 - x1) / imageWidth) * 100}%`,
+        height: `${((y2 - y1) / imageHeight) * 100}%`,
+      }
+    })
+    .filter((value): value is NonNullable<typeof value> => Boolean(value))
+}
+
 interface ComplianceFixStudioProps {
   launchState?: ComplianceFixStudioLaunchState | null
 }
@@ -286,6 +380,7 @@ export function ComplianceFixStudio({ launchState = null }: ComplianceFixStudioP
   const [file, setFile] = useState<File | null>(null)
   const [workspaceFile, setWorkspaceFile] = useState<File | null>(null)
   const [marketplace, setMarketplace] = useState('allegro')
+  const [productContext, setProductContext] = useState<ProductContext | undefined>(undefined)
   const [imageUsage, setImageUsage] = useState<ImageUsage>('main_image')
   const [marketplaces, setMarketplaces] = useState<MarketplaceInfo[]>([])
   const [dragActive, setDragActive] = useState(false)
@@ -324,6 +419,7 @@ export function ComplianceFixStudio({ launchState = null }: ComplianceFixStudioP
   } | null>(null)
   const [selectedHistoryEntryId, setSelectedHistoryEntryId] = useState<string | null>(null)
   const inputRef = useRef<HTMLInputElement>(null)
+  const referenceInputRef = useRef<HTMLInputElement>(null)
   const canvasStageRef = useRef<HTMLDivElement>(null)
   const preview = useObjectUrlPreview(file)
   const workspacePreview = useObjectUrlPreview(workspaceFile)
@@ -466,6 +562,47 @@ export function ComplianceFixStudio({ launchState = null }: ComplianceFixStudioP
       : null),
     [file, marketplace],
   )
+  const productContextCacheToken = useMemo(
+    () => buildProductContextCacheToken(productContext),
+    [productContext],
+  )
+  const productContextSummary = useMemo(() => {
+    if (!productContext) {
+      return 'No context loaded'
+    }
+
+    return productContext.category
+      || productContext.title
+      || productContext.referenceImage?.name
+      || productContext.referenceImageName
+      || 'Context loaded'
+  }, [productContext])
+
+  const updateProductContext = useCallback((patch: Partial<ProductContext>) => {
+    setProductContext((currentValue) => {
+      const nextValue: ProductContext = {
+        title: patch.title ?? currentValue?.title ?? '',
+        category: patch.category ?? currentValue?.category ?? '',
+        attributes: patch.attributes ?? currentValue?.attributes ?? '',
+        referenceImage: patch.referenceImage !== undefined ? patch.referenceImage : currentValue?.referenceImage ?? null,
+        referenceImageName: patch.referenceImageName !== undefined
+          ? patch.referenceImageName
+          : currentValue?.referenceImageName ?? null,
+      }
+
+      if (
+        !nextValue.title.trim()
+        && !nextValue.category.trim()
+        && !nextValue.attributes.trim()
+        && !nextValue.referenceImage
+        && !nextValue.referenceImageName
+      ) {
+        return undefined
+      }
+
+      return nextValue
+    })
+  }, [])
 
   const getCanvasSnapshot = useCallback((): CanvasCompositionSnapshot => ({
     preset: canvasPreset,
@@ -629,7 +766,7 @@ export function ComplianceFixStudio({ launchState = null }: ComplianceFixStudioP
     result: ComplianceFixResultResponse,
   ) => {
     const nextHistory = upsertComplianceFixHistoryEntry(
-      buildComplianceFixHistoryKey(nextFile, nextMarketplace),
+      `${buildComplianceFixHistoryKey(nextFile, nextMarketplace)}::${productContextCacheToken}`,
       {
         id: buildHistoryEntryId(result),
         action: result.applied_action,
@@ -638,9 +775,13 @@ export function ComplianceFixStudio({ launchState = null }: ComplianceFixStudioP
       },
     )
     setFixHistoryEntries(nextHistory)
-  }, [])
+  }, [productContextCacheToken])
 
-  const restoreCachedSuggestions = useCallback((nextFile: File | null, nextMarketplace: string) => {
+  const restoreCachedSuggestions = useCallback((
+    nextFile: File | null,
+    nextMarketplace: string,
+    nextProductContext?: ProductContext,
+  ) => {
     if (!nextFile || nextMarketplace === 'general') {
       setSuggestionsResult(null)
       setFixResult(null)
@@ -655,14 +796,14 @@ export function ComplianceFixStudio({ launchState = null }: ComplianceFixStudioP
     }
 
     const cachedSuggestions = getCachedComplianceFixSuggestions(
-      buildComplianceFixSuggestionsCacheKey(nextFile, nextMarketplace),
+      `${buildComplianceFixSuggestionsCacheKey(nextFile, nextMarketplace)}::${buildProductContextCacheToken(nextProductContext)}`,
     )
 
     setSuggestionsResult(cachedSuggestions)
     setFixResult(null)
     setFixHistoryEntries(
       getComplianceFixHistory(
-        buildComplianceFixHistoryKey(nextFile, nextMarketplace),
+        `${buildComplianceFixHistoryKey(nextFile, nextMarketplace)}::${buildProductContextCacheToken(nextProductContext)}`,
       ),
     )
     setSelectedResultSource(null)
@@ -673,11 +814,16 @@ export function ComplianceFixStudio({ launchState = null }: ComplianceFixStudioP
     resetCanvasState()
   }, [resetCanvasState])
 
-  const resetWorkflow = useCallback((nextFile: File | null, nextMarketplace?: string) => {
+  const resetWorkflow = useCallback((
+    nextFile: File | null,
+    nextMarketplace?: string,
+    nextProductContext?: ProductContext,
+  ) => {
     cancelPendingAutoCanvasExport()
     setFile(nextFile)
     setWorkspaceFile(nextFile)
     workspaceFileRef.current = nextFile
+    setProductContext(nextProductContext)
     setUpscaleResult(null)
     setRelightStatus(null)
     setCleanupStatus(null)
@@ -687,7 +833,7 @@ export function ComplianceFixStudio({ launchState = null }: ComplianceFixStudioP
     if (nextMarketplace) {
       setMarketplace(nextMarketplace)
     }
-    restoreCachedSuggestions(nextFile, targetMarketplace)
+    restoreCachedSuggestions(nextFile, targetMarketplace, nextProductContext)
   }, [cancelPendingAutoCanvasExport, marketplace, restoreCachedSuggestions])
 
   useEffect(() => {
@@ -696,12 +842,20 @@ export function ComplianceFixStudio({ launchState = null }: ComplianceFixStudioP
     }
 
     lastLaunchIdRef.current = launchState.id
-    resetWorkflow(launchState.file, launchState.marketplace)
+    resetWorkflow(launchState.file, launchState.marketplace, launchState.productContext)
   }, [launchState, resetWorkflow])
 
+  useEffect(() => {
+    if (!file || marketplace === 'general') {
+      return
+    }
+
+    restoreCachedSuggestions(file, marketplace, productContext)
+  }, [file, marketplace, productContext, restoreCachedSuggestions])
+
   const handleFile = useCallback((nextFile: File) => {
-    resetWorkflow(nextFile)
-  }, [resetWorkflow])
+    resetWorkflow(nextFile, undefined, productContext)
+  }, [productContext, resetWorkflow])
 
   const handleApplyUpscale = async () => {
     const processingFile = workspaceFileRef.current ?? file
@@ -889,14 +1043,14 @@ export function ComplianceFixStudio({ launchState = null }: ComplianceFixStudioP
 
   const handleMarketplaceChange = useCallback((nextMarketplace: string) => {
     if (file) {
-      resetWorkflow(file, nextMarketplace)
+      resetWorkflow(file, nextMarketplace, productContext)
       return
     }
     setMarketplace(nextMarketplace)
     setSuggestionsResult(null)
     setFixResult(null)
     setError(null)
-  }, [file, resetWorkflow])
+  }, [file, productContext, resetWorkflow])
 
 
 
@@ -921,7 +1075,7 @@ export function ComplianceFixStudio({ launchState = null }: ComplianceFixStudioP
       processingFile,
       marketplace,
       actionKey,
-    )
+    ) + `::${productContextCacheToken}`
     const cachedResult = getCachedComplianceFixResult(cacheKey)
     if (cachedResult) {
       if (options?.shouldApplyResult && !options.shouldApplyResult(cachedResult)) {
@@ -949,6 +1103,7 @@ export function ComplianceFixStudio({ launchState = null }: ComplianceFixStudioP
       marketplace,
       suggestion.action,
       options?.transformPayload,
+      productContext,
     )
     setCachedComplianceFixResult(cacheKey, data)
     if (options?.shouldApplyResult && !options.shouldApplyResult(data)) {
@@ -980,7 +1135,7 @@ export function ComplianceFixStudio({ launchState = null }: ComplianceFixStudioP
     saveToHistory(historyItem)
 
     return data
-  }, [file, marketplace, persistHistoryEntry])
+  }, [file, marketplace, persistHistoryEntry, productContext, productContextCacheToken])
 
   const applyFix = async (suggestion: ComplianceFixSuggestion) => {
     if (!(workspaceFileRef.current ?? file) || marketplace === 'general') {
@@ -1402,6 +1557,15 @@ export function ComplianceFixStudio({ launchState = null }: ComplianceFixStudioP
       fixResult.after_analysis,
     )
     : null
+  const verificationDeltaSummary = fixResult
+    && fixResult.before_findings
+    && fixResult.after_findings
+    && (fixResult.before_findings.length > 0 || fixResult.after_findings.length > 0)
+    ? buildVerificationDeltaSummary(
+      fixResult.before_findings,
+      fixResult.after_findings,
+    )
+    : null
 
   const visibleSuggestions = useMemo(
     () => suggestionsResult?.suggestions ?? [],
@@ -1479,6 +1643,13 @@ export function ComplianceFixStudio({ launchState = null }: ComplianceFixStudioP
             entry.result.after_analysis,
           ),
         )
+        const verificationSummary =
+          entry.result.before_findings && entry.result.after_findings
+            ? buildVerificationDeltaSummary(entry.result.before_findings, entry.result.after_findings)
+            : null
+        const verificationRanking = verificationSummary
+          ? rankVerificationDelta(verificationSummary)
+          : null
 
         return {
           id: entry.id,
@@ -1490,7 +1661,7 @@ export function ComplianceFixStudio({ launchState = null }: ComplianceFixStudioP
           ),
           result: entry.result,
           summary: ranking.summary,
-          score: ranking.score,
+          score: verificationRanking?.score ?? ranking.score,
         }
       })
       .sort((left, right) => right.score - left.score)
@@ -1503,14 +1674,24 @@ export function ComplianceFixStudio({ launchState = null }: ComplianceFixStudioP
       ? 'Ready to edit'
       : 'Waiting for source image'
   const selectedResultRanking = deltaSummary
-    ? rankComplianceDelta(deltaSummary)
+    ? verificationDeltaSummary
+      ? rankVerificationDelta(verificationDeltaSummary)
+      : rankComplianceDelta(deltaSummary)
     : null
   const selectedResultScore = fixResult && deltaSummary
     ? selectedResultRanking?.score ?? null
     : null
-  const selectedResultRemainingIssues = fixResult && deltaSummary
-    ? deltaSummary.remainingIssues
+  const selectedResultRemainingIssues = fixResult && (verificationDeltaSummary || deltaSummary)
+    ? verificationDeltaSummary?.remainingIssues ?? deltaSummary?.remainingIssues ?? null
     : null
+  const beforeOverlayRects = useMemo(
+    () => buildOverlayRects(fixResult?.before_findings ?? []),
+    [fixResult?.before_findings],
+  )
+  const afterOverlayRects = useMemo(
+    () => buildOverlayRects(fixResult?.after_findings ?? []),
+    [fixResult?.after_findings],
+  )
   const selectedResultSourceLabel =
     selectedResultSource === 'history'
       ? 'Selected from history'
@@ -1552,8 +1733,8 @@ export function ComplianceFixStudio({ launchState = null }: ComplianceFixStudioP
       return
     }
 
-    resetWorkflow(file, marketplace)
-  }, [file, marketplace, resetWorkflow])
+    resetWorkflow(file, marketplace, productContext)
+  }, [file, marketplace, productContext, resetWorkflow])
 
   useEffect(() => {
     if (!studioReady && activeStepId !== 'compose') {
@@ -1711,6 +1892,79 @@ export function ComplianceFixStudio({ launchState = null }: ComplianceFixStudioP
             <span className="fix-workspace-label">Best Signal</span>
             <strong>{bestFix ? `${bestFix.title} · ${bestFix.score}` : 'No variants yet'}</strong>
           </div>
+          <div className="fix-session-pill">
+            <span className="fix-workspace-label">Context</span>
+            <strong>{productContextSummary}</strong>
+          </div>
+        </div>
+      </div>
+
+      <div className="compliance-context-panel">
+        <div className="compliance-context-grid">
+          <label className="compliance-context-field">
+            <span className="fix-workspace-label">Product Title</span>
+            <input
+              className="setting-input"
+              type="text"
+              value={productContext?.title ?? ''}
+              onChange={(event) => updateProductContext({ title: event.target.value })}
+              placeholder="Optional title or SKU naming"
+            />
+          </label>
+
+          <label className="compliance-context-field">
+            <span className="fix-workspace-label">Category Profile</span>
+            <input
+              className="setting-input"
+              type="text"
+              value={productContext?.category ?? ''}
+              onChange={(event) => updateProductContext({ category: event.target.value })}
+              placeholder="electronics, fashion, beauty..."
+            />
+          </label>
+        </div>
+
+        <label className="compliance-context-field">
+          <span className="fix-workspace-label">Attributes</span>
+          <textarea
+            className="setting-input compliance-context-textarea"
+            value={productContext?.attributes ?? ''}
+            onChange={(event) => updateProductContext({ attributes: event.target.value })}
+            placeholder="Color, variant, pack count, model, condition, allowed accessories..."
+          />
+        </label>
+
+        <div className="compliance-context-reference">
+          <div>
+            <span className="fix-workspace-label">Reference Image</span>
+            <strong>
+              {productContext?.referenceImage?.name
+                ?? productContext?.referenceImageName
+                ?? 'Optional catalog or official reference image'}
+            </strong>
+          </div>
+          <button
+            type="button"
+            className="secondary-btn compliance-context-action"
+            onClick={() => referenceInputRef.current?.click()}
+          >
+            {productContext?.referenceImage || productContext?.referenceImageName
+              ? 'Replace Reference'
+              : 'Add Reference'}
+          </button>
+          <input
+            ref={referenceInputRef}
+            type="file"
+            accept=".png,.jpg,.jpeg,.webp"
+            onChange={(event) => {
+              const nextReferenceImage = event.target.files?.[0] ?? null
+              updateProductContext({
+                referenceImage: nextReferenceImage,
+                referenceImageName: nextReferenceImage?.name ?? null,
+              })
+            }}
+            style={{ display: 'none' }}
+          />
         </div>
       </div>
 
@@ -1929,20 +2183,38 @@ export function ComplianceFixStudio({ launchState = null }: ComplianceFixStudioP
                         </div>
                       </div>
 
-                      {deltaSummary && (deltaSummary.resolvedIssues.length > 0 || deltaSummary.newIssues.length > 0) && (
+                      {(verificationDeltaSummary || deltaSummary) && (((verificationDeltaSummary?.removedFindings.length ?? 0) > 0) || ((verificationDeltaSummary?.addedFindings.length ?? 0) > 0) || ((deltaSummary?.resolvedIssues.length ?? 0) > 0) || ((deltaSummary?.newIssues.length ?? 0) > 0)) && (
                         <div className="fix-issue-delta-panel fix-issue-delta-panel-stage">
                           <div className="fix-rail-note-block">
-                            <span className="fix-workspace-label">Analysis Diff</span>
-                            <span className="fix-rail-note">These entries reflect changes in the analysis text, not a separate visual verification pass.</span>
+                            <span className="fix-workspace-label">{verificationDeltaSummary ? 'Verification Diff' : 'Analysis Diff'}</span>
+                            <span className="fix-rail-note">
+                              {verificationDeltaSummary
+                                ? 'These entries come from structured rule, OCR, detector, and quality checks rerun after the edit.'
+                                : 'These entries reflect changes in the analysis text, not a separate visual verification pass.'}
+                            </span>
                           </div>
-                          {deltaSummary.resolvedIssues.length > 0 && (
+                          {verificationDeltaSummary
+                            ? verificationDeltaSummary.removedFindings.length > 0 && (
+                              <div className="fix-delta-list success-list">
+                                <div className="fix-delta-title"><CheckCircle size={14} /> Removed In Verification</div>
+                                {renderVerificationFindings(verificationDeltaSummary.removedFindings)}
+                              </div>
+                            )
+                            : deltaSummary && deltaSummary.resolvedIssues.length > 0 && (
                             <div className="fix-delta-list success-list">
                               <div className="fix-delta-title"><CheckCircle size={14} /> Removed From Analysis</div>
                               {renderFixDeltaIssues(deltaSummary.resolvedIssues)}
                             </div>
                           )}
 
-                          {deltaSummary.newIssues.length > 0 && (
+                          {verificationDeltaSummary
+                            ? verificationDeltaSummary.addedFindings.length > 0 && (
+                              <div className="fix-delta-list warning-list">
+                                <div className="fix-delta-title"><TriangleAlert size={14} /> Added In Verification</div>
+                                {renderVerificationFindings(verificationDeltaSummary.addedFindings)}
+                              </div>
+                            )
+                            : deltaSummary && deltaSummary.newIssues.length > 0 && (
                             <div className="fix-delta-list warning-list">
                               <div className="fix-delta-title"><TriangleAlert size={14} /> Added To Analysis</div>
                               {renderFixDeltaIssues(deltaSummary.newIssues)}
@@ -2208,15 +2480,15 @@ export function ComplianceFixStudio({ launchState = null }: ComplianceFixStudioP
                 <div className="fix-step-heading-group">
                   <span className="result-section-title"><CheckCircle size={16} /> Compare</span>
                   <span className="fix-step-summary">
-                    Review the analysis diff, compare the visual result, and confirm the new compliance baseline before exporting.
+                    Review the analysis diff, compare the visual result, and confirm the selected export baseline before exporting.
                   </span>
                 </div>
                 <div className="fix-step-toggle-side">
                   <div className="fix-stage-status-row">
                     {loadedFixFromCache && <div className="cache-badge">Loaded from cache</div>}
                     <div className="cache-badge">{fixResult.applied_action}</div>
-                    <div className="tokens-badge">Issues {selectedResultRemainingIssues ?? 'n/a'}</div>
-                    <div className="tokens-badge">Score {selectedResultScore ?? 'n/a'}</div>
+                    <div className="tokens-badge">{verificationDeltaSummary ? 'Verified findings' : 'Issues in analysis'} {selectedResultRemainingIssues ?? 'n/a'}</div>
+                    <div className="tokens-badge">Analysis score {selectedResultScore ?? 'n/a'}</div>
                   </div>
                   <span className="fix-step-chevron"><ChevronDown size={18} /></span>
                 </div>
@@ -2250,25 +2522,45 @@ export function ComplianceFixStudio({ launchState = null }: ComplianceFixStudioP
                         <div className="fix-meta-card delta-card">
                           <span className="fix-meta-label">Issues</span>
                           <strong>
-                            {deltaSummary.resolvedIssues.length} removed from analysis, {deltaSummary.remainingIssues} remaining
+                            {verificationDeltaSummary
+                              ? `${verificationDeltaSummary.removedFindings.length} removed in verification, ${verificationDeltaSummary.remainingIssues} remaining`
+                              : `${deltaSummary.resolvedIssues.length} removed from analysis, ${deltaSummary.remainingIssues} remaining`}
                           </strong>
                         </div>
                       </div>
 
-                      {(deltaSummary.resolvedIssues.length > 0 || deltaSummary.newIssues.length > 0) && (
+                      {(((verificationDeltaSummary?.removedFindings.length ?? 0) > 0) || ((verificationDeltaSummary?.addedFindings.length ?? 0) > 0) || deltaSummary.resolvedIssues.length > 0 || deltaSummary.newIssues.length > 0) && (
                         <div className="fix-analysis-grid delta-detail-grid">
                           <div className="fix-rail-note-block" style={{ gridColumn: '1 / -1' }}>
-                            <span className="fix-workspace-label">Analysis Diff</span>
-                            <span className="fix-rail-note">These entries come from before/after analysis text changes, not a separate visual verification pass.</span>
+                            <span className="fix-workspace-label">{verificationDeltaSummary ? 'Verification Diff' : 'Analysis Diff'}</span>
+                            <span className="fix-rail-note">
+                              {verificationDeltaSummary
+                                ? 'These entries come from structured rule, OCR, detector, and quality checks rerun after the edit.'
+                                : 'These entries come from before/after analysis text changes, not a separate visual verification pass.'}
+                            </span>
                           </div>
-                          {deltaSummary.resolvedIssues.length > 0 && (
+                          {verificationDeltaSummary
+                            ? verificationDeltaSummary.removedFindings.length > 0 && (
+                              <div className="fix-delta-list success-list">
+                                <div className="fix-delta-title"><CheckCircle size={14} /> Removed In Verification</div>
+                                {renderVerificationFindings(verificationDeltaSummary.removedFindings)}
+                              </div>
+                            )
+                            : deltaSummary.resolvedIssues.length > 0 && (
                             <div className="fix-delta-list success-list">
                               <div className="fix-delta-title"><CheckCircle size={14} /> Removed From Analysis</div>
                               {renderFixDeltaIssues(deltaSummary.resolvedIssues)}
                             </div>
                           )}
 
-                          {deltaSummary.newIssues.length > 0 && (
+                          {verificationDeltaSummary
+                            ? verificationDeltaSummary.addedFindings.length > 0 && (
+                              <div className="fix-delta-list warning-list">
+                                <div className="fix-delta-title"><TriangleAlert size={14} /> Added In Verification</div>
+                                {renderVerificationFindings(verificationDeltaSummary.addedFindings)}
+                              </div>
+                            )
+                            : deltaSummary.newIssues.length > 0 && (
                             <div className="fix-delta-list warning-list">
                               <div className="fix-delta-title"><TriangleAlert size={14} /> Added To Analysis</div>
                               {renderFixDeltaIssues(deltaSummary.newIssues)}
@@ -2282,7 +2574,25 @@ export function ComplianceFixStudio({ launchState = null }: ComplianceFixStudioP
                   <div className="fix-compare-grid">
                     <div className="fix-compare-card">
                       <div className="fix-compare-label">Original</div>
-                      {preview && <img className="fix-compare-image" src={preview} alt="Original product" />}
+                      {preview && (
+                        <div className="verification-image-stage">
+                          <img className="fix-compare-image" src={preview} alt="Original product" />
+                          {beforeOverlayRects.length > 0 && (
+                            <div className="verification-overlay">
+                              {beforeOverlayRects.map((rect) => (
+                                <div
+                                  key={rect.key}
+                                  className={`verification-box severity-${rect.severity}`}
+                                  style={{ left: rect.left, top: rect.top, width: rect.width, height: rect.height }}
+                                  title={rect.label}
+                                >
+                                  <span>{rect.label}</span>
+                                </div>
+                              ))}
+                            </div>
+                          )}
+                        </div>
+                      )}
                     </div>
 
                     <div className="fix-compare-arrow">
@@ -2291,7 +2601,23 @@ export function ComplianceFixStudio({ launchState = null }: ComplianceFixStudioP
 
                     <div className="fix-compare-card">
                       <div className="fix-compare-label">Fixed</div>
-                      <img className="fix-compare-image" src={fixResult.image_data_url} alt="Fixed product" />
+                      <div className="verification-image-stage">
+                        <img className="fix-compare-image" src={fixResult.image_data_url} alt="Fixed product" />
+                        {afterOverlayRects.length > 0 && (
+                          <div className="verification-overlay">
+                            {afterOverlayRects.map((rect) => (
+                              <div
+                                key={rect.key}
+                                className={`verification-box severity-${rect.severity}`}
+                                style={{ left: rect.left, top: rect.top, width: rect.width, height: rect.height }}
+                                title={rect.label}
+                              >
+                                <span>{rect.label}</span>
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                      </div>
                     </div>
                   </div>
 
@@ -2299,8 +2625,8 @@ export function ComplianceFixStudio({ launchState = null }: ComplianceFixStudioP
                     <div className={`fix-workspace-chip fix-result-source-chip ${selectedResultSource === 'history' ? 'history' : selectedResultSource === 'latest-applied' ? 'latest' : 'empty'}`}>
                       {selectedResultSourceLabel}
                     </div>
-                    <div className="cache-badge">Applied: {fixResult.applied_action}</div>
-                    <div className="cache-badge">Critical remaining: {deltaSummary?.criticalIssuesAfter ?? 'n/a'}</div>
+                    <div className="cache-badge">Applied step: {fixResult.applied_action}</div>
+                    <div className="cache-badge">Critical in analysis: {deltaSummary?.criticalIssuesAfter ?? 'n/a'}</div>
                     {selectedAiMetadata && (
                       <>
                         <div className="cache-badge">Fallback: {selectedFallbackUsed ? 'Yes' : 'No'}</div>
@@ -2363,8 +2689,8 @@ export function ComplianceFixStudio({ launchState = null }: ComplianceFixStudioP
                 </div>
                 <div className="fix-step-toggle-side">
                   <div className="fix-stage-status-row">
-                    {bestFix && <div className="cache-badge">Best observed: {bestFix.title}</div>}
-                    <div className="tokens-badge">Approved {approvedExportEntry ? 'Yes' : 'No'}</div>
+                    {bestFix && <div className="cache-badge">Top-ranked variant: {bestFix.title}</div>}
+                    <div className="tokens-badge">Selected for export {approvedExportEntry ? 'Yes' : 'No'}</div>
                   </div>
                   <span className="fix-step-chevron"><ChevronDown size={18} /></span>
                 </div>
@@ -2382,11 +2708,27 @@ export function ComplianceFixStudio({ launchState = null }: ComplianceFixStudioP
                         <div className="history-score-badge">{selectedExportEntry?.score ?? selectedResultScore ?? 'n/a'}</div>
                       </div>
 
-                      <img
-                        className="fix-export-preview-image"
-                        src={fixResult.image_data_url}
-                        alt={fixResult.fixed_filename}
-                      />
+                      <div className="verification-image-stage">
+                        <img
+                          className="fix-export-preview-image"
+                          src={fixResult.image_data_url}
+                          alt={fixResult.fixed_filename}
+                        />
+                        {afterOverlayRects.length > 0 && (
+                          <div className="verification-overlay">
+                            {afterOverlayRects.map((rect) => (
+                              <div
+                                key={rect.key}
+                                className={`verification-box severity-${rect.severity}`}
+                                style={{ left: rect.left, top: rect.top, width: rect.width, height: rect.height }}
+                                title={rect.label}
+                              >
+                                <span>{rect.label}</span>
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                      </div>
 
                       <div className="history-entry-labels">
                         <span className="history-entry-chip">{fixResult.applied_action}</span>
@@ -2414,20 +2756,20 @@ export function ComplianceFixStudio({ launchState = null }: ComplianceFixStudioP
                         </div>
 
                         <div className={`fix-approval-status ${isSelectedVariantApproved ? 'approved' : selectedExportEntryId === bestFix?.id ? 'recommended' : approvedExportEntry ? 'approved-other' : 'pending'}`}>
-                          <span className="fix-workspace-label">Approval Status</span>
+                          <span className="fix-workspace-label">Export Selection</span>
                           <strong>
                             {isSelectedVariantApproved
-                              ? 'Selected variant approved for export'
+                              ? 'Selected variant marked for export'
                               : selectedExportEntryId === bestFix?.id
-                                ? 'Selected variant is the strongest observed candidate'
+                                ? 'Selected variant is the top-ranked candidate'
                                 : approvedExportEntry
-                                  ? `Approved variant: ${approvedExportEntry.title}`
-                                  : 'No approved variant yet'}
+                                  ? `Current export selection: ${approvedExportEntry.title}`
+                                  : 'No export selection yet'}
                           </strong>
                           <span className="fix-rail-note">
                             {isSelectedVariantApproved
-                              ? 'Primary export will ship this exact selected version.'
-                              : 'Approve the selected variant when you are comfortable with the score, remaining issues, and visual framing.'}
+                              ? 'Primary export will use this selected version.'
+                              : 'Mark the selected variant for export when you are comfortable with the analysis summary and visual framing.'}
                           </span>
                         </div>
 
@@ -2437,7 +2779,7 @@ export function ComplianceFixStudio({ launchState = null }: ComplianceFixStudioP
                             onClick={approveAndDownloadSelected}
                             disabled={!selectedExportResult}
                           >
-                            <Download size={18} />Approve and Download Selected
+                            <Download size={18} />Mark and Download Selected
                           </button>
                         </div>
 
@@ -2447,7 +2789,7 @@ export function ComplianceFixStudio({ launchState = null }: ComplianceFixStudioP
                             onClick={markSelectedVariantApproved}
                             disabled={!selectedExportEntryId || isSelectedVariantApproved}
                           >
-                            <CheckCircle size={15} />{isSelectedVariantApproved ? 'Approved for Export' : 'Mark Selected as Approved'}
+                            <CheckCircle size={15} />{isSelectedVariantApproved ? 'Marked for Export' : 'Mark Selected for Export'}
                           </button>
                           <button
                             className="secondary-btn"
@@ -2472,7 +2814,7 @@ export function ComplianceFixStudio({ launchState = null }: ComplianceFixStudioP
                         </div>
                         <div className="fix-export-detail-grid">
                           <div className="fix-rail-stat">
-                            <span className="fix-workspace-label">Remaining Issues</span>
+                            <span className="fix-workspace-label">{verificationDeltaSummary ? 'Remaining Findings' : 'Remaining Issues'}</span>
                             <strong>{selectedResultRemainingIssues ?? 'n/a'}</strong>
                           </div>
                           <div className="fix-rail-stat">

@@ -83,9 +83,19 @@ class ComplianceCheckResponse(BaseModel):
     filename: str
     marketplace: str
     analysis: str
+    findings: list["ComplianceFinding"] = Field(default_factory=list)
     metadata: dict[str, Any] = Field(default_factory=dict)
     timestamp: str
     tokens_used: int = 0
+
+
+class ProductContext(BaseModel):
+    """Optional catalog context for stronger marketplace verification."""
+
+    title: str = ""
+    category: str = ""
+    attributes: str = ""
+    reference_image_filename: str | None = None
 
 
 class SEOGenerationResponse(BaseModel):
@@ -226,6 +236,34 @@ class ComplianceFixResultResponse(BaseModel):
     image_data_url: str
     before_analysis: str = ""
     after_analysis: str = ""
+    before_findings: list["ComplianceFinding"] = Field(default_factory=list)
+    after_findings: list["ComplianceFinding"] = Field(default_factory=list)
     metadata: dict[str, Any] = Field(default_factory=dict)
     timestamp: str
     tokens_used: int = 0
+
+
+class ComplianceFindingEvidence(BaseModel):
+    """Structured evidence attached to a verification finding."""
+
+    bbox: list[int] | None = None
+    measured: dict[str, Any] = Field(default_factory=dict)
+    excerpts: list[str] = Field(default_factory=list)
+    warning: str | None = None
+
+
+class ComplianceFinding(BaseModel):
+    """Structured marketplace finding from rule-based or detector-based checks."""
+
+    code: str
+    label: str
+    severity: str
+    summary: str
+    source: str
+    verification_tier: str = "model_assessed"
+    confidence: float | None = None
+    evidence: ComplianceFindingEvidence = Field(default_factory=ComplianceFindingEvidence)
+
+
+ComplianceCheckResponse.model_rebuild()
+ComplianceFixResultResponse.model_rebuild()

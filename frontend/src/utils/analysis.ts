@@ -1,3 +1,5 @@
+import type { ComplianceFinding } from '../api/types'
+
 export function formatFileSize(bytes: number): string {
   if (bytes < 1024) return `${bytes} B`
   if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`
@@ -94,6 +96,19 @@ export interface ComplianceDeltaSummary {
   remainingIssues: number
   criticalIssuesAfter: number
   recommendationsDelta: number
+}
+
+export interface VerificationDeltaSummary {
+  removedFindings: ComplianceFinding[]
+  addedFindings: ComplianceFinding[]
+  remainingFindings: ComplianceFinding[]
+  remainingIssues: number
+  criticalIssuesAfter: number
+}
+
+export interface RankedVerificationDelta {
+  summary: VerificationDeltaSummary
+  score: number
 }
 
 export interface RankedComplianceDelta {
@@ -231,5 +246,74 @@ export function rankComplianceDelta(
   return {
     summary,
     score: Number(score.toFixed(1)),
+  }
+}
+
+export function buildVerificationDeltaSummary(
+  beforeFindings: ComplianceFinding[],
+  afterFindings: ComplianceFinding[],
+): VerificationDeltaSummary {
+  const beforeMap = new Map(
+    beforeFindings.map((finding) => [`${finding.source}:${finding.code}`, finding]),
+  )
+  const afterMap = new Map(
+    afterFindings.map((finding) => [`${finding.source}:${finding.code}`, finding]),
+  )
+
+  const removedFindings = Array.from(beforeMap.entries())
+    .filter(([key]) => !afterMap.has(key))
+    .map(([, finding]) => finding)
+
+  const addedFindings = Array.from(afterMap.entries())
+    .filter(([key]) => !beforeMap.has(key))
+    .map(([, finding]) => finding)
+
+  const remainingFindings = Array.from(afterMap.entries())
+    .filter(([key]) => beforeMap.has(key))
+    .map(([, finding]) => finding)
+
+  return {
+    removedFindings,
+    addedFindings,
+    remainingFindings,
+    remainingIssues: afterFindings.length,
+    criticalIssuesAfter: afterFindings.filter((finding) => finding.severity === 'critical').length,
+  }
+}
+
+export function rankVerificationDelta(
+  summary: VerificationDeltaSummary,
+): RankedVerificationDelta {
+  let score = 100
+
+  const severityPenalty = (severity: string): number => {
+    if (severity === 'critical') return 24
+    if (severity === 'warning') return 9
+    return 3
+  }
+
+  const tierPenalty = (tier?: string): number => {
+    if (tier === 'rule_verified') return 0
+    if (tier === 'ocr_supported' || tier === 'detector_supported') return 2
+    if (tier === 'quality_supported') return 1
+    return 0
+  }
+
+  for (const finding of summary.remainingFindings) {
+    score -= severityPenalty(finding.severity)
+    score -= tierPenalty(finding.verification_tier)
+  }
+
+  for (const finding of summary.addedFindings) {
+    score -= severityPenalty(finding.severity) * 0.6
+  }
+
+  for (const finding of summary.removedFindings) {
+    score += finding.severity === 'critical' ? 8 : finding.severity === 'warning' ? 4 : 2
+  }
+
+  return {
+    summary,
+    score: Number(Math.max(-100, Math.min(100, score)).toFixed(1)),
   }
 }

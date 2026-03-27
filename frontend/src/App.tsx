@@ -11,7 +11,7 @@ import { ProductAnalysis } from './components/ecommerce/ProductAnalysis'
 import { ComplianceReport } from './components/ecommerce/ComplianceReport'
 import { EcommerceTools } from './components/ecommerce/EcommerceTools'
 import { ComplianceFixStudio } from './components/ecommerce/ComplianceFixStudio'
-import type { ComplianceFixStudioLaunchState, CustomSettings } from './api/types'
+import type { ComplianceFixStudioLaunchState, CustomSettings, ProductContext } from './api/types'
 import { useConfig } from './hooks/useConfig'
 import { useHistory } from './hooks/useHistory'
 import {
@@ -68,11 +68,16 @@ function App() {
     setPersistedAppActiveNav(activeNav)
   }, [activeNav])
 
-  const openFixStudioFromCompliance = (file: File, marketplace: string) => {
+  const openFixStudioFromCompliance = (
+    file: File,
+    marketplace: string,
+    productContext?: ProductContext,
+  ) => {
     setFixStudioLaunchState({
       id: Date.now(),
       file,
       marketplace,
+      productContext,
       source: 'compliance',
     })
     setActiveNav('ecom-fix')

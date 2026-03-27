@@ -190,9 +190,10 @@ export function HelpSection({ onNavigate }: HelpSectionProps) {
       setActiveSection(nextSection)
     }
 
-    const scrollContainer =
-      rootRef.current?.closest('.main-content') instanceof HTMLElement
-        ? rootRef.current.closest('.main-content')
+    const nearestMainContent = rootRef.current?.closest('.main-content')
+    const scrollContainer: HTMLElement | Window =
+      nearestMainContent instanceof HTMLElement
+        ? nearestMainContent
         : window
 
     updateActiveSection()
