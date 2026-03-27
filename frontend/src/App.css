@@ -344,6 +344,95 @@ textarea {
   flex-wrap: wrap;
 }
 
+.history-session-strip {
+  margin-bottom: 1rem;
+}
+
+.history-export-panel {
+  margin-bottom: 1rem;
+}
+
+.history-empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  min-height: 320px;
+  padding: 2.4rem 2rem;
+  border-radius: 22px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background:
+    radial-gradient(circle at top, rgba(255, 255, 255, 0.055), transparent 38%),
+    var(--panel-raised-bg);
+  text-align: center;
+}
+
+.history-empty-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 3.2rem;
+  height: 3.2rem;
+  border-radius: 18px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.04);
+  color: var(--text-primary);
+}
+
+.history-empty-state strong {
+  font-size: 1.18rem;
+  letter-spacing: -0.02em;
+  color: var(--text-primary);
+}
+
+.history-empty-state p {
+  max-width: 40rem;
+  color: var(--text-light);
+  font-size: 0.9rem;
+  line-height: 1.65;
+}
+
+.history-empty-kicker {
+  font-size: 0.7rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+.history-empty-hints {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.8rem;
+  width: min(100%, 52rem);
+  margin-top: 0.65rem;
+}
+
+.history-empty-hint-card {
+  display: flex;
+  flex-direction: column;
+  gap: 0.28rem;
+  min-height: 88px;
+  padding: 0.9rem 1rem;
+  border-radius: 16px;
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  background: rgba(255, 255, 255, 0.03);
+  text-align: left;
+}
+
+.history-empty-hint-label {
+  font-size: 0.66rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+.history-empty-hint-card strong {
+  font-size: 0.92rem;
+  letter-spacing: -0.01em;
+  color: var(--text-primary);
+}
+
 /* History List */
 .history-list {
   display: flex;
@@ -444,10 +533,22 @@ textarea {
   border-radius: 12px;
   padding: 0.8rem 0.9rem;
   margin-bottom: 0.85rem;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.history-analysis-label {
+  display: inline-flex;
+  margin-bottom: 0.42rem;
+  font-size: 0.68rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+.history-item-analysis p {
   color: var(--text-light);
   line-height: 1.62;
   font-size: 0.82rem;
-  border: 1px solid rgba(255, 255, 255, 0.06);
 }
 
 .history-item-actions {
@@ -498,15 +599,15 @@ textarea {
 .settings-overview-grid {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 0.72rem;
-  margin-bottom: 0.9rem;
+  gap: 0.62rem;
+  margin-bottom: 0.82rem;
 }
 
 .settings-summary-card {
   background: var(--panel-base-bg);
   border: 1px solid rgba(255, 255, 255, 0.08);
   border-radius: 16px;
-  padding: 0.82rem 0.9rem;
+  padding: 0.74rem 0.82rem;
   min-width: 0;
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.025);
 }
@@ -571,6 +672,31 @@ textarea {
 
 .settings-panel-wide {
   grid-column: 1 / -1;
+}
+
+.settings-primary-panel {
+  margin-bottom: 0.9rem;
+  border-color: var(--mist-border);
+  background:
+    radial-gradient(circle at top left, rgba(143, 183, 201, 0.09), transparent 36%),
+    var(--panel-raised-bg);
+}
+
+.settings-primary-panel .settings-panel-header {
+  margin-bottom: 0.92rem;
+}
+
+.settings-primary-panel .settings-form-grid {
+  grid-template-columns: minmax(220px, 0.85fr) minmax(320px, 1.15fr);
+  gap: 0.9rem;
+}
+
+.settings-panel-reference {
+  margin-top: 0.9rem;
+  border-color: rgba(255, 255, 255, 0.06);
+  background:
+    radial-gradient(circle at top, rgba(255, 255, 255, 0.02), transparent 34%),
+    rgba(255, 255, 255, 0.02);
 }
 
 .settings-panel-usage {
@@ -715,6 +841,10 @@ textarea {
   display: flex;
   flex-direction: column;
   gap: 0.38rem;
+}
+
+.settings-primary-panel .setting-field-group {
+  gap: 0.42rem;
 }
 
 .setting-field-group-wide {
@@ -1801,17 +1931,19 @@ textarea {
 
 .product-analysis-marketplace-selector {
   margin-top: 0;
-  margin-bottom: 1.35rem;
+  margin-bottom: 1rem;
 }
 
 .product-analysis-keywords-strip {
   grid-template-columns: minmax(280px, 0.9fr) minmax(0, 1.1fr);
-  margin-top: -0.3rem;
+  margin-top: 0;
   margin-bottom: 1rem;
 }
 
 .product-analysis-keywords-status {
+  min-height: 92px;
   min-width: 0;
+  justify-content: center;
 }
 
 .product-analysis-keywords-status strong {
@@ -3405,17 +3537,27 @@ textarea {
 .compliance-intake-panel {
   display: grid;
   gap: 1rem;
-  padding: 1.1rem;
-  border-radius: 18px;
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  background: linear-gradient(180deg, rgba(255, 255, 255, 0.042), rgba(255, 255, 255, 0.02));
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.025);
+  padding: 0;
 }
 
 .compliance-intake-copy {
   display: flex;
   flex-direction: column;
   gap: 0.35rem;
+  min-height: 112px;
+  justify-content: center;
+  padding: 0.9rem 1rem;
+  border-radius: 18px;
+  border: 1px solid var(--border);
+  background:
+    radial-gradient(circle at top left, rgba(59, 130, 246, 0.14), transparent 34%),
+    rgba(255, 255, 255, 0.04);
+}
+
+.compliance-intake-copy > div {
+  display: flex;
+  flex-direction: column;
+  gap: 0.12rem;
 }
 
 .compliance-intake-label {
@@ -3427,7 +3569,9 @@ textarea {
 
 .compliance-intake-copy strong {
   font-size: 1rem;
+  line-height: 1.45;
   color: var(--text-primary);
+  overflow-wrap: anywhere;
 }
 
 .compliance-intake-note {
@@ -3436,8 +3580,12 @@ textarea {
   color: var(--text-light);
 }
 
-.compliance-primary-action {
+.workspace-primary-action {
   width: fit-content;
+  margin-top: 0.7rem;
+}
+
+.compliance-primary-action {
   margin-top: 0.7rem;
 }
 
@@ -3771,6 +3919,11 @@ textarea {
 
 .fix-studio-stage-panel {
   overflow: hidden;
+  padding: 0;
+  margin-bottom: 0;
+  background: transparent;
+  border: none;
+  box-shadow: none;
 }
 
 .fix-stage-primary {
@@ -3778,6 +3931,29 @@ textarea {
   flex-direction: column;
   gap: 0.9rem;
   min-width: 0;
+}
+
+.fix-intake-strip {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.8rem;
+}
+
+.fix-intake-card {
+  display: flex;
+  flex-direction: column;
+  gap: 0.28rem;
+  min-height: 88px;
+  padding: 0.85rem 0.95rem;
+  border-radius: 16px;
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.fix-intake-card strong {
+  font-size: 0.92rem;
+  line-height: 1.45;
+  color: var(--text-primary);
 }
 
 @supports (view-transition-name: none) {
@@ -3832,11 +4008,11 @@ textarea {
   grid-template-columns: minmax(0, 1fr) auto;
   gap: var(--fix-strip-gap);
   align-items: center;
-  padding: 0.34rem 0.48rem;
+  padding: 0.42rem 0.54rem;
   border-radius: 14px;
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  background: transparent;
-  box-shadow: none;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  background: rgba(255, 255, 255, 0.025);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.02);
 }
 
 .fix-toolbar-compact-main {
@@ -3861,7 +4037,7 @@ textarea {
   justify-content: space-between;
   gap: 0.34rem;
   min-width: max-content;
-  padding: 0.08rem 0.06rem;
+  padding: 0.12rem 0.1rem;
   border-radius: 0;
   border: 0;
   background: transparent;
@@ -3874,6 +4050,7 @@ textarea {
 
 .fix-toolbar-control-group-source {
   min-width: 214px;
+  margin-left: 0;
 }
 
 .fix-toolbar-control-group + .fix-toolbar-control-group {
@@ -3906,10 +4083,6 @@ textarea {
   flex: 0 0 auto;
 }
 
-.fix-toolbar-control-group-source {
-  margin-left: -40px;
-}
-
 .fix-toolbar-control-group-source .fix-workspace-label {
   margin-right: 0.1rem;
 }
@@ -3929,7 +4102,7 @@ textarea {
 
 .fix-toolbar-inline-actions .secondary-btn {
   min-height: 26px;
-  padding-inline: 0.34rem;
+  padding-inline: 0.46rem;
   font-size: 0.7rem;
   gap: 0.22rem;
   white-space: nowrap;
@@ -4080,13 +4253,13 @@ textarea {
 }
 
 .fix-tool-rack-panel-header {
-  justify-content: center;
-  margin-top: 0.36rem;
-  margin-bottom: 0.26rem;
+  justify-content: flex-start;
+  margin-top: 0.24rem;
+  margin-bottom: 0.16rem;
 }
 
 .fix-tool-rack-panel-header .result-section-title {
-  justify-content: center;
+  justify-content: flex-start;
 }
 
 .fix-empty-state-card {
@@ -4123,6 +4296,10 @@ textarea {
 
 .fix-action-catalog-card {
   padding: 0.62rem;
+  border-color: rgba(255, 255, 255, 0.05);
+  background:
+    radial-gradient(circle at top, rgba(255, 255, 255, 0.018), transparent 30%),
+    rgba(255, 255, 255, 0.025);
 }
 
 .fix-action-toolbar-layout {
@@ -4184,7 +4361,7 @@ textarea {
 .fix-tool-rack-list {
   display: flex;
   flex-direction: column;
-  gap: 0.78rem;
+  gap: 0.62rem;
   margin-top: 0.12rem;
 }
 
@@ -4200,38 +4377,47 @@ textarea {
 }
 
 .fix-stage-summary-cluster {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
-  gap: 0.6rem;
-  align-items: stretch;
+  display: block;
+}
+
+.fix-canvas-statusbar-meta {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  flex-wrap: wrap;
 }
 
 .fix-toolbar-badges-stage {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   margin-top: 0;
   margin-left: 0;
-  gap: 0.45rem;
-  flex-wrap: nowrap;
-  align-items: stretch;
-  justify-content: flex-start;
+  gap: 0.38rem;
+  min-width: 0;
+  width: fit-content;
+  align-self: stretch;
 }
 
 .fix-toolbar-badge-stage {
   min-width: 88px;
-  gap: 0.35rem;
-  padding: 0.34rem 0.55rem;
+  min-height: 0;
+  gap: 0.12rem;
+  padding: 0.3rem 0.5rem;
   border: 1px solid rgba(255, 255, 255, 0.08);
-  border-radius: 12px;
-  background: rgba(255, 255, 255, 0.03);
+  border-radius: 999px;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.055), rgba(255, 255, 255, 0.026));
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.02);
 }
 
 .fix-toolbar-badges-stage .fix-workspace-label {
-  font-size: 0.54rem;
+  font-size: 0.5rem;
   letter-spacing: 0.12em;
   color: var(--text-muted);
 }
 
 .fix-toolbar-badge-stage strong {
-  font-size: 0.78rem;
+  font-size: 0.76rem;
+  line-height: 1.1;
 }
 
 .fix-toolbar-badge-stage-score strong {
@@ -4239,9 +4425,9 @@ textarea {
 }
 
 .fix-toolbar-badge-stage-issues {
-  border-color: rgba(248, 113, 113, 0.3);
-  background: linear-gradient(180deg, rgba(127, 29, 29, 0.36), rgba(248, 113, 113, 0.18));
-  box-shadow: inset 0 1px 0 rgba(254, 202, 202, 0.12);
+  border-color: rgba(248, 113, 113, 0.22);
+  background: linear-gradient(180deg, rgba(127, 29, 29, 0.24), rgba(248, 113, 113, 0.12));
+  box-shadow: inset 0 1px 0 rgba(254, 202, 202, 0.08);
 }
 
 .fix-toolbar-badge-stage-issues .fix-workspace-label {
@@ -4261,11 +4447,11 @@ textarea {
   grid-template-columns: minmax(0, 1fr) auto;
   gap: 0.42rem;
   align-items: center;
-  padding: 0.34rem 0.42rem;
-  border-radius: 11px;
-  border: 1px solid rgba(255, 255, 255, 0.045);
-  background: rgba(255, 255, 255, 0.018);
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.018);
+  padding: 0.46rem 0.5rem;
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.04);
+  background: rgba(255, 255, 255, 0.014);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.012);
 }
 
 .fix-tool-rack-item.has-controls {
@@ -4276,13 +4462,13 @@ textarea {
 }
 
 .fix-tool-rack-item.ai {
-  border-color: rgba(59, 130, 246, 0.1);
-  background: linear-gradient(90deg, rgba(59, 130, 246, 0.04), rgba(255, 255, 255, 0.016));
+  border-color: rgba(59, 130, 246, 0.07);
+  background: linear-gradient(90deg, rgba(59, 130, 246, 0.026), rgba(255, 255, 255, 0.014));
 }
 
 .fix-tool-rack-item.manual {
-  border-color: rgba(250, 204, 21, 0.09);
-  background: linear-gradient(90deg, rgba(250, 204, 21, 0.036), rgba(255, 255, 255, 0.016));
+  border-color: rgba(250, 204, 21, 0.07);
+  background: linear-gradient(90deg, rgba(250, 204, 21, 0.026), rgba(255, 255, 255, 0.014));
 }
 
 .fix-tool-rack-main {
@@ -4311,7 +4497,7 @@ textarea {
 .fix-tool-rack-subtitle {
   margin: 0;
   font-size: 0.71rem;
-  line-height: 1.22;
+  line-height: 1.36;
   color: var(--text-light);
 }
 
@@ -4330,7 +4516,7 @@ textarea {
 .fix-tool-rack-actions .secondary-btn {
   min-width: 68px;
   min-height: 30px;
-  padding-inline: 0.42rem;
+  padding-inline: 0.52rem;
   padding-top: 0.38rem;
   padding-bottom: 0.38rem;
   font-size: 0.72rem;
@@ -4417,9 +4603,9 @@ textarea {
   padding-top: 0.38rem;
   padding-bottom: 0.38rem;
   font-size: 0.72rem;
-  border-color: rgba(255, 255, 255, 0.08);
-  background: linear-gradient(180deg, rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0.045));
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.09);
+  border-color: rgba(255, 255, 255, 0.06);
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.055), rgba(255, 255, 255, 0.03));
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.05);
 }
 
 .fix-tool-option-range {
@@ -5176,25 +5362,29 @@ textarea {
 }
 
 .fix-canvas-statusbar {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: stretch;
   gap: 1rem;
-  padding: 0.85rem 0.95rem;
-  border-radius: 16px;
-  border: 1px solid var(--border);
-  background: rgba(255, 255, 255, 0.04);
+  padding: 0.98rem 1rem;
+  border-radius: 18px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background:
+    radial-gradient(circle at top left, rgba(143, 183, 201, 0.09), transparent 34%),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.05), rgba(255, 255, 255, 0.028));
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.025);
 }
 
 .fix-canvas-statusbar-copy {
   min-width: 0;
   display: flex;
   flex-direction: column;
-  gap: 0.18rem;
+  justify-content: center;
+  gap: 0.4rem;
 }
 
 .fix-canvas-statusbar-copy strong {
-  font-size: 0.95rem;
+  font-size: 1rem;
   color: var(--text-primary);
   word-break: break-word;
 }
@@ -5203,14 +5393,21 @@ textarea {
   display: flex;
   align-items: center;
   gap: 0.55rem;
-  flex-wrap: wrap;
-  justify-content: flex-end;
+  flex-wrap: nowrap;
+  justify-content: center;
+  align-self: center;
 }
 
 .fix-canvas-statusbar-actions .secondary-btn {
-  min-height: 34px;
-  padding: 0.34rem 0.62rem;
-  font-size: 0.76rem;
+  min-height: 36px;
+  padding: 0.34rem 0.66rem;
+  font-size: 0.74rem;
+}
+
+.fix-stage-export-btn {
+  min-height: 36px;
+  padding-inline: 0.72rem;
+  font-size: 0.74rem;
 }
 
 .fix-history-card {
@@ -5693,6 +5890,8 @@ textarea {
   .help-hero-panel,
   .help-hero-metrics,
   .help-mini-nav,
+  .history-empty-hints,
+  .fix-intake-strip,
   .help-panel-grid-four,
   .help-panel-grid-three,
   .help-panel-grid-split,
@@ -6109,7 +6308,7 @@ textarea {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
   gap: 0.75rem;
-  margin-bottom: 1.5rem;
+  margin-bottom: 1rem;
 }
 
 .tool-card {
@@ -6204,12 +6403,35 @@ textarea {
 .selected-tool-banner {
   display: flex;
   align-items: center;
+  justify-content: space-between;
   gap: 0.5rem;
-  padding: 0.1rem 0;
+  padding: 0.9rem 1rem;
   margin-bottom: 1rem;
-  font-size: 0.85rem;
-  font-weight: 600;
-  color: rgba(255, 255, 255, 0.88);
+  border-radius: 18px;
+  border: 1px solid var(--border);
+  background:
+    radial-gradient(circle at top left, rgba(143, 183, 201, 0.1), transparent 34%),
+    rgba(255, 255, 255, 0.04);
+}
+
+.selected-tool-banner-main {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  min-width: 0;
+}
+
+.selected-tool-banner-copy {
+  display: flex;
+  flex-direction: column;
+  gap: 0.14rem;
+  min-width: 0;
+}
+
+.selected-tool-banner-copy strong {
+  font-size: 0.95rem;
+  letter-spacing: -0.01em;
+  color: var(--text-primary);
 }
 
 .selected-tool-desc {
@@ -6237,6 +6459,12 @@ textarea {
   flex-direction: column;
   gap: 0.9rem;
   margin-bottom: 1.25rem;
+  padding: 1rem;
+  border-radius: 18px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background:
+    radial-gradient(circle at top left, rgba(255, 255, 255, 0.045), transparent 32%),
+    rgba(255, 255, 255, 0.03);
 }
 
 .listing-source-toggle {
@@ -6274,10 +6502,10 @@ textarea {
   display: flex;
   flex-direction: column;
   gap: 0.7rem;
-  padding: 1rem;
-  border-radius: 16px;
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  background: linear-gradient(180deg, rgba(255, 255, 255, 0.045), rgba(255, 255, 255, 0.02));
+  padding: 0;
+  border-radius: 0;
+  border: none;
+  background: transparent;
 }
 
 .listing-input-title {

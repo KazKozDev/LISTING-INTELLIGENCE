@@ -3,7 +3,7 @@ import {
   ArrowRight,
   ChevronDown,
   CheckCircle,
-  Cloud,
+  Download as DownloadIcon,
   Download,
   File as FileIcon,
   Move,
@@ -1718,6 +1718,19 @@ export function ComplianceFixStudio({ launchState = null }: ComplianceFixStudioP
         <div className="fix-studio-main">
           <div className="result-section fix-studio-stage-panel fix-step-section expanded">
                 <div className="fix-step-body fix-stage-primary">
+              {!studioReady && (
+                <div className="fix-intake-strip">
+                  <div className="fix-intake-card">
+                    <span className="fix-workspace-label">Start Point</span>
+                    <strong>Upload a source image or open from Compliance.</strong>
+                  </div>
+                  <div className="fix-intake-card">
+                    <span className="fix-workspace-label">Goal</span>
+                    <strong>Compose, correct, compare, then export one approved variant.</strong>
+                  </div>
+                </div>
+              )}
+
               <div
                 className={`file-drop fix-studio-drop ${file ? 'has-file' : ''} ${dragActive ? 'drag-active' : ''}`}
                 onClick={() => inputRef.current?.click()}
@@ -1746,7 +1759,7 @@ export function ComplianceFixStudio({ launchState = null }: ComplianceFixStudioP
                     </div>
                   ) : (
                     <>
-                      <span className="drop-icon"><Cloud /></span>
+                      <span className="drop-icon"><DownloadIcon /></span>
                       <span className="drop-text">Drop a marketplace image here to start composition</span>
                       <span className="drop-hint">PNG, JPG, WebP</span>
                     </>
@@ -1880,7 +1893,9 @@ export function ComplianceFixStudio({ launchState = null }: ComplianceFixStudioP
                         <div className="fix-canvas-statusbar">
                           <div className="fix-canvas-statusbar-copy">
                             <strong>{selectedExportEntry?.title ?? (fixResult ? fixResult.applied_action : 'Compose a variant')}</strong>
-                            <span className="fix-rail-note">{currentPolicyLabel ?? 'No composition policy available for this marketplace yet.'}</span>
+                            <div className="fix-canvas-statusbar-meta">
+                              <span className="fix-rail-note">{currentPolicyLabel ?? 'No composition policy available for this marketplace yet.'}</span>
+                            </div>
                           </div>
 
                           <div className="fix-canvas-statusbar-actions">
@@ -1901,7 +1916,7 @@ export function ComplianceFixStudio({ launchState = null }: ComplianceFixStudioP
                               <CheckCircle size={15} />Compare
                             </button>
                             <button
-                              className="secondary-btn"
+                              className="scan-btn fix-stage-export-btn"
                               data-testid="open-export-button"
                               onClick={() => {
                                 void handleOpenExport()
@@ -1912,31 +1927,24 @@ export function ComplianceFixStudio({ launchState = null }: ComplianceFixStudioP
                             </button>
                           </div>
                         </div>
-
-                        <div className="fix-toolbar-badges fix-toolbar-badges-stage">
-                          <div className="fix-toolbar-badge fix-toolbar-badge-stage fix-toolbar-badge-stage-issues">
-                            <span className="fix-workspace-label">Issues</span>
-                            <strong>{selectedResultRemainingIssues ?? 'n/a'}</strong>
-                          </div>
-                          <div className="fix-toolbar-badge fix-toolbar-badge-stage fix-toolbar-badge-stage-score">
-                            <span className="fix-workspace-label">Score</span>
-                            <strong>{selectedResultScore ?? 'n/a'}</strong>
-                          </div>
-                        </div>
                       </div>
 
                       {deltaSummary && (deltaSummary.resolvedIssues.length > 0 || deltaSummary.newIssues.length > 0) && (
                         <div className="fix-issue-delta-panel fix-issue-delta-panel-stage">
+                          <div className="fix-rail-note-block">
+                            <span className="fix-workspace-label">Analysis Diff</span>
+                            <span className="fix-rail-note">These entries reflect changes in the analysis text, not a separate visual verification pass.</span>
+                          </div>
                           {deltaSummary.resolvedIssues.length > 0 && (
                             <div className="fix-delta-list success-list">
-                              <div className="fix-delta-title"><CheckCircle size={14} /> Resolved Issues</div>
+                              <div className="fix-delta-title"><CheckCircle size={14} /> Removed From Analysis</div>
                               {renderFixDeltaIssues(deltaSummary.resolvedIssues)}
                             </div>
                           )}
 
                           {deltaSummary.newIssues.length > 0 && (
                             <div className="fix-delta-list warning-list">
-                              <div className="fix-delta-title"><TriangleAlert size={14} /> New Issues</div>
+                              <div className="fix-delta-title"><TriangleAlert size={14} /> Added To Analysis</div>
                               {renderFixDeltaIssues(deltaSummary.newIssues)}
                             </div>
                           )}
@@ -2200,7 +2208,7 @@ export function ComplianceFixStudio({ launchState = null }: ComplianceFixStudioP
                 <div className="fix-step-heading-group">
                   <span className="result-section-title"><CheckCircle size={16} /> Compare</span>
                   <span className="fix-step-summary">
-                    Review the delta, compare the visual result, and confirm the new compliance baseline before exporting.
+                    Review the analysis diff, compare the visual result, and confirm the new compliance baseline before exporting.
                   </span>
                 </div>
                 <div className="fix-step-toggle-side">
@@ -2208,6 +2216,7 @@ export function ComplianceFixStudio({ launchState = null }: ComplianceFixStudioP
                     {loadedFixFromCache && <div className="cache-badge">Loaded from cache</div>}
                     <div className="cache-badge">{fixResult.applied_action}</div>
                     <div className="tokens-badge">Issues {selectedResultRemainingIssues ?? 'n/a'}</div>
+                    <div className="tokens-badge">Score {selectedResultScore ?? 'n/a'}</div>
                   </div>
                   <span className="fix-step-chevron"><ChevronDown size={18} /></span>
                 </div>
@@ -2241,23 +2250,27 @@ export function ComplianceFixStudio({ launchState = null }: ComplianceFixStudioP
                         <div className="fix-meta-card delta-card">
                           <span className="fix-meta-label">Issues</span>
                           <strong>
-                            {deltaSummary.resolvedIssues.length} resolved, {deltaSummary.remainingIssues} remaining
+                            {deltaSummary.resolvedIssues.length} removed from analysis, {deltaSummary.remainingIssues} remaining
                           </strong>
                         </div>
                       </div>
 
                       {(deltaSummary.resolvedIssues.length > 0 || deltaSummary.newIssues.length > 0) && (
                         <div className="fix-analysis-grid delta-detail-grid">
+                          <div className="fix-rail-note-block" style={{ gridColumn: '1 / -1' }}>
+                            <span className="fix-workspace-label">Analysis Diff</span>
+                            <span className="fix-rail-note">These entries come from before/after analysis text changes, not a separate visual verification pass.</span>
+                          </div>
                           {deltaSummary.resolvedIssues.length > 0 && (
                             <div className="fix-delta-list success-list">
-                              <div className="fix-delta-title"><CheckCircle size={14} /> Resolved Issues</div>
+                              <div className="fix-delta-title"><CheckCircle size={14} /> Removed From Analysis</div>
                               {renderFixDeltaIssues(deltaSummary.resolvedIssues)}
                             </div>
                           )}
 
                           {deltaSummary.newIssues.length > 0 && (
                             <div className="fix-delta-list warning-list">
-                              <div className="fix-delta-title"><TriangleAlert size={14} /> New Issues</div>
+                              <div className="fix-delta-title"><TriangleAlert size={14} /> Added To Analysis</div>
                               {renderFixDeltaIssues(deltaSummary.newIssues)}
                             </div>
                           )}

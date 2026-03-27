@@ -280,6 +280,131 @@ export function SettingsPanel({ config, customSettings, onSettingsChange }: Sett
         </div>
       </div>
 
+      <div className="settings-panel compact-settings-panel settings-panel-wide settings-primary-panel">
+        <div className="settings-panel-header">
+          <div>
+            <h3>Request Overrides</h3>
+            <p>Set provider and model overrides for future analyses.</p>
+            <p className="settings-inline-note">
+              Vision model required.
+            </p>
+          </div>
+          <div className="settings-panel-badge accent">Primary</div>
+        </div>
+
+        <div className="settings-form-grid">
+          <div className="setting-field-group">
+            <label>Provider</label>
+            <select
+              className="setting-input"
+              value={customSettings.provider}
+              onChange={(e) => handleProviderChange(e.target.value)}
+            >
+              <option value="">Default ({config?.provider})</option>
+              <option value="ollama">Ollama (Local)</option>
+              <option value="openai">OpenAI</option>
+              <option value="grok">xAI Grok</option>
+              <option value="groq">Groq</option>
+              <option value="anthropic">Anthropic</option>
+              <option value="google">Google Gemini</option>
+              <option value="azure">Azure OpenAI</option>
+            </select>
+          </div>
+
+          {customSettings.provider && customSettings.provider !== 'ollama' && (
+            <div className="setting-field-group setting-field-group-wide">
+              <label>API Key</label>
+              <div className="settings-input-with-icon">
+                <KeyRound size={14} />
+                <input
+                  type="password"
+                  className="setting-input"
+                  placeholder="sk-..."
+                  value={customSettings.apiKey}
+                  onChange={(e) => onSettingsChange({ ...customSettings, apiKey: e.target.value })}
+                />
+              </div>
+            </div>
+          )}
+
+          {providerSupportsBaseUrl && (
+            <div className="setting-field-group setting-field-group-wide">
+              <label>Base URL</label>
+              <div className="settings-input-with-icon">
+                <Server size={14} />
+                <input
+                  type="text"
+                  className="setting-input"
+                  placeholder={defaultBaseUrl || 'https://api.example.com'}
+                  value={customSettings.baseUrl}
+                  onChange={(e) => onSettingsChange({ ...customSettings, baseUrl: e.target.value })}
+                />
+              </div>
+            </div>
+          )}
+
+          <div className="setting-field-group">
+            <label>Model</label>
+            <div className="model-select-wrapper" ref={dropdownRef}>
+              <div className="model-select-field" ref={fieldRef} onClick={handleModelFieldClick}>
+                <input
+                  type="text"
+                  className="model-select-input"
+                  placeholder={providerNeedsApiKey && !trimmedApiKey ? 'Enter API key to load models...' : (config?.model || 'Click to load models...')}
+                  value={showModels ? modelFilter : customSettings.model}
+                  onChange={(e) => {
+                    if (showModels) {
+                      setModelFilter(e.target.value)
+                    } else {
+                      onSettingsChange({ ...customSettings, model: e.target.value })
+                    }
+                  }}
+                  onFocus={handleModelFieldClick}
+                />
+                {modelsLoading ? (
+                  <Loader2 size={14} className="model-select-icon spinning" />
+                ) : (
+                  <ChevronDown size={14} className="model-select-icon" />
+                )}
+              </div>
+              {showModels && (
+                <div
+                  className="model-dropdown"
+                  style={{ top: dropdownPos.top, left: dropdownPos.left, width: dropdownPos.width }}
+                >
+                  {modelsLoading ? (
+                    <div className="model-dropdown-item model-dropdown-info">Loading models...</div>
+                  ) : modelsError && modelList.length === 0 ? (
+                    <div className="model-dropdown-item model-dropdown-error">{modelsError}</div>
+                  ) : modelList.length === 0 ? (
+                    <div className="model-dropdown-item model-dropdown-info">No models found</div>
+                  ) : (
+                    modelList
+                      .filter(m => !modelFilter || m.toLowerCase().includes(modelFilter.toLowerCase()))
+                      .map(m => (
+                        <div
+                          key={m}
+                          className={`model-dropdown-item${customSettings.model === m ? ' selected' : ''}`}
+                          onClick={() => selectModel(m)}
+                        >
+                          {m}
+                        </div>
+                      ))
+                  )}
+                </div>
+              )}
+            </div>
+            {modelsError && (
+              <div className="settings-field-note">{modelsError}</div>
+            )}
+          </div>
+        </div>
+
+        <div className="setting-info compact-setting-info">
+          Leave blank to use backend defaults. Health status can still show the default provider even when a request override is selected here.
+        </div>
+      </div>
+
       <div className="settings-layout-grid">
         <div className="settings-panel compact-settings-panel">
           <div className="settings-panel-header">
@@ -342,163 +467,6 @@ export function SettingsPanel({ config, customSettings, onSettingsChange }: Sett
             </div>
           </div>
         </div>
-
-        <div className="settings-panel compact-settings-panel settings-panel-wide">
-          <div className="settings-panel-header">
-            <div>
-              <h3>Fix Studio Neural Stack</h3>
-              <p>Models behind Fix Studio.</p>
-            </div>
-            <div className="settings-panel-badge accent">Fix Studio</div>
-          </div>
-
-          <div className="settings-stack">
-            {FIX_STUDIO_MODEL_STACK.map((entry) => (
-              <div key={entry.area} className="settings-row-card split">
-                <div className="settings-row-copy">
-                  <span className="settings-row-label">{entry.area}</span>
-                  <span className={`settings-row-value ${entry.model === 'active-provider-model' ? 'monospace-value settings-row-value-soft' : 'settings-row-value-soft'}`}>
-                    {entry.model === 'active-provider-model'
-                      ? `${requestProvider} / ${requestModel}`
-                      : entry.model}
-                  </span>
-                </div>
-                <div className="settings-row-copy">
-                  <span className="settings-row-label">Role</span>
-                  <span className="settings-row-value settings-row-value-soft">{entry.role}</span>
-                </div>
-              </div>
-            ))}
-          </div>
-
-          <div className="setting-info compact-setting-info">
-            Fix Studio combines the active vision model for compliance review with local image models for masking, cleanup, relight, expansion, and upscale steps.
-          </div>
-        </div>
-
-        <div className="settings-panel compact-settings-panel settings-panel-wide">
-          <div className="settings-panel-header">
-            <div>
-              <h3>Overrides</h3>
-              <p>Set request-level provider and model overrides for future analyses only.</p>
-              <p className="settings-inline-note">
-                Vision model required.
-              </p>
-            </div>
-          </div>
-
-          <div className="settings-form-grid">
-            <div className="setting-field-group">
-              <label>Provider</label>
-              <select
-                className="setting-input"
-                value={customSettings.provider}
-                onChange={(e) => handleProviderChange(e.target.value)}
-              >
-                <option value="">Default ({config?.provider})</option>
-                <option value="ollama">Ollama (Local)</option>
-                <option value="openai">OpenAI</option>
-                <option value="grok">xAI Grok</option>
-                <option value="groq">Groq</option>
-                <option value="anthropic">Anthropic</option>
-                <option value="google">Google Gemini</option>
-                <option value="azure">Azure OpenAI</option>
-              </select>
-            </div>
-
-            {customSettings.provider && customSettings.provider !== 'ollama' && (
-              <div className="setting-field-group setting-field-group-wide">
-                <label>API Key</label>
-                <div className="settings-input-with-icon">
-                  <KeyRound size={14} />
-                  <input
-                    type="password"
-                    className="setting-input"
-                    placeholder="sk-..."
-                    value={customSettings.apiKey}
-                    onChange={(e) => onSettingsChange({ ...customSettings, apiKey: e.target.value })}
-                  />
-                </div>
-              </div>
-            )}
-
-            {providerSupportsBaseUrl && (
-              <div className="setting-field-group setting-field-group-wide">
-                <label>Base URL</label>
-                <div className="settings-input-with-icon">
-                  <Server size={14} />
-                  <input
-                    type="text"
-                    className="setting-input"
-                    placeholder={defaultBaseUrl || 'https://api.example.com'}
-                    value={customSettings.baseUrl}
-                    onChange={(e) => onSettingsChange({ ...customSettings, baseUrl: e.target.value })}
-                  />
-                </div>
-              </div>
-            )}
-
-            <div className="setting-field-group">
-              <label>Model</label>
-              <div className="model-select-wrapper" ref={dropdownRef}>
-                <div className="model-select-field" ref={fieldRef} onClick={handleModelFieldClick}>
-                  <input
-                    type="text"
-                    className="model-select-input"
-                    placeholder={providerNeedsApiKey && !trimmedApiKey ? 'Enter API key to load models...' : (config?.model || 'Click to load models...')}
-                    value={showModels ? modelFilter : customSettings.model}
-                    onChange={(e) => {
-                      if (showModels) {
-                        setModelFilter(e.target.value)
-                      } else {
-                        onSettingsChange({ ...customSettings, model: e.target.value })
-                      }
-                    }}
-                    onFocus={handleModelFieldClick}
-                  />
-                  {modelsLoading ? (
-                    <Loader2 size={14} className="model-select-icon spinning" />
-                  ) : (
-                    <ChevronDown size={14} className="model-select-icon" />
-                  )}
-                </div>
-                {showModels && (
-                  <div
-                    className="model-dropdown"
-                    style={{ top: dropdownPos.top, left: dropdownPos.left, width: dropdownPos.width }}
-                  >
-                    {modelsLoading ? (
-                      <div className="model-dropdown-item model-dropdown-info">Loading models...</div>
-                    ) : modelsError && modelList.length === 0 ? (
-                      <div className="model-dropdown-item model-dropdown-error">{modelsError}</div>
-                    ) : modelList.length === 0 ? (
-                      <div className="model-dropdown-item model-dropdown-info">No models found</div>
-                    ) : (
-                      modelList
-                        .filter(m => !modelFilter || m.toLowerCase().includes(modelFilter.toLowerCase()))
-                        .map(m => (
-                          <div
-                            key={m}
-                            className={`model-dropdown-item${customSettings.model === m ? ' selected' : ''}`}
-                            onClick={() => selectModel(m)}
-                          >
-                            {m}
-                          </div>
-                        ))
-                    )}
-                  </div>
-                )}
-              </div>
-              {modelsError && (
-                <div className="settings-field-note">{modelsError}</div>
-              )}
-            </div>
-          </div>
-
-          <div className="setting-info compact-setting-info">
-            Leave blank to use backend defaults. Health status can still show the default provider even when a request override is selected here.
-          </div>
-        </div>
       </div>
 
       {usage && (
@@ -538,6 +506,39 @@ export function SettingsPanel({ config, customSettings, onSettingsChange }: Sett
           )}
         </div>
       )}
+
+      <div className="settings-panel compact-settings-panel settings-panel-wide settings-panel-reference">
+          <div className="settings-panel-header">
+            <div>
+              <h3>Fix Studio Neural Stack</h3>
+              <p>Reference stack used behind Fix Studio.</p>
+            </div>
+            <div className="settings-panel-badge">Reference</div>
+          </div>
+
+          <div className="settings-stack">
+            {FIX_STUDIO_MODEL_STACK.map((entry) => (
+              <div key={entry.area} className="settings-row-card split">
+                <div className="settings-row-copy">
+                  <span className="settings-row-label">{entry.area}</span>
+                  <span className={`settings-row-value ${entry.model === 'active-provider-model' ? 'monospace-value settings-row-value-soft' : 'settings-row-value-soft'}`}>
+                    {entry.model === 'active-provider-model'
+                      ? `${requestProvider} / ${requestModel}`
+                      : entry.model}
+                  </span>
+                </div>
+                <div className="settings-row-copy">
+                  <span className="settings-row-label">Role</span>
+                  <span className="settings-row-value settings-row-value-soft">{entry.role}</span>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          <div className="setting-info compact-setting-info">
+            Fix Studio combines the active vision model for compliance review with local image models for masking, cleanup, relight, expansion, and upscale steps.
+          </div>
+      </div>
     </>
   )
 }

@@ -24,34 +24,34 @@ const CORE_ROUTES = [
     title: 'Product Workspace',
     icon: Sparkles,
     target: 'ecom-product' as const,
-    summary: 'Primary Listing Intelligence workflow for Core Listing, Compare Mode, marketplace context, keywords, and batch-ready output.',
+    summary: 'Primary workflow for listing output, comparison, marketplace context, and batch runs.',
   },
   {
     title: 'Compliance',
     icon: ShieldCheck,
     target: 'ecom-compliance' as const,
-    summary: 'Marketplace photo audit for verdict, severity-ranked issues, policy guidance, and Fix Studio handoff.',
+    summary: 'Marketplace audit for verdict, issue severity, policy guidance, and Fix Studio handoff.',
   },
   {
     title: 'Fix Studio',
     icon: WandSparkles,
     target: 'ecom-fix' as const,
-    summary: 'Deterministic correction workspace for compose, auto-center, recheck, compare deltas, and approve export.',
+    summary: 'Correction workspace for compose, auto-center, recheck, compare deltas, and export.',
   },
   {
     title: 'Additional Tools',
     icon: Layers3,
     target: 'ecom-tools' as const,
-    summary: 'Targeted utilities for pricing, review sentiment, competitor insights, keyword gaps, USP extraction, and object scans.',
+    summary: 'Targeted tools for pricing, review sentiment, competitor insights, keyword gaps, and object scans.',
   },
 ]
 
 const QUICK_START_STEPS = [
-  'Open Product Workspace when you need a full listing package, competitor comparison, or batch processing for multiple SKUs.',
-  'Open Compliance first when the question is whether a marketplace image will pass before upload.',
-  'Jump into Fix Studio after a failed audit or when the image already needs controlled correction and export review.',
-  'Use Additional Tools for narrow tasks such as pricing analysis, competitor insights, keyword gaps, USP extraction, review sentiment, or object scans.',
-  'Use History to reopen earlier runs and Settings to verify provider, model, and Fix Studio stack details before shipping.',
+  'Use Product Workspace for full listing output, competitor comparison, or batch SKU work.',
+  'Use Compliance when the question is whether a marketplace image will pass.',
+  'Use Fix Studio after a failed audit or when the image already needs controlled correction.',
+  'Use Additional Tools for narrow tasks such as pricing, competitor insights, keyword gaps, review sentiment, or object scans.',
+  'Use History to reopen earlier runs and Settings to verify provider or model choices.',
 ]
 
 const WORKFLOW_GUIDES = [
@@ -60,19 +60,19 @@ const WORKFLOW_GUIDES = [
     icon: Rocket,
     target: 'ecom-product' as const,
     cta: 'Open Product Workspace',
-    summary: 'Use this when the output is listing content, quality scoring, comparison, or batch-ready SKU packaging.',
+    summary: 'Use this for listing output, quality scoring, comparison, or batch-ready SKU work.',
     steps: [
-      'Upload one product image for Core Listing, or add multiple images when you want a batch run.',
-      'Pick marketplace and keywords before running when channel context or SEO steering matters.',
-      'Switch to Compare Mode when you need a side-by-side read against a competitor image.',
-      'Review title, bullets, description, search tags, backend keywords, and quality score, then copy or export the output.',
+      'Upload one image for Core Listing, or multiple images for a batch run.',
+      'Pick marketplace and keywords when channel context or SEO direction matters.',
+      'Switch to Compare Mode for a side-by-side read against a competitor image.',
+      'Review title, bullets, description, search tags, backend keywords, and quality score, then copy or export.',
     ],
     preview: {
       badge: 'Primary Flow',
       title: 'Core Listing / Compare',
       chips: ['Listing', 'Compare', 'Batch'],
       bars: ['Marketplace + keyword context', 'Single, compare, or multi-image run', 'Listing output + quality score'],
-      footer: 'Best for commercial listing generation',
+      footer: 'Best for listing generation',
     },
   },
   {
@@ -80,19 +80,19 @@ const WORKFLOW_GUIDES = [
     icon: ShieldCheck,
     target: 'ecom-compliance' as const,
     cta: 'Open Compliance',
-    summary: 'Use this when the question is whether the image will pass marketplace rules before upload.',
+    summary: 'Use this when the question is whether the image will pass marketplace rules.',
     steps: [
-      'Upload the listing image you want to verify.',
-      'Choose the marketplace before running the check so the verdict uses the right rule set.',
-      'Read the score, pass or fail decision, issue severity, and rule-specific recommendations.',
-      'Open Fix Studio from the next-step card if the image needs deterministic correction instead of only advice.',
+      'Upload the image you want to verify.',
+      'Choose the marketplace so the verdict uses the right rule set.',
+      'Read the score, pass/fail decision, issue severity, and recommendations.',
+      'Open Fix Studio if the image needs deterministic correction instead of advice only.',
     ],
     preview: {
       badge: 'Audit Layer',
       title: 'Marketplace Check',
       chips: ['Verdict', 'Issues', 'Handoff'],
       bars: ['Marketplace selector + image intake', 'Score, issues, and recommendations', 'Open Fix Studio next step'],
-      footer: 'Best for pre-upload validation',
+      footer: 'Best for validation before upload',
     },
   },
   {
@@ -100,19 +100,19 @@ const WORKFLOW_GUIDES = [
     icon: WandSparkles,
     target: 'ecom-fix' as const,
     cta: 'Open Fix Studio',
-    summary: 'Use this when the image needs controlled correction, variant comparison, and approval before export.',
+    summary: 'Use this when the image needs controlled correction and approval before export.',
     steps: [
-      'Start from a Compliance handoff or upload directly when you already know the image problem.',
+      'Start from a Compliance handoff or upload directly when you already know the problem.',
       'Compose the frame with preset, zoom, and positioning before running a fix.',
-      'Run Auto Center, Recheck Only, or other available fix actions, then compare the result history and deltas.',
-      'Approve one variant in Export and download only after checking the visual result and remaining issues.',
+      'Run Auto Center, Recheck Only, or another fix, then compare history and deltas.',
+      'Approve one variant in Export and download after checking the result and remaining issues.',
     ],
     preview: {
       badge: 'Correction Workspace',
       title: 'Compose → Run → Compare → Export',
       chips: ['Canvas', 'Top Fixes', 'Approval'],
       bars: ['Canvas preset + positioning', 'Variant history + delta review', 'Approval panel + primary export'],
-      footer: 'Best for deterministic image correction',
+      footer: 'Best for controlled image correction',
     },
   },
 ]
@@ -122,28 +122,28 @@ const SHIPPING_CARDS = [
     title: 'Input Quality',
     icon: FileSearch,
     points: [
-      'Use the highest-resolution source you have; 1000 x 1000 remains the practical floor for most marketplaces.',
-      'Keep one product dominant in frame when you want cleaner listing extraction, stronger compare results, and fewer compliance false positives.',
-      'White or neutral backgrounds reduce ambiguity before you enter audit or deterministic correction workflows.',
+      'Use the highest-resolution source available; 1000 x 1000 is still the practical floor for most marketplaces.',
+      'Keep one product dominant in frame for cleaner listing extraction, stronger compare results, and fewer compliance false positives.',
+      'White or neutral backgrounds reduce ambiguity before audit or correction workflows.',
     ],
   },
   {
     title: 'Output Handling',
     icon: Download,
     points: [
-      'Use Product Workspace for listing text, keywords, comparisons, and batch-friendly outputs; use Fix Studio for approved image exports.',
-      'Use History when you need to reopen earlier attempts, compare runs, or recover outputs without rerunning the workflow.',
-      'In Fix Studio, approve one selected variant in Export before downloading so the final image matches the reviewed delta.',
+      'Use Product Workspace for listing text, keywords, comparisons, and batch-ready outputs; use Fix Studio for approved image exports.',
+      'Use History to reopen earlier attempts, compare runs, or recover outputs without rerunning.',
+      'In Fix Studio, approve one selected variant in Export before downloading.',
     ],
   },
   {
     title: 'API and Docs',
     icon: BookOpen,
     points: [
-      'Interactive REST documentation is available at /docs when the backend is running.',
-      'Frontend routes and API flows mirror each other closely, so a working UI path usually has a matching endpoint.',
-      'Start automation with Product Workspace or Compliance endpoints before chaining batch or image-correction workflows.',
-      'Use the UI first to validate prompts, marketplaces, and output shape before wiring the same path into scripts.',
+      'Interactive REST docs are available at /docs when the backend is running.',
+      'A working UI path usually has a matching backend endpoint.',
+      'Start automation with Product Workspace or Compliance before chaining batch or image-correction workflows.',
+      'Use the UI first to validate prompts, marketplaces, and output shape before scripting the same path.',
     ],
   },
 ]
@@ -217,9 +217,9 @@ export function HelpSection({ onNavigate }: HelpSectionProps) {
         <div className="help-hero-panel">
           <div className="help-hero-copy">
             <span className="fix-workspace-label">Control Guide</span>
-            <strong>Start with the right screen so you do not solve the wrong problem.</strong>
+            <strong>Start in the right screen first.</strong>
             <span>
-              Listing Intelligence starts in Product Workspace for full listing work, branches to Compliance for marketplace audits, and moves into Fix Studio for deterministic image correction.
+              Use Product Workspace for listing work, Compliance for marketplace audits, and Fix Studio for controlled image correction.
             </span>
 
             <div className="help-quick-actions">
@@ -296,7 +296,7 @@ export function HelpSection({ onNavigate }: HelpSectionProps) {
               <span className="fix-step-kicker">Section 1</span>
               <div>
                 <h2>Overview</h2>
-                <p>Use this as the routing layer when you need to choose the fastest screen for the current SKU, image, or audit task.</p>
+                <p>Use this section to choose the fastest screen for the current SKU, image, or audit task.</p>
               </div>
             </div>
 
@@ -338,12 +338,12 @@ export function HelpSection({ onNavigate }: HelpSectionProps) {
 
                 <div className="help-card help-callout-card">
                   <span className="fix-workspace-label">Operator Rule</span>
-                  <strong>Do not start in Fix Studio when you still need the verdict.</strong>
+                  <strong>Do not start in Fix Studio if you still need the verdict.</strong>
                   <p>
-                    Compliance tells you whether the image passes. Fix Studio corrects the frame and export path. Product Workspace remains the canonical route when the goal is a complete listing package or competitor comparison.
+                    Compliance answers whether the image passes. Fix Studio corrects the frame. Product Workspace is the route for a complete listing package or competitor comparison.
                   </p>
                   <div className="help-inline-note">
-                    <ArrowRight size={15} /> If the question is “what do I publish?”, use Product Workspace. If the question is “will this pass?”, use Compliance. If the question is “how do I fix this exact image?”, use Fix Studio.
+                    <ArrowRight size={15} /> If the question is “what do I publish?”, use Product Workspace. If it is “will this pass?”, use Compliance. If it is “how do I fix this image?”, use Fix Studio.
                   </div>
                 </div>
               </div>
@@ -355,7 +355,7 @@ export function HelpSection({ onNavigate }: HelpSectionProps) {
               <span className="fix-step-kicker">Section 2</span>
               <div>
                 <h2>Workflow Walkthroughs</h2>
-                <p>Each card maps one live workflow to a visual preview, a practical path, and a direct route into the current screen.</p>
+                <p>Each card maps one live workflow to a preview, a practical path, and a direct route into the current screen.</p>
               </div>
             </div>
 
@@ -421,7 +421,7 @@ export function HelpSection({ onNavigate }: HelpSectionProps) {
               <span className="fix-step-kicker">Section 3</span>
               <div>
                 <h2>Shipping and Output</h2>
-                <p>Use this section when the work is moving from analysis into approval, export, automation, or downstream operations.</p>
+                <p>Use this section when the work is moving from analysis into approval, export, automation, or downstream use.</p>
               </div>
             </div>
 
@@ -436,7 +436,7 @@ export function HelpSection({ onNavigate }: HelpSectionProps) {
                         <Icon size={18} />
                         <div>
                           <strong>{card.title}</strong>
-                          <span>What matters when the output needs to leave the tool.</span>
+                          <span>What matters when the output leaves the tool.</span>
                         </div>
                       </div>
                       <ul className="help-bullet-list">
@@ -451,9 +451,9 @@ export function HelpSection({ onNavigate }: HelpSectionProps) {
 
               <div className="help-card help-command-card">
                 <span className="fix-workspace-label">Docs and Automation</span>
-                <strong>When the UI path works, the matching backend path usually exists too.</strong>
+                <strong>When the UI path works, the matching backend path usually exists.</strong>
                 <p>
-                  Use the interactive API docs at <code>/docs</code> for repeatable automation, integration work, or bulk operations that should not stay manual.
+                  Use the interactive API docs at <code>/docs</code> for repeatable automation, integration work, or bulk operations.
                 </p>
               </div>
             </div>

@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import {
-  ScanSearch, Cloud, File, ShoppingCart, Lightbulb, Star, Tag, Zap,
+  ScanSearch, Download, File, ShoppingCart, Lightbulb, Star, Tag, Zap,
   Copy, Check, Upload, FileSpreadsheet, Package, CheckCircle, XCircle,
   List, Search, ClipboardList, GitCompareArrows, Target, ThumbsUp, ThumbsDown,
 } from 'lucide-react'
@@ -470,7 +470,7 @@ export function ProductAnalysis() {
                   </div>
                 ) : (
                   <>
-                    <span className="drop-icon"><Cloud /></span>
+                    <span className="drop-icon"><Download /></span>
                     <span className="drop-text">Your product photo</span>
                     <span className="drop-hint">PNG, JPG, WebP</span>
                   </>
@@ -515,7 +515,7 @@ export function ProductAnalysis() {
                   </div>
                 ) : (
                   <>
-                    <span className="drop-icon"><Cloud /></span>
+                    <span className="drop-icon"><Download /></span>
                     <span className="drop-text">Competitor photo</span>
                     <span className="drop-hint">PNG, JPG, WebP</span>
                   </>
@@ -582,7 +582,7 @@ export function ProductAnalysis() {
                 </div>
               ) : (
                 <>
-                  <span className="drop-icon"><Cloud /></span>
+                  <span className="drop-icon"><Download /></span>
                   <span className="drop-text">Drop product photo(s) here</span>
                   <span className="drop-hint">Single photo for full analysis, multiple for batch</span>
                 </>
@@ -592,7 +592,7 @@ export function ProductAnalysis() {
         </>
       )}
 
-      <button className="scan-btn" onClick={handleAnalyze} disabled={loading || !canAnalyze}>
+      <button className="scan-btn workspace-primary-action" onClick={handleAnalyze} disabled={loading || !canAnalyze}>
         {loading
           ? isCompareMode
             ? (<><span className="spinner"></span>Comparing listings...</>)

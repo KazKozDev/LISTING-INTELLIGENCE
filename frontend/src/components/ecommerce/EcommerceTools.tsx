@@ -1,6 +1,6 @@
 import { useState, useCallback, useRef } from 'react'
 import {
-  ScanSearch, Cloud, File, DollarSign,
+  ScanSearch, Download, File, DollarSign,
   MessageSquare, ClipboardList, Zap, Copy, Check, Target, Search, BadgePercent,
 } from 'lucide-react'
 import { api } from '../../api/client'
@@ -287,8 +287,13 @@ export function EcommerceTools() {
 
       {/* Selected Tool Info */}
       <div className="selected-tool-banner">
-        {(() => { const IC = selectedTool.icon; return <IC size={18} /> })()}
-        <span>{selectedTool.name}</span>
+        <div className="selected-tool-banner-main">
+          {(() => { const IC = selectedTool.icon; return <IC size={18} /> })()}
+          <div className="selected-tool-banner-copy">
+            <span className="fix-workspace-label">Active Tool</span>
+            <strong>{selectedTool.name}</strong>
+          </div>
+        </div>
         {selectedTool.id === 'inventory' && (
           <span className="selected-tool-pill">YOLO + OCR</span>
         )}
@@ -409,7 +414,7 @@ export function EcommerceTools() {
                 </div>
               ) : (
                 <>
-                  <span className="drop-icon"><Cloud /></span>
+                  <span className="drop-icon"><Download /></span>
                   <span className="drop-text">{selectedTool.id === 'inventory' ? 'Drop scene photo here' : 'Drop product photo here'}</span>
                   <span className="drop-hint">PNG, JPG, WebP</span>
                 </>
@@ -419,7 +424,7 @@ export function EcommerceTools() {
         </>
       )}
 
-      <button className="scan-btn" onClick={handleAnalyze} disabled={!canAnalyze || loading}>
+      <button className="scan-btn workspace-primary-action" onClick={handleAnalyze} disabled={!canAnalyze || loading}>
         {loading
           ? (<><span className="spinner"></span>Running {selectedTool.name}...</>)
           : (<><ScanSearch size={20} />{selectedTool.name}</>)}

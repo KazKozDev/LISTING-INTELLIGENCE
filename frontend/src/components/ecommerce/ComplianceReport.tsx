@@ -1,5 +1,5 @@
 import { useState, useCallback, useEffect, useRef } from 'react'
-import { ArrowRight, ChevronDown, ScanSearch, Cloud, File, ShieldCheck, ShieldX, CheckCircle, XCircle, AlertTriangle, Info, Copy, Check, Zap, WandSparkles } from 'lucide-react'
+import { ArrowRight, ChevronDown, ScanSearch, Download, File, ShieldCheck, ShieldX, CheckCircle, XCircle, AlertTriangle, Info, Copy, Check, Zap, WandSparkles } from 'lucide-react'
 import { api } from '../../api/client'
 import type { ComplianceCheckResponse } from '../../api/types'
 import { saveToHistory } from '../../hooks/useHistory'
@@ -34,6 +34,7 @@ export function ComplianceReport({ onOpenFixStudio }: ComplianceReportProps) {
   const [isRecommendationsOpen, setIsRecommendationsOpen] = useState(persistedUiPreferences?.recommendationsOpen ?? true)
   const inputRef = useRef<HTMLInputElement>(null)
   const preview = useObjectUrlPreview(file)
+  const auditSessionLabel = file?.name ?? 'Waiting for product image'
 
   useEffect(() => {
     setIsFullReportOpen((currentValue) => currentValue)
@@ -143,11 +144,10 @@ export function ComplianceReport({ onOpenFixStudio }: ComplianceReportProps) {
 
       <div className="compliance-intake-panel">
         <div className="compliance-intake-copy">
-          <span className="compliance-intake-label">Audit</span>
-          <strong>Run a compact report before you enter the correction workspace.</strong>
-          <span className="compliance-intake-note">
-            This screen stays focused on verdict, score, issues, and recommended next step.
-          </span>
+          <div>
+            <span className="fix-workspace-label">Audit Session</span>
+            <strong>{auditSessionLabel}</strong>
+          </div>
         </div>
 
         {preview && (
@@ -177,7 +177,7 @@ export function ComplianceReport({ onOpenFixStudio }: ComplianceReportProps) {
               </div>
             ) : (
               <>
-                <span className="drop-icon"><Cloud /></span>
+                <span className="drop-icon"><Download /></span>
                 <span className="drop-text">Drop product photo here</span>
                 <span className="drop-hint">PNG, JPG, WebP</span>
               </>
@@ -186,7 +186,7 @@ export function ComplianceReport({ onOpenFixStudio }: ComplianceReportProps) {
         </div>
       </div>
 
-      <button className="scan-btn compliance-primary-action" onClick={handleCheck} disabled={!file || loading || marketplace === 'general'}>
+      <button className="scan-btn workspace-primary-action compliance-primary-action" onClick={handleCheck} disabled={!file || loading || marketplace === 'general'}>
         {loading ? (<><span className="spinner"></span>Checking compliance...</>) : (<><ScanSearch size={20} />Check Compliance</>)}
       </button>
 
