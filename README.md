@@ -1,6 +1,6 @@
-<p align="center">
+<br><p align="center">
   <img src="docs/assets/logolisting.png" alt="Listing Intelligence logo" width="50%" />
-</p>
+</p><br><br>
 
 
 
