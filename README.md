@@ -2,8 +2,6 @@
   <img src="docs/assets/logolisting.png" alt="Listing Intelligence logo" />
 </p>
 
-![Listing Intelligence demo](docs/assets/demo.png)
-
 Full-stack AI application for marketplace listing intelligence, compliance review, competitor analysis, and deterministic image operations.
 
 ## Features
@@ -15,6 +13,8 @@ Full-stack AI application for marketplace listing intelligence, compliance revie
 - **Marketplace coverage:** workflows for channels such as Amazon, Walmart, Allegro, and Etsy.
 - **Catalog operations:** competitor comparison, SEO generation, and batch processing for repeatable listing work.
 - **Product-grade system design:** typed APIs, caching, usage tracking, multi-provider routing, and Dockerized local deployment.
+
+![Listing Intelligence demo](docs/assets/demo.png)
 
 ## Tech Stack
 
