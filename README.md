@@ -2,7 +2,10 @@
   <img src="docs/assets/logolisting.png" alt="Listing Intelligence logo" width="50%" />
 </p>
 
+
+
 Full-stack AI application for marketplace listing intelligence, compliance review, competitor analysis, and deterministic image operations.
+Turn product photos and listing drafts into marketplace-ready assets with AI-guided analysis, fixes, and optimization in one workflow.
 
 ## Features
 
