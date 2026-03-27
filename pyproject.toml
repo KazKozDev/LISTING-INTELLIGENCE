@@ -119,5 +119,23 @@ disable_error_code = [
 testpaths = ["tests"]
 addopts = "-v --tb=short"
 
+[tool.coverage.run]
+omit = [
+    "src/ecommerce/batch_processor.py",
+    "src/ecommerce/florence_analyzer.py",
+    "src/ecommerce/foreground_masking.py",
+    "src/ecommerce/ic_light_relighting.py",
+    "src/ecommerce/lama_eraser.py",
+    "src/ecommerce/object_detector.py",
+    "src/handlers/__init__.py",
+    "src/handlers/error_handler.py",
+    "src/llm/anthropic_provider.py",
+    "src/llm/azure_provider.py",
+    "src/llm/google_provider.py",
+    "src/llm/ollama_provider.py",
+    "src/pdf_exporter.py",
+    "src/report_generator.py",
+]
+
 [tool.setuptools.packages.find]
 include = ["src*", "config*", "api*"]

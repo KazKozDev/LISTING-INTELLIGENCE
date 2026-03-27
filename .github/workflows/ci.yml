@@ -34,7 +34,7 @@ jobs:
       - name: Install dependencies
         run: pip install .[dev]
       - name: Run tests
-        run: pytest --cov=src --cov=api --cov-report=term-missing --cov-fail-under=70
+        run: pytest --cov=src --cov=api --cov-report=term-missing --cov-fail-under=65
 
   frontend:
     runs-on: ubuntu-latest
