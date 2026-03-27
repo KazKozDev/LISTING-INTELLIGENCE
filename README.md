@@ -4,8 +4,8 @@
 
 
 
-Full-stack AI application for marketplace listing intelligence, compliance review, competitor analysis, and deterministic image operations.
-Turn product photos and listing drafts into marketplace-ready assets with AI-guided analysis, fixes, and optimization in one workflow.
+From a single product photo to a marketplace-ready listing.
+Analyze the product, fix image issues, and generate better content with LLMs, OCR, and generative image models.
 
 ## Features
 
