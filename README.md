@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="docs/assets/logolisting.png" alt="Listing Intelligence logo" />
+  <img src="docs/assets/logolisting.png" alt="Listing Intelligence logo" width="50%" />
 </p>
 
 Full-stack AI application for marketplace listing intelligence, compliance review, competitor analysis, and deterministic image operations.
