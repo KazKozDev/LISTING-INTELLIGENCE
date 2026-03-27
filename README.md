@@ -2,17 +2,9 @@
 
 Full-stack AI application for marketplace listing intelligence, compliance review, competitor analysis, and deterministic image operations.
 
-## Highlights
-
-- React + FastAPI application for image-first listing workflows
-- Marketplace-aware product analysis, SEO generation, and competitor comparison
-- Compliance review with structured verification signals, evidence overlays, and verifier-based diffs
-- Fix Studio workflow with product context, reference-image input, and deterministic image repair tools
-- Typed API, usage tracking, caching, rate limiting, and export-oriented reporting
-- Works with local and hosted model providers, including Ollama, OpenAI, Anthropic, Google, and Azure
-
 ## Features
 
+- React + FastAPI application for image-first marketplace workflows
 - Product image analysis with listing-oriented output
 - Marketplace-specific rules for channels such as Amazon, Walmart, Allegro, and Etsy
 - SEO generation from product imagery
@@ -24,6 +16,8 @@ Full-stack AI application for marketplace listing intelligence, compliance revie
 - Deterministic inventory-style analysis using object detection and OCR
 - Verification overlays and before/after finding diffs inside Compliance and Fix Studio
 - Provider overrides for model, API key, and base URL from the UI or API
+- Typed API, usage tracking, caching, rate limiting, and export-oriented reporting
+- Works with local and hosted model providers, including Ollama, OpenAI, Anthropic, Google, and Azure
 - Report export and usage tracking
 
 ## Tech Stack
@@ -155,9 +149,11 @@ For endpoint details, see [docs/API.md](docs/API.md).
 - [docs/EXPORT_GUIDE.md](docs/EXPORT_GUIDE.md)
 - [docs/INDUSTRY_TEMPLATES.md](docs/INDUSTRY_TEMPLATES.md)
 
----
+## License
 
 PolyForm Noncommercial 1.0.0 - see [LICENSE](LICENSE) and [COMMERCIAL-LICENSE.md](COMMERCIAL-LICENSE.md)
+
+## Contact
 
 If you like this project, please give it a star
 
