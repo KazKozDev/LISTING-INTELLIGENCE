@@ -198,9 +198,7 @@ class TestModelListing:
         original = ProviderFactory.PROVIDERS["openai"]
         try:
             ProviderFactory.PROVIDERS["openai"] = mock_cls
-            provider = ProviderFactory.create(
-                "openai", model="gpt-4o", api_key="test-key"
-            )
+            provider = ProviderFactory.create("openai", model="gpt-4o", api_key="test-key")
             assert provider == mock_instance
             mock_cls.assert_called_once_with(
                 model="gpt-4o",

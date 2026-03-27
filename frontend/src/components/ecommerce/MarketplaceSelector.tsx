@@ -308,7 +308,7 @@ export function MarketplaceSelector({
 }: MarketplaceSelectorProps) {
   const [marketplaces, setMarketplaces] = useState<Array<{ id: string; name: string }>>(DEFAULT_MARKETPLACES)
   const [rulesByMarketplace, setRulesByMarketplace] = useState<Record<string, MarketplaceInfo>>(FALLBACK_MARKETPLACE_RULES)
-  const [isRulesOpen, setIsRulesOpen] = useState(false)
+  const [expandedMarketplace, setExpandedMarketplace] = useState<string | null>(null)
 
   useEffect(() => {
     let active = true
@@ -361,9 +361,7 @@ export function MarketplaceSelector({
     : null
   const visiblePolicyLabel = policyLabel ?? computedPolicyLabel
 
-  useEffect(() => {
-    setIsRulesOpen(false)
-  }, [selected])
+  const isRulesOpen = expandedMarketplace === selected
 
   return (
     <div className={`template-selector ${className}`.trim()}>
@@ -385,7 +383,11 @@ export function MarketplaceSelector({
           <button
             type="button"
             className="ecom-rules-header ecom-rules-toggle"
-            onClick={() => setIsRulesOpen((currentValue) => !currentValue)}
+            onClick={() => {
+              setExpandedMarketplace((currentValue) => (
+                currentValue === selected ? null : selected
+              ))
+            }}
             aria-expanded={isRulesOpen}
           >
             <span className="ecom-rules-title">

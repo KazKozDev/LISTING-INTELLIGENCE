@@ -83,9 +83,7 @@ class Config(BaseSettings):
         # Load YAML configs
         self.model_config_data = load_yaml_config(MODEL_CONFIG_PATH)
         self.prompts_config = load_yaml_config(PROMPTS_CONFIG_PATH)
-        self.composition_policies_config = load_yaml_config(
-            COMPOSITION_POLICIES_PATH
-        )
+        self.composition_policies_config = load_yaml_config(COMPOSITION_POLICIES_PATH)
 
         # Set default model if not specified, using model_config
         if not self.model:

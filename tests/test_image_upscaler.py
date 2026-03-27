@@ -18,9 +18,7 @@ class TestImageUpscaler:
         checkpoint = tmp_path / "RealESRGAN_x4plus.pth"
         checkpoint.write_bytes(b"weights")
 
-        with patch(
-            "src.ecommerce.image_upscaler.download_url_to_file"
-        ) as mocked_download:
+        with patch("src.ecommerce.image_upscaler.download_url_to_file") as mocked_download:
             resolved = ImageUpscaler._resolve_model_path(
                 str(tmp_path),
                 checkpoint.name,
@@ -54,17 +52,12 @@ class TestImageUpscaler:
         )
 
     def test_ensure_torchvision_compatibility_aliases_legacy_module(self):
-        fallback_module = ModuleType(
-            "torchvision.transforms._functional_tensor"
-        )
+        fallback_module = ModuleType("torchvision.transforms._functional_tensor")
 
         def _fake_import(name: str):
             if name == "torchvision.transforms.functional_tensor":
                 raise ModuleNotFoundError(
-                    (
-                        "No module named "
-                        "'torchvision.transforms.functional_tensor'"
-                    ),
+                    ("No module named " "'torchvision.transforms.functional_tensor'"),
                     name=name,
                 )
             if name == "torchvision.transforms._functional_tensor":
@@ -83,7 +76,5 @@ class TestImageUpscaler:
 
                 assert (
                     fallback_module
-                    is image_upscaler_module.sys.modules[
-                        "torchvision.transforms.functional_tensor"
-                    ]
+                    is image_upscaler_module.sys.modules["torchvision.transforms.functional_tensor"]
                 )

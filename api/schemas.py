@@ -178,9 +178,7 @@ class MarketplaceInfo(BaseModel):
     forbidden_elements: list[str] = Field(default_factory=list)
     main_image_rules: list[str] = Field(default_factory=list)
     recommendations: list[str] = Field(default_factory=list)
-    composition_policy: dict[str, dict[str, float]] = Field(
-        default_factory=dict
-    )
+    composition_policy: dict[str, dict[str, float]] = Field(default_factory=dict)
     sources: list[MarketplaceSource] = Field(default_factory=list)
     notes: str | None = None
 

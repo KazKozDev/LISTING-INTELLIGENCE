@@ -7,10 +7,7 @@ from pathlib import Path
 import yaml
 
 
-def setup_logging(
-    config_path: Path,
-    default_level: int = logging.INFO
-) -> None:
+def setup_logging(config_path: Path, default_level: int = logging.INFO) -> None:
     """Setup logging configuration from YAML file.
 
     Args:
@@ -27,7 +24,10 @@ def setup_logging(
                 logging.basicConfig(level=default_level)
     else:
         logging.basicConfig(level=default_level)
-        print(f"Warning: Logging configuration file not found at {config_path}. Using default configs.")
+        print(
+            f"Warning: Logging configuration file not found at {config_path}. Using default configs."
+        )
+
 
 def get_logger(name: str) -> logging.Logger:
     """Get logger instance.

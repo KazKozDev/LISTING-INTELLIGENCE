@@ -21,6 +21,7 @@ try:
         Table,
         TableStyle,
     )
+
     REPORTLAB_AVAILABLE = True
 except ImportError:
     REPORTLAB_AVAILABLE = False
@@ -35,8 +36,7 @@ class PDFExporter:
         """Initialize PDF exporter."""
         if not REPORTLAB_AVAILABLE:
             raise ImportError(
-                "reportlab is required for PDF export. "
-                "Install it with: pip install reportlab"
+                "reportlab is required for PDF export. " "Install it with: pip install reportlab"
             )
 
     def export(
@@ -45,7 +45,7 @@ class PDFExporter:
         output_path: Path | None = None,
         title: str = "Listing Intelligence Report",
         include_metadata: bool = True,
-        **kwargs
+        **kwargs,
     ) -> Path:
         """Export analysis results to PDF.
 
@@ -77,10 +77,10 @@ class PDFExporter:
         doc = SimpleDocTemplate(
             str(output_path),
             pagesize=A4,
-            rightMargin=2*cm,
-            leftMargin=2*cm,
-            topMargin=2*cm,
-            bottomMargin=2*cm,
+            rightMargin=2 * cm,
+            leftMargin=2 * cm,
+            topMargin=2 * cm,
+            bottomMargin=2 * cm,
         )
 
         # Build content
@@ -111,86 +111,96 @@ class PDFExporter:
         styles = getSampleStyleSheet()
 
         # Custom styles
-        styles.add(ParagraphStyle(
-            name='CustomTitle',
-            parent=styles['Heading1'],
-            fontSize=28,
-            textColor=colors.HexColor('#1f2937'),
-            spaceAfter=30,
-            alignment=TA_CENTER,
-            fontName='Helvetica-Bold',
-        ))
+        styles.add(
+            ParagraphStyle(
+                name="CustomTitle",
+                parent=styles["Heading1"],
+                fontSize=28,
+                textColor=colors.HexColor("#1f2937"),
+                spaceAfter=30,
+                alignment=TA_CENTER,
+                fontName="Helvetica-Bold",
+            )
+        )
 
-        styles.add(ParagraphStyle(
-            name='CustomSubtitle',
-            parent=styles['Normal'],
-            fontSize=12,
-            textColor=colors.HexColor('#6b7280'),
-            spaceAfter=20,
-            alignment=TA_CENTER,
-        ))
+        styles.add(
+            ParagraphStyle(
+                name="CustomSubtitle",
+                parent=styles["Normal"],
+                fontSize=12,
+                textColor=colors.HexColor("#6b7280"),
+                spaceAfter=20,
+                alignment=TA_CENTER,
+            )
+        )
 
-        styles.add(ParagraphStyle(
-            name='SectionHeader',
-            parent=styles['Heading1'],
-            fontSize=18,
-            textColor=colors.HexColor('#1f2937'),
-            spaceAfter=12,
-            spaceBefore=20,
-            fontName='Helvetica-Bold',
-            borderWidth=0,
-            borderColor=colors.HexColor('#3b82f6'),
-            borderPadding=5,
-            leftIndent=0,
-        ))
+        styles.add(
+            ParagraphStyle(
+                name="SectionHeader",
+                parent=styles["Heading1"],
+                fontSize=18,
+                textColor=colors.HexColor("#1f2937"),
+                spaceAfter=12,
+                spaceBefore=20,
+                fontName="Helvetica-Bold",
+                borderWidth=0,
+                borderColor=colors.HexColor("#3b82f6"),
+                borderPadding=5,
+                leftIndent=0,
+            )
+        )
 
-        styles.add(ParagraphStyle(
-            name='SubsectionHeader',
-            parent=styles['Heading2'],
-            fontSize=14,
-            textColor=colors.HexColor('#374151'),
-            spaceAfter=8,
-            spaceBefore=12,
-            fontName='Helvetica-Bold',
-        ))
+        styles.add(
+            ParagraphStyle(
+                name="SubsectionHeader",
+                parent=styles["Heading2"],
+                fontSize=14,
+                textColor=colors.HexColor("#374151"),
+                spaceAfter=8,
+                spaceBefore=12,
+                fontName="Helvetica-Bold",
+            )
+        )
 
-        styles.add(ParagraphStyle(
-            name='BodyText',
-            parent=styles['Normal'],
-            fontSize=10,
-            textColor=colors.HexColor('#1f2937'),
-            spaceAfter=8,
-            alignment=TA_JUSTIFY,
-            leading=14,
-        ))
+        styles.add(
+            ParagraphStyle(
+                name="BodyText",
+                parent=styles["Normal"],
+                fontSize=10,
+                textColor=colors.HexColor("#1f2937"),
+                spaceAfter=8,
+                alignment=TA_JUSTIFY,
+                leading=14,
+            )
+        )
 
-        styles.add(ParagraphStyle(
-            name='Metadata',
-            parent=styles['Normal'],
-            fontSize=9,
-            textColor=colors.HexColor('#6b7280'),
-            spaceAfter=6,
-        ))
+        styles.add(
+            ParagraphStyle(
+                name="Metadata",
+                parent=styles["Normal"],
+                fontSize=9,
+                textColor=colors.HexColor("#6b7280"),
+                spaceAfter=6,
+            )
+        )
 
-        styles.add(ParagraphStyle(
-            name='Code',
-            parent=styles['Code'],
-            fontSize=9,
-            textColor=colors.HexColor('#1f2937'),
-            backColor=colors.HexColor('#f3f4f6'),
-            borderWidth=1,
-            borderColor=colors.HexColor('#d1d5db'),
-            borderPadding=5,
-        ))
+        styles.add(
+            ParagraphStyle(
+                name="Code",
+                parent=styles["Code"],
+                fontSize=9,
+                textColor=colors.HexColor("#1f2937"),
+                backColor=colors.HexColor("#f3f4f6"),
+                borderWidth=1,
+                borderColor=colors.HexColor("#d1d5db"),
+                borderPadding=5,
+            )
+        )
 
         return styles
 
     def _create_title_page(
-        self,
-        title: str,
-        results: list[Any],
-        include_metadata: bool,
-        styles: dict
+        self, title: str, results: list[Any], include_metadata: bool, styles: dict
     ) -> list:
         """Create title page content.
 
@@ -206,47 +216,56 @@ class PDFExporter:
         story = []
 
         # Add some space
-        story.append(Spacer(1, 2*inch))
+        story.append(Spacer(1, 2 * inch))
 
         # Title
-        story.append(Paragraph(title, styles['CustomTitle']))
-        story.append(Spacer(1, 0.3*inch))
+        story.append(Paragraph(title, styles["CustomTitle"]))
+        story.append(Spacer(1, 0.3 * inch))
 
         # Subtitle
         subtitle = "Professional Multimodal Analysis Report"
-        story.append(Paragraph(subtitle, styles['CustomSubtitle']))
-        story.append(Spacer(1, 1*inch))
+        story.append(Paragraph(subtitle, styles["CustomSubtitle"]))
+        story.append(Spacer(1, 1 * inch))
 
         # Metadata
         if include_metadata:
             metadata_data = [
-                ['Report Information', ''],
-                ['Generated:', datetime.now().strftime('%Y-%m-%d %H:%M:%S')],
-                ['Total Files:', str(len(results))],
-                ['Analysis Type:', 'Multimodal (Images & Documents)'],
+                ["Report Information", ""],
+                ["Generated:", datetime.now().strftime("%Y-%m-%d %H:%M:%S")],
+                ["Total Files:", str(len(results))],
+                ["Analysis Type:", "Multimodal (Images & Documents)"],
             ]
 
             # Add provider info if available
             if results and results[0].metadata:
-                provider = results[0].metadata.get('provider', 'N/A')
-                model = results[0].metadata.get('model', 'N/A')
-                metadata_data.append(['Provider:', provider])
-                metadata_data.append(['Model:', model])
+                provider = results[0].metadata.get("provider", "N/A")
+                model = results[0].metadata.get("model", "N/A")
+                metadata_data.append(["Provider:", provider])
+                metadata_data.append(["Model:", model])
 
-            metadata_table = Table(metadata_data, colWidths=[4*cm, 10*cm])
-            metadata_table.setStyle(TableStyle([
-                ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor('#3b82f6')),
-                ('TEXTCOLOR', (0, 0), (-1, 0), colors.white),
-                ('ALIGN', (0, 0), (-1, -1), 'LEFT'),
-                ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
-                ('FONTSIZE', (0, 0), (-1, 0), 11),
-                ('FONTNAME', (0, 1), (0, -1), 'Helvetica-Bold'),
-                ('FONTSIZE', (0, 1), (-1, -1), 9),
-                ('BOTTOMPADDING', (0, 0), (-1, -1), 8),
-                ('TOPPADDING', (0, 0), (-1, -1), 8),
-                ('GRID', (0, 0), (-1, -1), 0.5, colors.HexColor('#d1d5db')),
-                ('ROWBACKGROUNDS', (0, 1), (-1, -1), [colors.white, colors.HexColor('#f9fafb')]),
-            ]))
+            metadata_table = Table(metadata_data, colWidths=[4 * cm, 10 * cm])
+            metadata_table.setStyle(
+                TableStyle(
+                    [
+                        ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#3b82f6")),
+                        ("TEXTCOLOR", (0, 0), (-1, 0), colors.white),
+                        ("ALIGN", (0, 0), (-1, -1), "LEFT"),
+                        ("FONTNAME", (0, 0), (-1, 0), "Helvetica-Bold"),
+                        ("FONTSIZE", (0, 0), (-1, 0), 11),
+                        ("FONTNAME", (0, 1), (0, -1), "Helvetica-Bold"),
+                        ("FONTSIZE", (0, 1), (-1, -1), 9),
+                        ("BOTTOMPADDING", (0, 0), (-1, -1), 8),
+                        ("TOPPADDING", (0, 0), (-1, -1), 8),
+                        ("GRID", (0, 0), (-1, -1), 0.5, colors.HexColor("#d1d5db")),
+                        (
+                            "ROWBACKGROUNDS",
+                            (0, 1),
+                            (-1, -1),
+                            [colors.white, colors.HexColor("#f9fafb")],
+                        ),
+                    ]
+                )
+            )
             story.append(metadata_table)
 
         story.append(PageBreak())
@@ -264,29 +283,38 @@ class PDFExporter:
         """
         story = []
 
-        story.append(Paragraph("Table of Contents", styles['SectionHeader']))
-        story.append(Spacer(1, 0.2*inch))
+        story.append(Paragraph("Table of Contents", styles["SectionHeader"]))
+        story.append(Spacer(1, 0.2 * inch))
 
-        toc_data = [['#', 'File Name', 'Type']]
+        toc_data = [["#", "File Name", "Type"]]
         for idx, result in enumerate(results, 1):
             file_name = result.file_path.name
             file_type = result.file_type.capitalize()
             toc_data.append([str(idx), file_name, file_type])
 
-        toc_table = Table(toc_data, colWidths=[1*cm, 11*cm, 3*cm])
-        toc_table.setStyle(TableStyle([
-            ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor('#3b82f6')),
-            ('TEXTCOLOR', (0, 0), (-1, 0), colors.white),
-            ('ALIGN', (0, 0), (0, -1), 'CENTER'),
-            ('ALIGN', (1, 0), (-1, -1), 'LEFT'),
-            ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
-            ('FONTSIZE', (0, 0), (-1, 0), 10),
-            ('FONTSIZE', (0, 1), (-1, -1), 9),
-            ('BOTTOMPADDING', (0, 0), (-1, -1), 6),
-            ('TOPPADDING', (0, 0), (-1, -1), 6),
-            ('GRID', (0, 0), (-1, -1), 0.5, colors.HexColor('#d1d5db')),
-            ('ROWBACKGROUNDS', (0, 1), (-1, -1), [colors.white, colors.HexColor('#f9fafb')]),
-        ]))
+        toc_table = Table(toc_data, colWidths=[1 * cm, 11 * cm, 3 * cm])
+        toc_table.setStyle(
+            TableStyle(
+                [
+                    ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#3b82f6")),
+                    ("TEXTCOLOR", (0, 0), (-1, 0), colors.white),
+                    ("ALIGN", (0, 0), (0, -1), "CENTER"),
+                    ("ALIGN", (1, 0), (-1, -1), "LEFT"),
+                    ("FONTNAME", (0, 0), (-1, 0), "Helvetica-Bold"),
+                    ("FONTSIZE", (0, 0), (-1, 0), 10),
+                    ("FONTSIZE", (0, 1), (-1, -1), 9),
+                    ("BOTTOMPADDING", (0, 0), (-1, -1), 6),
+                    ("TOPPADDING", (0, 0), (-1, -1), 6),
+                    ("GRID", (0, 0), (-1, -1), 0.5, colors.HexColor("#d1d5db")),
+                    (
+                        "ROWBACKGROUNDS",
+                        (0, 1),
+                        (-1, -1),
+                        [colors.white, colors.HexColor("#f9fafb")],
+                    ),
+                ]
+            )
+        )
         story.append(toc_table)
 
         story.append(PageBreak())
@@ -304,75 +332,71 @@ class PDFExporter:
         """
         story = []
 
-        story.append(Paragraph("Analysis Results", styles['SectionHeader']))
-        story.append(Spacer(1, 0.2*inch))
+        story.append(Paragraph("Analysis Results", styles["SectionHeader"]))
+        story.append(Spacer(1, 0.2 * inch))
 
         for idx, result in enumerate(results, 1):
             # File header
             file_name = result.file_path.name
-            story.append(Paragraph(
-                f"{idx}. {self._escape_html(file_name)}",
-                styles['SubsectionHeader']
-            ))
+            story.append(
+                Paragraph(f"{idx}. {self._escape_html(file_name)}", styles["SubsectionHeader"])
+            )
 
             # File information table
             info_data = [
-                ['File Path:', self._escape_html(str(result.file_path))],
-                ['File Type:', result.file_type.capitalize()],
-                ['Analyzed:', result.timestamp.strftime('%Y-%m-%d %H:%M:%S')],
+                ["File Path:", self._escape_html(str(result.file_path))],
+                ["File Type:", result.file_type.capitalize()],
+                ["Analyzed:", result.timestamp.strftime("%Y-%m-%d %H:%M:%S")],
             ]
 
             if result.metadata:
-                if 'page' in result.metadata:
-                    info_data.append(['Page:', str(result.metadata['page'])])
-                if 'duration_ms' in result.metadata:
-                    duration = result.metadata['duration_ms']
-                    info_data.append(['Processing Time:', f"{duration:.2f}ms"])
-                if 'usage' in result.metadata and 'total_tokens' in result.metadata['usage']:
-                    tokens = result.metadata['usage']['total_tokens']
-                    info_data.append(['Tokens Used:', f"{tokens:,}"])
+                if "page" in result.metadata:
+                    info_data.append(["Page:", str(result.metadata["page"])])
+                if "duration_ms" in result.metadata:
+                    duration = result.metadata["duration_ms"]
+                    info_data.append(["Processing Time:", f"{duration:.2f}ms"])
+                if "usage" in result.metadata and "total_tokens" in result.metadata["usage"]:
+                    tokens = result.metadata["usage"]["total_tokens"]
+                    info_data.append(["Tokens Used:", f"{tokens:,}"])
 
-            info_table = Table(info_data, colWidths=[3.5*cm, 11*cm])
-            info_table.setStyle(TableStyle([
-                ('FONTNAME', (0, 0), (0, -1), 'Helvetica-Bold'),
-                ('FONTSIZE', (0, 0), (-1, -1), 8),
-                ('BOTTOMPADDING', (0, 0), (-1, -1), 4),
-                ('TOPPADDING', (0, 0), (-1, -1), 4),
-                ('BACKGROUND', (0, 0), (-1, -1), colors.HexColor('#f9fafb')),
-                ('GRID', (0, 0), (-1, -1), 0.5, colors.HexColor('#e5e7eb')),
-            ]))
+            info_table = Table(info_data, colWidths=[3.5 * cm, 11 * cm])
+            info_table.setStyle(
+                TableStyle(
+                    [
+                        ("FONTNAME", (0, 0), (0, -1), "Helvetica-Bold"),
+                        ("FONTSIZE", (0, 0), (-1, -1), 8),
+                        ("BOTTOMPADDING", (0, 0), (-1, -1), 4),
+                        ("TOPPADDING", (0, 0), (-1, -1), 4),
+                        ("BACKGROUND", (0, 0), (-1, -1), colors.HexColor("#f9fafb")),
+                        ("GRID", (0, 0), (-1, -1), 0.5, colors.HexColor("#e5e7eb")),
+                    ]
+                )
+            )
             story.append(info_table)
-            story.append(Spacer(1, 0.15*inch))
+            story.append(Spacer(1, 0.15 * inch))
 
             # Analysis task
-            story.append(Paragraph("<b>Analysis Task:</b>", styles['BodyText']))
-            story.append(Paragraph(
-                self._escape_html(result.task),
-                styles['Metadata']
-            ))
-            story.append(Spacer(1, 0.1*inch))
+            story.append(Paragraph("<b>Analysis Task:</b>", styles["BodyText"]))
+            story.append(Paragraph(self._escape_html(result.task), styles["Metadata"]))
+            story.append(Spacer(1, 0.1 * inch))
 
             # Analysis results
-            story.append(Paragraph("<b>Analysis Results:</b>", styles['BodyText']))
-            story.append(Spacer(1, 0.05*inch))
+            story.append(Paragraph("<b>Analysis Results:</b>", styles["BodyText"]))
+            story.append(Spacer(1, 0.05 * inch))
 
             # Format result text with proper line breaks
-            result_paragraphs = result.text.split('\n')
+            result_paragraphs = result.text.split("\n")
             for para in result_paragraphs:
                 if para.strip():
-                    story.append(Paragraph(
-                        self._escape_html(para),
-                        styles['BodyText']
-                    ))
+                    story.append(Paragraph(self._escape_html(para), styles["BodyText"]))
 
             # Separator
             if idx < len(results):
-                story.append(Spacer(1, 0.2*inch))
-                story.append(Paragraph(
-                    "<hr width='100%' color='#e5e7eb' size='1'/>",
-                    styles['BodyText']
-                ))
-                story.append(Spacer(1, 0.2*inch))
+                story.append(Spacer(1, 0.2 * inch))
+                story.append(
+                    Paragraph("<hr width='100%' color='#e5e7eb' size='1'/>", styles["BodyText"])
+                )
+                story.append(Spacer(1, 0.2 * inch))
 
         return story
 
@@ -386,10 +410,10 @@ class PDFExporter:
         page_num = canvas.getPageNumber()
         text = f"Page {page_num}"
         canvas.saveState()
-        canvas.setFont('Helvetica', 9)
-        canvas.setFillColor(colors.HexColor('#6b7280'))
-        canvas.drawRightString(A4[0] - 2*cm, 1.5*cm, text)
-        canvas.drawString(2*cm, 1.5*cm, "Listing Intelligence")
+        canvas.setFont("Helvetica", 9)
+        canvas.setFillColor(colors.HexColor("#6b7280"))
+        canvas.drawRightString(A4[0] - 2 * cm, 1.5 * cm, text)
+        canvas.drawString(2 * cm, 1.5 * cm, "Listing Intelligence")
         canvas.restoreState()
 
     def _escape_html(self, text: str) -> str:
@@ -402,9 +426,9 @@ class PDFExporter:
             Escaped text.
         """
         text = str(text)
-        text = text.replace('&', '&amp;')
-        text = text.replace('<', '&lt;')
-        text = text.replace('>', '&gt;')
+        text = text.replace("&", "&amp;")
+        text = text.replace("<", "&lt;")
+        text = text.replace(">", "&gt;")
         return text
 
     def export_to_bytes(
@@ -412,7 +436,7 @@ class PDFExporter:
         results: list[Any],
         title: str = "Listing Intelligence Report",
         include_metadata: bool = True,
-        **kwargs
+        **kwargs,
     ) -> bytes:
         """Export analysis results to PDF as bytes.
 
@@ -434,10 +458,10 @@ class PDFExporter:
         doc = SimpleDocTemplate(
             buffer,
             pagesize=A4,
-            rightMargin=2*cm,
-            leftMargin=2*cm,
-            topMargin=2*cm,
-            bottomMargin=2*cm,
+            rightMargin=2 * cm,
+            leftMargin=2 * cm,
+            topMargin=2 * cm,
+            bottomMargin=2 * cm,
         )
 
         # Build content

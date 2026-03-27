@@ -18,7 +18,7 @@ class AnthropicProvider(BaseLLMProvider):
         model: str = "claude-3-5-sonnet-20241022",
         api_key: str | None = None,
         base_url: str | None = None,
-        **kwargs
+        **kwargs,
     ):
         """Initialize Anthropic provider.
 
@@ -35,19 +35,16 @@ class AnthropicProvider(BaseLLMProvider):
 
         try:
             import anthropic
+
             self.client = anthropic.Anthropic(api_key=self.api_key)
         except ImportError:
-            raise ImportError(
-                "anthropic package is required. Install: pip install anthropic"
-            )
+            raise ImportError("anthropic package is required. Install: pip install anthropic")
 
     def verify_connection(self) -> bool:
         """Verify Anthropic connection."""
         try:
             self.client.messages.create(
-                model=self.model,
-                max_tokens=1,
-                messages=[{"role": "user", "content": "test"}]
+                model=self.model, max_tokens=1, messages=[{"role": "user", "content": "test"}]
             )
             return True
         except Exception as e:
@@ -104,7 +101,7 @@ class AnthropicProvider(BaseLLMProvider):
                 "type": "base64",
                 "media_type": media_type,
                 "data": image_data,
-            }
+            },
         }
 
     def analyze_image(
@@ -113,7 +110,7 @@ class AnthropicProvider(BaseLLMProvider):
         prompt: str,
         temperature: float = 0.7,
         max_tokens: int = 2048,
-        **kwargs
+        **kwargs,
     ) -> ProviderResponse:
         """Analyze image with Anthropic."""
         if not self.supports_vision:
@@ -131,7 +128,7 @@ class AnthropicProvider(BaseLLMProvider):
                 "content": [
                     image_content,
                     {"type": "text", "text": prompt},
-                ]
+                ],
             }
         ]
 
@@ -141,7 +138,7 @@ class AnthropicProvider(BaseLLMProvider):
                 max_tokens=max_tokens,
                 temperature=temperature,
                 messages=messages,
-                **kwargs
+                **kwargs,
             )
 
             return ProviderResponse(
@@ -150,14 +147,11 @@ class AnthropicProvider(BaseLLMProvider):
                 usage={
                     "prompt_tokens": response.usage.input_tokens,
                     "completion_tokens": response.usage.output_tokens,
-                    "total_tokens": (
-                        response.usage.input_tokens
-                        + response.usage.output_tokens
-                    ),
+                    "total_tokens": (response.usage.input_tokens + response.usage.output_tokens),
                 },
                 metadata={
                     "stop_reason": response.stop_reason,
-                }
+                },
             )
 
         except Exception as e:
@@ -165,11 +159,7 @@ class AnthropicProvider(BaseLLMProvider):
             raise
 
     def chat(
-        self,
-        messages: list,
-        temperature: float = 0.7,
-        max_tokens: int = 2048,
-        **kwargs
+        self, messages: list, temperature: float = 0.7, max_tokens: int = 2048, **kwargs
     ) -> ProviderResponse:
         """Chat with Anthropic."""
         try:
@@ -178,7 +168,7 @@ class AnthropicProvider(BaseLLMProvider):
                 max_tokens=max_tokens,
                 temperature=temperature,
                 messages=messages,
-                **kwargs
+                **kwargs,
             )
 
             return ProviderResponse(
@@ -187,14 +177,11 @@ class AnthropicProvider(BaseLLMProvider):
                 usage={
                     "prompt_tokens": response.usage.input_tokens,
                     "completion_tokens": response.usage.output_tokens,
-                    "total_tokens": (
-                        response.usage.input_tokens
-                        + response.usage.output_tokens
-                    ),
+                    "total_tokens": (response.usage.input_tokens + response.usage.output_tokens),
                 },
                 metadata={
                     "stop_reason": response.stop_reason,
-                }
+                },
             )
 
         except Exception as e:

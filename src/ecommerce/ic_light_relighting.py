@@ -46,9 +46,7 @@ class ICLightRelighter:
         self.config = config or Config()
         relight_config = self.config.model_config_data.get("ic_light", {})
         self.enabled = bool(relight_config.get("enabled", True))
-        self.base_model = str(
-            relight_config.get("base_model", "runwayml/stable-diffusion-v1-5")
-        )
+        self.base_model = str(relight_config.get("base_model", "runwayml/stable-diffusion-v1-5"))
         self.model_url = str(
             relight_config.get(
                 "model_url",
@@ -58,9 +56,7 @@ class ICLightRelighter:
                 ),
             )
         )
-        self.model_file = str(
-            relight_config.get("model_file", "iclight_sd15_fc.safetensors")
-        )
+        self.model_file = str(relight_config.get("model_file", "iclight_sd15_fc.safetensors"))
         self.device = str(relight_config.get("device", "cpu"))
         self.prompt = str(
             relight_config.get(
@@ -74,10 +70,7 @@ class ICLightRelighter:
         self.negative_prompt = str(
             relight_config.get(
                 "negative_prompt",
-                (
-                    "lowres, blurry, dark, noisy, cluttered "
-                    "background, watermark, text"
-                ),
+                ("lowres, blurry, dark, noisy, cluttered " "background, watermark, text"),
             )
         )
         self.width = int(relight_config.get("width", 768))
@@ -86,9 +79,7 @@ class ICLightRelighter:
         self.cfg_scale = float(relight_config.get("cfg_scale", 4.0))
         self.lowres_denoise = float(relight_config.get("lowres_denoise", 0.9))
         self.seed = int(relight_config.get("seed", 12345))
-        self.cache_dir = Path(
-            relight_config.get("cache_dir", "outputs/models")
-        )
+        self.cache_dir = Path(relight_config.get("cache_dir", "outputs/models"))
         self.foreground_extractor = ForegroundMaskExtractor(self.config)
 
     def relight(
@@ -234,10 +225,13 @@ class ICLightRelighter:
     def _prepare_foreground(self, image: Image.Image) -> np.ndarray:
         mask_result = self.foreground_extractor.extract(image)
         rgb = np.asarray(image.convert("RGB"), dtype=np.float32)
-        alpha = np.asarray(
-            mask_result.mask.convert("L"),
-            dtype=np.float32,
-        )[..., None] / 255.0
+        alpha = (
+            np.asarray(
+                mask_result.mask.convert("L"),
+                dtype=np.float32,
+            )[..., None]
+            / 255.0
+        )
         prepared = 127.0 + (rgb - 127.0) * alpha
         return prepared.clip(0, 255).astype(np.uint8)
 
@@ -315,24 +309,10 @@ class ICLightRelighter:
             array = image.movedim(0, -1)
             if quant:
                 array = array * 127.5 + 127.5
-                converted = (
-                    array.detach()
-                    .float()
-                    .cpu()
-                    .numpy()
-                    .clip(0, 255)
-                    .astype(np.uint8)
-                )
+                converted = array.detach().float().cpu().numpy().clip(0, 255).astype(np.uint8)
             else:
                 array = array * 0.5 + 0.5
-                converted = (
-                    array.detach()
-                    .float()
-                    .cpu()
-                    .numpy()
-                    .clip(0, 1)
-                    .astype(np.float32)
-                )
+                converted = array.detach().float().cpu().numpy().clip(0, 1).astype(np.float32)
             results.append(converted)
         return results
 
@@ -340,9 +320,7 @@ class ICLightRelighter:
         import torch
 
         generator_device = (
-            "cuda"
-            if getattr(torch_device, "type", str(torch_device)) == "cuda"
-            else "cpu"
+            "cuda" if getattr(torch_device, "type", str(torch_device)) == "cuda" else "cpu"
         )
         return torch.Generator(device=generator_device).manual_seed(self.seed)
 
@@ -375,7 +353,7 @@ class ICLightRelighter:
                 add_special_tokens=False,
             )["input_ids"]
             chunks = [
-                [id_start] + tokens[index:index + chunk_length] + [id_end]
+                [id_start] + tokens[index : index + chunk_length] + [id_end]
                 for index in range(0, len(tokens), chunk_length)
             ]
             chunks = [pad(chunk, id_pad, max_length) for chunk in chunks]
@@ -423,9 +401,7 @@ class ICLightRelighter:
         from transformers import CLIPTextModel, CLIPTokenizer
 
         torch_device = ForegroundMaskExtractor._resolve_torch_device(device)
-        torch_dtype = (
-            torch.float16 if torch_device.type == "cuda" else torch.float32
-        )
+        torch_dtype = torch.float16 if torch_device.type == "cuda" else torch.float32
 
         tokenizer = CLIPTokenizer.from_pretrained(
             base_model,
@@ -462,9 +438,7 @@ class ICLightRelighter:
             encoder_hidden_states,
             **kwargs,
         ):
-            concat_conds = kwargs["cross_attention_kwargs"][
-                "concat_conds"
-            ].to(sample)
+            concat_conds = kwargs["cross_attention_kwargs"]["concat_conds"].to(sample)
             concat_conds = torch.cat(
                 [concat_conds] * (sample.shape[0] // concat_conds.shape[0]),
                 dim=0,
@@ -488,10 +462,7 @@ class ICLightRelighter:
 
         offset_state = safetensors_torch.load_file(str(model_path))
         origin_state = unet.state_dict()
-        merged_state = {
-            key: origin_state[key] + offset_state[key]
-            for key in origin_state.keys()
-        }
+        merged_state = {key: origin_state[key] + offset_state[key] for key in origin_state.keys()}
         unet.load_state_dict(merged_state, strict=True)
         del offset_state, origin_state, merged_state
 

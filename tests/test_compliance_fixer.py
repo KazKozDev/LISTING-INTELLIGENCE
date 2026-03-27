@@ -52,10 +52,7 @@ class TestComplianceFixer:
         fixer = ComplianceFixer(config=Config())
 
         suggestion_data = fixer.suggest_fixes(image_path, marketplace="amazon")
-        actions = [
-            suggestion["action"]
-            for suggestion in suggestion_data["suggestions"]
-        ]
+        actions = [suggestion["action"] for suggestion in suggestion_data["suggestions"]]
 
         assert "auto_center_ai" in actions
 
@@ -80,9 +77,7 @@ class TestComplianceFixer:
         self,
         tmp_path,
     ):
-        image_path = _create_transparent_product_image(
-            tmp_path / "walmart.png"
-        )
+        image_path = _create_transparent_product_image(tmp_path / "walmart.png")
         fixer = ComplianceFixer(config=Config())
 
         _, metadata = fixer.apply_fix(
@@ -122,9 +117,7 @@ class TestComplianceFixer:
         assert metadata["ai"]["image_usage"] == "main_image"
 
     def test_marketplace_fill_ratio_can_use_gallery_policy(self, tmp_path):
-        image_path = _create_transparent_product_image(
-            tmp_path / "gallery.png"
-        )
+        image_path = _create_transparent_product_image(tmp_path / "gallery.png")
         fixer = ComplianceFixer(config=Config())
 
         _, metadata = fixer.apply_fix(

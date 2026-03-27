@@ -68,7 +68,7 @@ class LamaEraser:
                 mask = Image.fromarray(mask_path_or_image).convert("L")
             else:
                 mask = mask_path_or_image.convert("L")
-                
+
             # If the mask doesn't perfectly match the image dimensions, resize it
             if mask.size != rgb_image.size:
                 mask = mask.resize(rgb_image.size, Image.Resampling.NEAREST)
@@ -94,12 +94,14 @@ class LamaEraser:
     def _load_lama(device: str):
         """Load and cache the LaMa inpainter."""
         from simple_lama_inpainting import SimpleLama
-        # SimpleLama defaults to cuda/cpu based on availability. 
+
+        # SimpleLama defaults to cuda/cpu based on availability.
         # But we can force it inside its pipeline technically or it just works.
         lama = SimpleLama()
         if device == "mps":
             try:
                 import torch
+
                 if hasattr(lama, "model") and hasattr(lama.model, "to"):
                     lama.model = lama.model.to(torch.device("mps"))
                     lama.device = torch.device("mps")

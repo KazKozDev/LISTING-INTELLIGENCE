@@ -28,9 +28,7 @@ OPENAI_VISION_SUBSTRINGS = (
     "gpt-4-vision",
 )
 
-GROQ_VISION_PREFIXES = (
-    "meta-llama/llama-4-scout",
-)
+GROQ_VISION_PREFIXES = ("meta-llama/llama-4-scout",)
 
 
 def _collect_paginated_model_ids(initial_page: object) -> list[str]:
@@ -49,11 +47,7 @@ def _collect_paginated_model_ids(initial_page: object) -> list[str]:
         has_next_page = getattr(page, "has_next_page", None)
         get_next_page = getattr(page, "get_next_page", None)
 
-        if (
-            callable(has_next_page)
-            and has_next_page()
-            and callable(get_next_page)
-        ):
+        if callable(has_next_page) and has_next_page() and callable(get_next_page):
             page = get_next_page()
             continue
 
@@ -70,7 +64,7 @@ class OpenAIProvider(BaseLLMProvider):
         model: str = "gpt-4o",
         api_key: str | None = None,
         base_url: str | None = None,
-        **kwargs
+        **kwargs,
     ):
         """Initialize OpenAI provider.
 
@@ -87,14 +81,10 @@ class OpenAIProvider(BaseLLMProvider):
 
         try:
             import openai
-            self.client = openai.OpenAI(
-                api_key=self.api_key,
-                base_url=self.base_url
-            )
+
+            self.client = openai.OpenAI(api_key=self.api_key, base_url=self.base_url)
         except ImportError:
-            raise ImportError(
-                "openai package is required. Install: pip install openai"
-            )
+            raise ImportError("openai package is required. Install: pip install openai")
 
     def verify_connection(self) -> bool:
         """Verify OpenAI connection."""
@@ -115,11 +105,7 @@ class OpenAIProvider(BaseLLMProvider):
             raise
 
     def chat(
-        self,
-        messages: list,
-        temperature: float = 0.7,
-        max_tokens: int = 2048,
-        **kwargs
+        self, messages: list, temperature: float = 0.7, max_tokens: int = 2048, **kwargs
     ) -> ProviderResponse:
         """Run a chat completion via an OpenAI-compatible API."""
         try:
@@ -128,7 +114,7 @@ class OpenAIProvider(BaseLLMProvider):
                 messages=messages,
                 temperature=temperature,
                 max_tokens=max_tokens,
-                **kwargs
+                **kwargs,
             )
 
             return ProviderResponse(
@@ -141,7 +127,7 @@ class OpenAIProvider(BaseLLMProvider):
                 },
                 metadata={
                     "finish_reason": response.choices[0].finish_reason,
-                }
+                },
             )
 
         except Exception as e:
@@ -173,7 +159,7 @@ class OpenAIProvider(BaseLLMProvider):
         prompt: str,
         temperature: float = 0.7,
         max_tokens: int = 2048,
-        **kwargs
+        **kwargs,
     ) -> ProviderResponse:
         """Analyze image with OpenAI."""
         if not self.supports_vision:
@@ -194,13 +180,10 @@ class OpenAIProvider(BaseLLMProvider):
                     {
                         "type": "image_url",
                         "image_url": {
-                            "url": (
-                                f"data:image/{image_suffix};base64,"
-                                f"{image_data}"
-                            )
-                        }
-                    }
-                ]
+                            "url": (f"data:image/{image_suffix};base64," f"{image_data}")
+                        },
+                    },
+                ],
             }
         ]
 
@@ -210,7 +193,7 @@ class OpenAIProvider(BaseLLMProvider):
                 messages=messages,
                 temperature=temperature,
                 max_tokens=max_tokens,
-                **kwargs
+                **kwargs,
             )
 
             return ProviderResponse(
@@ -223,7 +206,7 @@ class OpenAIProvider(BaseLLMProvider):
                 },
                 metadata={
                     "finish_reason": response.choices[0].finish_reason,
-                }
+                },
             )
 
         except Exception as e:
@@ -239,14 +222,10 @@ class GroqProvider(OpenAIProvider):
         model: str = "llama-3.3-70b-versatile",
         api_key: str | None = None,
         base_url: str | None = None,
-        **kwargs
+        **kwargs,
     ):
         resolved_api_key = api_key or os.getenv("GROQ_API_KEY")
-        resolved_base_url = (
-            base_url
-            or os.getenv("GROQ_BASE_URL")
-            or GROQ_BASE_URL
-        )
+        resolved_base_url = base_url or os.getenv("GROQ_BASE_URL") or GROQ_BASE_URL
         super().__init__(
             model=model,
             api_key=resolved_api_key,
@@ -269,14 +248,10 @@ class GrokProvider(OpenAIProvider):
         model: str = "grok-2-vision-latest",
         api_key: str | None = None,
         base_url: str | None = None,
-        **kwargs
+        **kwargs,
     ):
         resolved_api_key = api_key or os.getenv("XAI_API_KEY")
-        resolved_base_url = (
-            base_url
-            or os.getenv("GROK_BASE_URL")
-            or GROK_BASE_URL
-        )
+        resolved_base_url = base_url or os.getenv("GROK_BASE_URL") or GROK_BASE_URL
         super().__init__(
             model=model,
             api_key=resolved_api_key,

@@ -66,9 +66,7 @@ class BatchProcessor:
                     progress_callback(i, total, Path(name).name)
 
                 try:
-                    result = self.analyzer.analyze_product_full(
-                        image_path, marketplace, keywords
-                    )
+                    result = self.analyzer.analyze_product_full(image_path, marketplace, keywords)
                     results.append(
                         {
                             "filename": Path(name).name,
@@ -152,9 +150,7 @@ class BatchProcessor:
         """Convert batch results to CSV string."""
         output = io.StringIO()
         writer = csv.writer(output)
-        writer.writerow(
-            ["Filename", "Success", "Analysis", "Model", "Provider", "Tokens"]
-        )
+        writer.writerow(["Filename", "Success", "Analysis", "Model", "Provider", "Tokens"])
 
         for r in results:
             meta = r.get("metadata", {})

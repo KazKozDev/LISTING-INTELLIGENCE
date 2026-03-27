@@ -114,13 +114,34 @@ def _detect_category_profile(product_context: ProductContext) -> str:
         )
         if value
     )
-    if any(token in text for token in ("iphone", "phone", "smartphone", "tablet", "laptop", "monitor", "tv", "watch", "electronics")):
+    if any(
+        token in text
+        for token in (
+            "iphone",
+            "phone",
+            "smartphone",
+            "tablet",
+            "laptop",
+            "monitor",
+            "tv",
+            "watch",
+            "electronics",
+        )
+    ):
         return "electronics"
-    if any(token in text for token in ("shirt", "dress", "shoe", "fashion", "clothing", "jacket", "sneaker")):
+    if any(
+        token in text
+        for token in ("shirt", "dress", "shoe", "fashion", "clothing", "jacket", "sneaker")
+    ):
         return "fashion"
-    if any(token in text for token in ("beauty", "cosmetic", "serum", "cream", "makeup", "skincare", "perfume")):
+    if any(
+        token in text
+        for token in ("beauty", "cosmetic", "serum", "cream", "makeup", "skincare", "perfume")
+    ):
         return "beauty"
-    if any(token in text for token in ("used", "preowned", "pre-owned", "second hand", "refurbished")):
+    if any(
+        token in text for token in ("used", "preowned", "pre-owned", "second hand", "refurbished")
+    ):
         return "used_goods"
     if any(token in text for token in ("pack", "set of", "bundle", "multipack", "multi-pack")):
         return "multipack"
@@ -248,8 +269,7 @@ def _build_structured_verification_findings(
         for token in ("text overlay", "added text", "store-added text", "misleading text")
     )
     logo_is_forbidden = any(
-        token in rules_blob
-        for token in ("logo", "watermark", "store logos", "seller logo")
+        token in rules_blob for token in ("logo", "watermark", "store logos", "seller logo")
     )
 
     if width < min_width or height < min_height:
@@ -276,8 +296,10 @@ def _build_structured_verification_findings(
             )
         )
 
-    if recommended_width and recommended_height and (
-        width < recommended_width or height < recommended_height
+    if (
+        recommended_width
+        and recommended_height
+        and (width < recommended_width or height < recommended_height)
     ):
         findings.append(
             ComplianceFinding(
@@ -462,7 +484,11 @@ def _build_structured_verification_findings(
     object_result = object_detector.detect(image_path)
     if object_result.has_watermark:
         watermark_obj = next(
-            (obj for obj in object_result.objects if obj.label in {"logo", "watermark", "stamp", "seal", "badge"}),
+            (
+                obj
+                for obj in object_result.objects
+                if obj.label in {"logo", "watermark", "stamp", "seal", "badge"}
+            ),
             None,
         )
         findings.append(
@@ -488,7 +514,11 @@ def _build_structured_verification_findings(
 
     if object_result.has_text_overlay:
         text_obj = next(
-            (obj for obj in object_result.objects if obj.label in {"text", "label", "sign", "banner", "caption"}),
+            (
+                obj
+                for obj in object_result.objects
+                if obj.label in {"text", "label", "sign", "banner", "caption"}
+            ),
             None,
         )
         findings.append(
@@ -538,7 +568,9 @@ def _build_structured_verification_findings(
             )
         )
 
-    cell_phone_obj = next((obj for obj in object_result.objects if obj.label in {"cell phone", "mobile phone"}), None)
+    cell_phone_obj = next(
+        (obj for obj in object_result.objects if obj.label in {"cell phone", "mobile phone"}), None
+    )
     if cell_phone_obj and object_result.total_count > 2:
         findings.append(
             ComplianceFinding(
@@ -560,7 +592,11 @@ def _build_structured_verification_findings(
             )
         )
 
-    if category_profile == "electronics" and not text_result.has_text and cell_phone_obj is not None:
+    if (
+        category_profile == "electronics"
+        and not text_result.has_text
+        and cell_phone_obj is not None
+    ):
         findings.append(
             ComplianceFinding(
                 code="image.device_state.neutral_uncertain",
@@ -581,37 +617,44 @@ def _build_structured_verification_findings(
 
     if reference_image_path is not None:
         try:
-          current_hash = _average_hash(image_path)
-          reference_hash = _average_hash(reference_image_path)
-          hash_distance = _hash_distance(current_hash, reference_hash)
-          if hash_distance > 96:
-              findings.append(
-                  ComplianceFinding(
-                      code="reference.visual_similarity.low",
-                      label="Low similarity to reference image",
-                      severity="warning",
-                      summary="The uploaded image differs materially from the provided reference image under a lightweight visual similarity check.",
-                      source="rule",
-                      verification_tier=_tier_for_source("rule"),
-                      confidence=0.78,
-                      evidence={
-                          "measured": {
-                              "hash_distance": hash_distance,
-                              "category_profile": category_profile,
-                          }
-                      },
-                  )
-              )
+            current_hash = _average_hash(image_path)
+            reference_hash = _average_hash(reference_image_path)
+            hash_distance = _hash_distance(current_hash, reference_hash)
+            if hash_distance > 96:
+                findings.append(
+                    ComplianceFinding(
+                        code="reference.visual_similarity.low",
+                        label="Low similarity to reference image",
+                        severity="warning",
+                        summary="The uploaded image differs materially from the provided reference image under a lightweight visual similarity check.",
+                        source="rule",
+                        verification_tier=_tier_for_source("rule"),
+                        confidence=0.78,
+                        evidence={
+                            "measured": {
+                                "hash_distance": hash_distance,
+                                "category_profile": category_profile,
+                            }
+                        },
+                    )
+                )
         except Exception:
-          pass
+            pass
 
     if product_context.title or product_context.attributes:
-        context_text = " ".join(value.lower() for value in (product_context.title, product_context.attributes) if value)
+        context_text = " ".join(
+            value.lower() for value in (product_context.title, product_context.attributes) if value
+        )
         matched_context_tokens = [
-            token for token in re.findall(r"[a-zA-Z0-9]{4,}", context_text)
+            token
+            for token in re.findall(r"[a-zA-Z0-9]{4,}", context_text)
             if token in text_result.combined_text.lower()
         ]
-        if category_profile == "electronics" and text_result.has_text and not matched_context_tokens:
+        if (
+            category_profile == "electronics"
+            and text_result.has_text
+            and not matched_context_tokens
+        ):
             findings.append(
                 ComplianceFinding(
                     code="reference.context_match.uncertain",
@@ -673,17 +716,13 @@ async def lifespan(app: FastAPI):
 
 app = FastAPI(
     title="Listing Intelligence API",
-    description=(
-        "AI-powered visual analysis for e-commerce, charts, and documents"
-    ),
+    description=("AI-powered visual analysis for e-commerce, charts, and documents"),
     version="1.0.1-beta",
     lifespan=lifespan,
 )
 
 # CORS
-cors_origins = os.getenv(
-    "CORS_ORIGINS", "http://localhost:5173,http://localhost:3000"
-).split(",")
+cors_origins = os.getenv("CORS_ORIGINS", "http://localhost:5173,http://localhost:3000").split(",")
 app.add_middleware(
     CORSMiddleware,
     allow_origins=[origin.strip() for origin in cors_origins],
@@ -700,8 +739,7 @@ async def log_requests(request: Request, call_next):
     response = await call_next(request)
     duration = time.time() - start
     logger.info(
-        f"{request.method} {request.url.path} - "
-        f"{response.status_code} ({duration:.2f}s)"
+        f"{request.method} {request.url.path} - " f"{response.status_code} ({duration:.2f}s)"
     )
     return response
 
@@ -778,9 +816,7 @@ def resolve_effective_prompt(
             effective_prompt = template_entry.get("prompt", "")
 
         if not effective_prompt.strip():
-            template_fallback = cfg.prompts_config.get("templates", {}).get(
-                template_key, ""
-            )
+            template_fallback = cfg.prompts_config.get("templates", {}).get(template_key, "")
             if template_fallback:
                 effective_prompt = template_fallback
 
@@ -827,9 +863,7 @@ def _stream_pil_image(
     }
     if extra_headers:
         response_headers.update(extra_headers)
-        response_headers["Access-Control-Expose-Headers"] = ", ".join(
-            sorted(extra_headers.keys())
-        )
+        response_headers["Access-Control-Expose-Headers"] = ", ".join(sorted(extra_headers.keys()))
 
     return StreamingResponse(
         img_byte_arr,
@@ -841,10 +875,7 @@ def _stream_pil_image(
 def extract_public_page_text(html_content: str) -> str:
     """Extract readable text from a fetched HTML document."""
     cleaned_html = re.sub(
-        (
-            r"<script[\s\S]*?</script>|<style[\s\S]*?</style>|"
-            r"<noscript[\s\S]*?</noscript>"
-        ),
+        (r"<script[\s\S]*?</script>|<style[\s\S]*?</style>|" r"<noscript[\s\S]*?</noscript>"),
         " ",
         html_content,
         flags=re.IGNORECASE,
@@ -870,12 +901,8 @@ def extract_public_page_text(html_content: str) -> str:
         title_text = html.unescape(title_match.group(1)).strip()
         sections.append(f"Title: {title_text}")
     if meta_description_match:
-        meta_description = html.unescape(
-            meta_description_match.group(1)
-        ).strip()
-        sections.append(
-            f"Meta description: {meta_description}"
-        )
+        meta_description = html.unescape(meta_description_match.group(1)).strip()
+        sections.append(f"Meta description: {meta_description}")
     if visible_text:
         sections.append(f"Visible page text: {visible_text[:12000]}")
 
@@ -927,10 +954,7 @@ def analyze_text_content(
         messages=[
             {
                 "role": "user",
-                "content": (
-                    f"{task}\n\nAnalyze this listing content:\n\n"
-                    f"{content}"
-                ),
+                "content": (f"{task}\n\nAnalyze this listing content:\n\n" f"{content}"),
             }
         ],
         temperature=agent.config.temperature,
@@ -963,13 +987,10 @@ def build_inventory_check_analysis(
     avg_confidence = 0.0
     if label_counts:
         dominant_label, dominant_count = label_counts.most_common(1)[0]
-        dominant_objects = [
-            obj for obj in objects if obj.get("label") == dominant_label
-        ]
-        avg_confidence = sum(
-            float(obj.get("confidence", 0.0))
-            for obj in dominant_objects
-        ) / max(1, len(dominant_objects))
+        dominant_objects = [obj for obj in objects if obj.get("label") == dominant_label]
+        avg_confidence = sum(float(obj.get("confidence", 0.0)) for obj in dominant_objects) / max(
+            1, len(dominant_objects)
+        )
 
     if detected_objects == 0:
         scene_read = (
@@ -977,10 +998,7 @@ def build_inventory_check_analysis(
             "image is not reliable for an object count."
         )
     elif distinct_labels == 1 and detected_objects >= 3:
-        scene_read = (
-            "The frame is visually consistent and dominated by a single "
-            "object class."
-        )
+        scene_read = "The frame is visually consistent and dominated by a single " "object class."
     elif distinct_labels <= 3 and detected_objects >= 2:
         scene_read = (
             "The frame contains a small set of recurring classes, which is "
@@ -1002,13 +1020,9 @@ def build_inventory_check_analysis(
 
     risk_flags: list[str] = []
     if object_payload.get("has_watermark"):
-        risk_flags.append(
-            "Watermark-like artwork was detected in the frame."
-        )
+        risk_flags.append("Watermark-like artwork was detected in the frame.")
     if object_payload.get("has_text_overlay"):
-        risk_flags.append(
-            "Overlay-style text or signage was detected as an object."
-        )
+        risk_flags.append("Overlay-style text or signage was detected as an object.")
     if text_payload.get("has_text"):
         risk_flags.append(
             "OCR found readable text in the scene, which often means shelf "
@@ -1066,9 +1080,7 @@ def build_inventory_check_analysis(
         for flag in risk_flags:
             lines.append(f"- {flag}")
     else:
-        lines.append(
-            "- No obvious object-detection or OCR flags were detected."
-        )
+        lines.append("- No obvious object-detection or OCR flags were detected.")
 
     return "\n".join(lines)
 
@@ -1316,33 +1328,22 @@ async def inventory_check(file: UploadFile = File(...)):
                     task=vision_prompt,
                 )
                 vision_text = vision_result.text.strip()
-                vision_tokens = int(
-                    vision_result.metadata.get("usage", {}).get(
-                        "total_tokens", 0
-                    )
-                )
+                vision_tokens = int(vision_result.metadata.get("usage", {}).get("total_tokens", 0))
 
                 if vision_text:
                     metadata["vision_review"] = {
                         "available": True,
                         "text": vision_text,
-                        "provider": vision_result.metadata.get(
-                            "provider"
-                        ),
+                        "provider": vision_result.metadata.get("provider"),
                         "model": vision_result.metadata.get("model"),
                         "usage": vision_result.metadata.get("usage", {}),
                     }
-                    analysis_sections.append(
-                        f"## Vision Review\n\n{vision_text}"
-                    )
+                    analysis_sections.append(f"## Vision Review\n\n{vision_text}")
                     tokens_used = vision_tokens
             else:
                 metadata["vision_review"] = {
                     "available": False,
-                    "reason": (
-                        "Configured provider does not support "
-                        "vision review."
-                    ),
+                    "reason": ("Configured provider does not support " "vision review."),
                 }
         except HTTPException:
             raise
@@ -1789,12 +1790,8 @@ async def apply_compliance_fix(
             reference_image_path=reference_path,
         )
 
-        before_tokens = before_result.metadata.get("usage", {}).get(
-            "total_tokens", 0
-        )
-        after_tokens = after_result.metadata.get("usage", {}).get(
-            "total_tokens", 0
-        )
+        before_tokens = before_result.metadata.get("usage", {}).get("total_tokens", 0)
+        after_tokens = after_result.metadata.get("usage", {}).get("total_tokens", 0)
         total_tokens = before_tokens + after_tokens
 
         _cost_tracker.record(
@@ -2352,9 +2349,7 @@ async def intelligence_erase(
             draw = ImageDraw.Draw(mask)
             for region in parsed_regions:
                 if not isinstance(region, list) or len(region) != 4:
-                    raise ValueError(
-                        "each region must be [x1, y1, x2, y2]"
-                    )
+                    raise ValueError("each region must be [x1, y1, x2, y2]")
 
                 x1, y1, x2, y2 = region
                 draw.rectangle(

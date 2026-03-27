@@ -16,7 +16,7 @@ class GoogleProvider(BaseLLMProvider):
         model: str = "gemini-1.5-pro",
         api_key: str | None = None,
         base_url: str | None = None,
-        **kwargs
+        **kwargs,
     ):
         """Initialize Google provider.
 
@@ -33,6 +33,7 @@ class GoogleProvider(BaseLLMProvider):
 
         try:
             import google.generativeai as genai
+
             genai.configure(api_key=self.api_key)
             self.genai = genai
             self.client = genai.GenerativeModel(self.model)
@@ -85,7 +86,7 @@ class GoogleProvider(BaseLLMProvider):
         prompt: str,
         temperature: float = 0.7,
         max_tokens: int = 2048,
-        **kwargs
+        **kwargs,
     ) -> ProviderResponse:
         """Analyze image with Google AI."""
         # Guard against empty prompt
@@ -101,9 +102,7 @@ class GoogleProvider(BaseLLMProvider):
 
         try:
             response = self.client.generate_content(
-                [prompt, image],
-                generation_config=generation_config,
-                **kwargs
+                [prompt, image], generation_config=generation_config, **kwargs
             )
 
             # Extract usage information if available
@@ -118,8 +117,10 @@ class GoogleProvider(BaseLLMProvider):
                 model=self.model,
                 usage=usage,
                 metadata={
-                    "finish_reason": response.candidates[0].finish_reason.name if response.candidates else None,
-                }
+                    "finish_reason": (
+                        response.candidates[0].finish_reason.name if response.candidates else None
+                    ),
+                },
             )
 
         except Exception as e:
@@ -127,11 +128,7 @@ class GoogleProvider(BaseLLMProvider):
             raise
 
     def chat(
-        self,
-        messages: list,
-        temperature: float = 0.7,
-        max_tokens: int = 2048,
-        **kwargs
+        self, messages: list, temperature: float = 0.7, max_tokens: int = 2048, **kwargs
     ) -> ProviderResponse:
         """Chat with Google AI."""
         # Convert messages to Google AI format
@@ -150,9 +147,7 @@ class GoogleProvider(BaseLLMProvider):
         try:
             chat = self.client.start_chat(history=chat_history)
             response = chat.send_message(
-                last_message,
-                generation_config=generation_config,
-                **kwargs
+                last_message, generation_config=generation_config, **kwargs
             )
 
             usage = {
@@ -166,8 +161,10 @@ class GoogleProvider(BaseLLMProvider):
                 model=self.model,
                 usage=usage,
                 metadata={
-                    "finish_reason": response.candidates[0].finish_reason.name if response.candidates else None,
-                }
+                    "finish_reason": (
+                        response.candidates[0].finish_reason.name if response.candidates else None
+                    ),
+                },
             )
 
         except Exception as e:

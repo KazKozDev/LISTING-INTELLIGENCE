@@ -25,10 +25,7 @@ class PDFProcessor:
         self.temp_dir.mkdir(parents=True, exist_ok=True)
 
     def extract_pages_as_images(
-        self,
-        pdf_path: Path,
-        pages: list[int] | None = None,
-        dpi: int | None = None
+        self, pdf_path: Path, pages: list[int] | None = None, dpi: int | None = None
     ) -> list[tuple[int, Path]]:
         """Extract PDF pages as images.
 

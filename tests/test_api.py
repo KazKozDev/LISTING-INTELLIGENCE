@@ -191,22 +191,10 @@ class TestInventoryCheckEndpoint:
         assert data["metadata"]["deterministic"] is True
         assert data["metadata"]["object_detection"]["total_count"] == 3
         assert data["metadata"]["vision_review"]["available"] is True
-        assert (
-            data["metadata"]["vision_review"]["text"]
-            == "Mock analysis result"
-        )
-        assert (
-            data["metadata"]["text_detection"]["combined_text"]
-            == "2 for $10"
-        )
-        assert (
-            "Deterministic read built from object detection and OCR"
-            in data["analysis"]
-        )
-        assert (
-            "Detected objects**: 3 object(s) across 2 class(es)"
-            in data["analysis"]
-        )
+        assert data["metadata"]["vision_review"]["text"] == "Mock analysis result"
+        assert data["metadata"]["text_detection"]["combined_text"] == "2 for $10"
+        assert "Deterministic read built from object detection and OCR" in data["analysis"]
+        assert "Detected objects**: 3 object(s) across 2 class(es)" in data["analysis"]
         assert "## Vision Review" in data["analysis"]
         assert "bottle" in data["analysis"]
 
@@ -533,10 +521,7 @@ class TestImageIntelligenceEndpoints:
         assert response.status_code == 200
         assert response.headers["content-type"] == "image/png"
         assert response.headers["x-relight-model"] == mock_result.model_id
-        assert (
-            response.headers["x-relight-mask-source"]
-            == mock_result.mask_source
-        )
+        assert response.headers["x-relight-mask-source"] == mock_result.mask_source
         assert response.headers["x-relight-applied"] == "true"
 
     def test_outpaint_apply(self, client, sample_image):
@@ -564,9 +549,6 @@ class TestImageIntelligenceEndpoints:
 
         assert response.status_code == 200
         assert response.headers["content-type"] == "image/png"
-        assert (
-            response.headers["x-outpaint-model"]
-            == "runwayml/stable-diffusion-inpainting"
-        )
+        assert response.headers["x-outpaint-model"] == "runwayml/stable-diffusion-inpainting"
         assert response.headers["x-outpaint-direction"] == "right"
         assert response.headers["x-outpaint-expansion"] == "0.25"

@@ -39,7 +39,7 @@ class ProviderFactory:
         model: str,
         api_key: str | None = None,
         base_url: str | None = None,
-        **kwargs
+        **kwargs,
     ) -> BaseLLMProvider:
         """Create a provider instance.
 
@@ -65,21 +65,14 @@ class ProviderFactory:
             )
 
         if not model:
-            raise ValueError(
-                "Model name is required. Please set LLM_MODEL in .env file"
-            )
+            raise ValueError("Model name is required. Please set LLM_MODEL in .env file")
 
         provider_class = cls.PROVIDERS[provider_name]
 
         logger.info(f"Creating {provider_name} provider with model: {model}")
 
         try:
-            provider = provider_class(
-                model=model,
-                api_key=api_key,
-                base_url=base_url,
-                **kwargs
-            )
+            provider = provider_class(model=model, api_key=api_key, base_url=base_url, **kwargs)
             return provider
         except Exception as e:
             logger.error(f"Failed to create provider {provider_name}: {e}")
@@ -141,9 +134,7 @@ class ProviderFactory:
                 "name": "Google AI (Gemini)",
                 "requires_api_key": True,
                 "requires_base_url": False,
-                "default_base_url": (
-                    "https://generativelanguage.googleapis.com"
-                ),
+                "default_base_url": ("https://generativelanguage.googleapis.com"),
                 "supports_vision": True,
             },
             "azure": {

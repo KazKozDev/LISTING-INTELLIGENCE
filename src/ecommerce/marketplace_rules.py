@@ -11,9 +11,7 @@ MARKETPLACE_RULES: dict[str, dict[str, Any]] = {
         "recommended_image_width": 2560,
         "recommended_image_height": 2560,
         "max_file_size_mb": 26,
-        "required_background": (
-            "any background allowed if the product is presented clearly"
-        ),
+        "required_background": ("any background allowed if the product is presented clearly"),
         "aspect_ratio": "any ratio allowed",
         "allowed_formats": [
             "JPG",
@@ -29,19 +27,13 @@ MARKETPLACE_RULES: dict[str, dict[str, Any]] = {
             "photos that do not show the offered product or correct variant",
         ],
         "main_image_rules": [
-            (
-                "The image should accurately present the exact product being "
-                "sold."
-            ),
+            ("The image should accurately present the exact product being " "sold."),
             "Store-added text and logos are not allowed.",
             (
                 "Graphic annotations such as numbers, close-ups, arrows, "
                 "certificates, and color markings can be used."
             ),
-            (
-                "Brand and technology logos visible on the product or "
-                "packaging are allowed."
-            ),
+            ("Brand and technology logos visible on the product or " "packaging are allowed."),
             (
                 "Regular accounts can upload up to 10 gallery images; "
                 "business accounts up to 16 in most categories."
@@ -53,21 +45,12 @@ MARKETPLACE_RULES: dict[str, dict[str, Any]] = {
                 "Keep the longer side at 500 px or more; Allegro scales down "
                 "anything above 2560 px per side."
             ),
-            (
-                "Use multiple angles and packaging shots when they help "
-                "represent the offer."
-            ),
-            (
-                "Avoid descriptive text blocks even when graphical callouts "
-                "are permitted."
-            ),
+            ("Use multiple angles and packaging shots when they help " "represent the offer."),
+            ("Avoid descriptive text blocks even when graphical callouts " "are permitted."),
         ],
         "sources": [
             {
-                "label": (
-                    "Allegro Help: Rules for images in the gallery and in "
-                    "descriptions"
-                ),
+                "label": ("Allegro Help: Rules for images in the gallery and in " "descriptions"),
                 "url": (
                     "https://help.allegro.com/en/sell/a/"
                     "rules-for-images-in-the-gallery-and-in-"
@@ -75,9 +58,7 @@ MARKETPLACE_RULES: dict[str, dict[str, Any]] = {
                 ),
             },
             {
-                "label": (
-                    "Allegro Help: When we can remove a photo from an offer"
-                ),
+                "label": ("Allegro Help: When we can remove a photo from an offer"),
                 "url": (
                     "https://help.allegro.com/en/sell/a/"
                     "when-we-can-remove-a-photo-from-an-offer-aMloBWa7wu5"
@@ -85,8 +66,7 @@ MARKETPLACE_RULES: dict[str, dict[str, Any]] = {
             },
         ],
         "notes": (
-            "Some category-specific or distributor-specific exceptions may "
-            "apply on Allegro."
+            "Some category-specific or distributor-specific exceptions may " "apply on Allegro."
         ),
     },
     "walmart": {
@@ -110,31 +90,16 @@ MARKETPLACE_RULES: dict[str, dict[str, Any]] = {
             "sold out or out of stock messages",
         ],
         "main_image_rules": [
-            (
-                "Main images should feature the item on a seamless white "
-                "background."
-            ),
-            (
-                "Crop the product close to the frame and avoid excessive "
-                "empty background."
-            ),
+            ("Main images should feature the item on a seamless white " "background."),
+            ("Crop the product close to the frame and avoid excessive " "empty background."),
             "Larger items may appear in an expected environment.",
-            (
-                "Images must correspond to the product name, type, and key "
-                "attributes."
-            ),
+            ("Images must correspond to the product name, type, and key " "attributes."),
         ],
         "recommendations": [
             "Upload at least four images per listing.",
             "Keep all images in focus and professionally lit.",
-            (
-                "Use 2200x2200 px where possible; 1500x1500 px is the "
-                "minimum for zoom."
-            ),
-            (
-                "Use RGB color mode and square aspect ratio for best "
-                "compatibility."
-            ),
+            ("Use 2200x2200 px where possible; 1500x1500 px is the " "minimum for zoom."),
+            ("Use RGB color mode and square aspect ratio for best " "compatibility."),
         ],
         "sources": [
             {
@@ -149,10 +114,7 @@ MARKETPLACE_RULES: dict[str, dict[str, Any]] = {
                 ),
             }
         ],
-        "notes": (
-            "Walmart notes that some categories have additional image "
-            "requirements."
-        ),
+        "notes": ("Walmart notes that some categories have additional image " "requirements."),
     },
     "amazon": {
         "id": "amazon",
@@ -162,9 +124,7 @@ MARKETPLACE_RULES: dict[str, dict[str, Any]] = {
         "recommended_image_width": 1000,
         "recommended_image_height": 1000,
         "max_file_size_mb": 10,
-        "required_background": (
-            "pure white (RGB 255,255,255) for the main image"
-        ),
+        "required_background": ("pure white (RGB 255,255,255) for the main image"),
         "aspect_ratio": "not fixed; square is common",
         "allowed_formats": ["JPEG", "PNG", "TIFF", "non-animated GIF"],
         "forbidden_elements": [
@@ -181,10 +141,7 @@ MARKETPLACE_RULES: dict[str, dict[str, Any]] = {
             "The main image must show the product on a pure white background.",
             "The product should occupy at least 85% of the frame.",
             "Show the entire product and only one unit of it.",
-            (
-                "Do not crop the product, duplicate it, or show front and "
-                "back in one image."
-            ),
+            ("Do not crop the product, duplicate it, or show front and " "back in one image."),
             (
                 "If there is no compliant main image, Amazon may suppress "
                 "the listing from search."
@@ -215,8 +172,7 @@ MARKETPLACE_RULES: dict[str, dict[str, Any]] = {
             }
         ],
         "notes": (
-            "Amazon has category-specific image rules beyond the general "
-            "product image guide."
+            "Amazon has category-specific image rules beyond the general " "product image guide."
         ),
     },
     "ebay": {
@@ -227,9 +183,7 @@ MARKETPLACE_RULES: dict[str, dict[str, Any]] = {
         "recommended_image_width": 1600,
         "recommended_image_height": 1600,
         "max_file_size_mb": 12,
-        "required_background": (
-            "white or neutral background recommended, not strictly required"
-        ),
+        "required_background": ("white or neutral background recommended, not strictly required"),
         "aspect_ratio": "not fixed",
         "allowed_formats": ["JPG", "PNG", "GIF", "BMP", "TIFF"],
         "forbidden_elements": [
@@ -241,10 +195,7 @@ MARKETPLACE_RULES: dict[str, dict[str, Any]] = {
         ],
         "main_image_rules": [
             "Photos should represent the actual item and its real condition.",
-            (
-                "Used-item listings should show flaws instead of relying on "
-                "stock imagery."
-            ),
+            ("Used-item listings should show flaws instead of relying on " "stock imagery."),
             (
                 "Images 500 px or larger on the longest side meet eBay's "
                 "minimum; 1600 px is commonly recommended for better detail."
@@ -255,17 +206,13 @@ MARKETPLACE_RULES: dict[str, dict[str, Any]] = {
             "Use your own photos for used, damaged, or defective items.",
             "Show multiple angles and any defects clearly.",
             "Prefer high-resolution images without enlarging small originals.",
-            (
-                "Keep overlays and decorative frames out of the main listing "
-                "photos."
-            ),
+            ("Keep overlays and decorative frames out of the main listing " "photos."),
         ],
         "sources": [
             {
                 "label": "eBay Help: Picture policy",
                 "url": (
-                    "https://www.ebay.com/help/policies/listing-policies/"
-                    "picture-policy?id=4370"
+                    "https://www.ebay.com/help/policies/listing-policies/" "picture-policy?id=4370"
                 ),
             },
             {
@@ -306,18 +253,9 @@ MARKETPLACE_RULES: dict[str, dict[str, Any]] = {
                 "The first listing photo should clearly show the product and "
                 "read well in search results."
             ),
-            (
-                "Etsy listing photos are commonly prepared in a 4:3 "
-                "horizontal ratio."
-            ),
-            (
-                "Lifestyle backgrounds are allowed, but the item should "
-                "remain the focal point."
-            ),
-            (
-                "Avoid crowded compositions that make the product hard to "
-                "identify in thumbnails."
-            ),
+            ("Etsy listing photos are commonly prepared in a 4:3 " "horizontal ratio."),
+            ("Lifestyle backgrounds are allowed, but the item should " "remain the focal point."),
+            ("Avoid crowded compositions that make the product hard to " "identify in thumbnails."),
         ],
         "recommendations": [
             "Use 2000 px width for sharp zoomable listing images.",
@@ -328,8 +266,7 @@ MARKETPLACE_RULES: dict[str, dict[str, Any]] = {
         "sources": [
             {
                 "label": (
-                    "Etsy Seller Handbook: Product photography and listing "
-                    "presentation guidance"
+                    "Etsy Seller Handbook: Product photography and listing " "presentation guidance"
                 ),
                 "url": "https://www.etsy.com/seller-handbook",
             },

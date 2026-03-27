@@ -38,13 +38,9 @@ class QualityScorer:
 
     def __init__(self, config: Config | None = None) -> None:
         self.config = config or Config()
-        quality_config = self.config.model_config_data.get(
-            "quality_scoring", {}
-        )
+        quality_config = self.config.model_config_data.get("quality_scoring", {})
         self.enabled = bool(quality_config.get("enabled", True))
-        self.model_name = str(
-            quality_config.get("model", "musiq-koniq")
-        )
+        self.model_name = str(quality_config.get("model", "musiq-koniq"))
         self.device = str(quality_config.get("device", "cpu"))
 
     def score(self, image_path: str | Path) -> QualityResult:

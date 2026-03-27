@@ -76,18 +76,12 @@ class Outpainter:
         self.steps = int(outpaint_config.get("steps", 24))
         self.guidance_scale = float(outpaint_config.get("guidance_scale", 7.0))
         self.strength = float(outpaint_config.get("strength", 0.99))
-        self.max_inference_side = int(
-            outpaint_config.get("max_inference_side", 768)
-        )
-        self.default_expand_ratio = float(
-            outpaint_config.get("default_expand_ratio", 0.25)
-        )
+        self.max_inference_side = int(outpaint_config.get("max_inference_side", 768))
+        self.default_expand_ratio = float(outpaint_config.get("default_expand_ratio", 0.25))
         self.feather_px = int(outpaint_config.get("feather_px", 18))
         self.background = str(outpaint_config.get("background", "white"))
         self.seed = int(outpaint_config.get("seed", 12345))
-        self.cache_dir = Path(
-            outpaint_config.get("cache_dir", "outputs/models")
-        )
+        self.cache_dir = Path(outpaint_config.get("cache_dir", "outputs/models"))
         self.foreground_extractor = ForegroundMaskExtractor(self.config)
 
     def outpaint(
@@ -199,18 +193,10 @@ class Outpainter:
 
         if horizontal:
             canvas_size = (image.width + expansion_px, image.height)
-            offset = (
-                (expansion_px, 0)
-                if chosen_direction == OutpaintDirection.LEFT
-                else (0, 0)
-            )
+            offset = (expansion_px, 0) if chosen_direction == OutpaintDirection.LEFT else (0, 0)
         else:
             canvas_size = (image.width, image.height + expansion_px)
-            offset = (
-                (0, expansion_px)
-                if chosen_direction == OutpaintDirection.TOP
-                else (0, 0)
-            )
+            offset = (0, expansion_px) if chosen_direction == OutpaintDirection.TOP else (0, 0)
 
         canvas = Image.new("RGB", canvas_size, background)
         canvas.paste(image, offset)
@@ -261,18 +247,12 @@ class Outpainter:
             )
 
         if self.feather_px > 0:
-            mask = mask.filter(
-                ImageFilter.GaussianBlur(radius=self.feather_px)
-            )
+            mask = mask.filter(ImageFilter.GaussianBlur(radius=self.feather_px))
 
         return canvas, mask
 
     def _resolve_expand_ratio(self, expand_ratio: float | None) -> float:
-        ratio = float(
-            expand_ratio
-            if expand_ratio is not None
-            else self.default_expand_ratio
-        )
+        ratio = float(expand_ratio if expand_ratio is not None else self.default_expand_ratio)
         return max(0.1, min(0.6, ratio))
 
     def _resolve_background(self) -> tuple[int, int, int]:
@@ -320,9 +300,7 @@ class Outpainter:
         import torch
 
         generator_device = (
-            "cuda"
-            if getattr(torch_device, "type", str(torch_device)) == "cuda"
-            else "cpu"
+            "cuda" if getattr(torch_device, "type", str(torch_device)) == "cuda" else "cpu"
         )
         return torch.Generator(device=generator_device).manual_seed(12345)
 
@@ -333,9 +311,7 @@ class Outpainter:
         from diffusers import StableDiffusionInpaintPipeline
 
         torch_device = ForegroundMaskExtractor._resolve_torch_device(device)
-        torch_dtype = (
-            torch.float16 if torch_device.type == "cuda" else torch.float32
-        )
+        torch_dtype = torch.float16 if torch_device.type == "cuda" else torch.float32
         cache_path = Path(cache_dir)
         cache_path.mkdir(parents=True, exist_ok=True)
 

@@ -33,9 +33,7 @@ class ComplianceFixer:
             {},
         )
         self.composition_policies = self.config.composition_policies_config
-        self.mask_extractor = (
-            mask_extractor or ForegroundMaskExtractor(self.config)
-        )
+        self.mask_extractor = mask_extractor or ForegroundMaskExtractor(self.config)
 
     def suggest_fixes(
         self,
@@ -52,9 +50,7 @@ class ComplianceFixer:
         min_width = rules["min_image_width"]
         min_height = rules["min_image_height"]
         recommended_width = rules.get("recommended_image_width") or min_width
-        recommended_height = (
-            rules.get("recommended_image_height") or min_height
-        )
+        recommended_height = rules.get("recommended_image_height") or min_height
 
         if self._should_suggest_auto_center(
             rules,
@@ -126,10 +122,8 @@ class ComplianceFixer:
         elif action == "resize_to_recommended":
             fixed_image = self._fit_to_canvas(
                 image,
-                rules.get("recommended_image_width")
-                or rules["min_image_width"],
-                rules.get("recommended_image_height")
-                or rules["min_image_height"],
+                rules.get("recommended_image_width") or rules["min_image_width"],
+                rules.get("recommended_image_height") or rules["min_image_height"],
             )
         elif action == "auto_center_ai":
             fixed_image, ai_metadata = self._auto_center_with_ai(
@@ -186,10 +180,7 @@ class ComplianceFixer:
             or width < recommended_width
             or height < recommended_height
         )
-        return (
-            bool(self.image_ai_config.get("enabled", True))
-            and needs_centering_support
-        )
+        return bool(self.image_ai_config.get("enabled", True)) and needs_centering_support
 
     def _pad_to_square(
         self,
@@ -372,23 +363,13 @@ class ComplianceFixer:
 
         minimum_width = int(rules["min_image_width"])
         minimum_height = int(rules["min_image_height"])
-        recommended_width = int(
-            rules.get("recommended_image_width") or minimum_width
-        )
-        recommended_height = int(
-            rules.get("recommended_image_height") or minimum_height
-        )
+        recommended_width = int(rules.get("recommended_image_width") or minimum_width)
+        recommended_height = int(rules.get("recommended_image_height") or minimum_height)
 
-        if (
-            target_width <= minimum_width
-            and target_height <= minimum_height
-        ):
+        if target_width <= minimum_width and target_height <= minimum_height:
             return "minimum"
 
-        if (
-            target_width >= recommended_width
-            and target_height >= recommended_height
-        ):
+        if target_width >= recommended_width and target_height >= recommended_height:
             return "recommended"
 
         return "recommended"
@@ -421,11 +402,7 @@ class ComplianceFixer:
             if target_key == "minimum"
             else DEFAULT_RECOMMENDED_FILL_RATIO
         )
-        policy_key = (
-            "minimum_fill_ratio"
-            if target_key == "minimum"
-            else "recommended_fill_ratio"
-        )
+        policy_key = "minimum_fill_ratio" if target_key == "minimum" else "recommended_fill_ratio"
 
         return float(
             marketplace_usage_policy.get(

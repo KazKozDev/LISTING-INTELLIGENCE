@@ -65,16 +65,13 @@ class Cache:
         key = self._get_cache_key(prompt, model)
         cache_file = self.cache_dir / f"{key}.json"
 
-        data = {
-            "timestamp": time.time(),
-            "response": response
-        }
+        data = {"timestamp": time.time(), "response": response}
 
         try:
             with open(cache_file, "w") as f:
                 json.dump(data, f)
         except OSError:
-            pass # Ignore write errors
+            pass  # Ignore write errors
 
     def clear(self) -> None:
         """Clear all cache entries."""

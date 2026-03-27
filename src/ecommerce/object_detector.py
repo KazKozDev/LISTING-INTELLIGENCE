@@ -45,26 +45,14 @@ class ObjectDetector:
 
     def __init__(self, config: Config | None = None) -> None:
         self.config = config or Config()
-        detection_config = self.config.model_config_data.get(
-            "object_detection", {}
-        )
+        detection_config = self.config.model_config_data.get("object_detection", {})
         self.enabled = bool(detection_config.get("enabled", True))
-        self.model_name = str(
-            detection_config.get("model", "yolo11n.pt")
-        )
+        self.model_name = str(detection_config.get("model", "yolo11n.pt"))
         self.device = str(detection_config.get("device", "cpu"))
-        self.confidence_threshold = float(
-            detection_config.get("confidence_threshold", 0.25)
-        )
-        self.detect_watermarks = bool(
-            detection_config.get("detect_watermarks", True)
-        )
-        self.detect_text_overlays = bool(
-            detection_config.get("detect_text_overlays", True)
-        )
-        self.max_objects_warning = int(
-            detection_config.get("max_objects_warning", 3)
-        )
+        self.confidence_threshold = float(detection_config.get("confidence_threshold", 0.25))
+        self.detect_watermarks = bool(detection_config.get("detect_watermarks", True))
+        self.detect_text_overlays = bool(detection_config.get("detect_text_overlays", True))
+        self.max_objects_warning = int(detection_config.get("max_objects_warning", 3))
 
     def detect(self, image_path: str | Path) -> DetectionResult:
         """Run object detection on an image."""
@@ -109,9 +97,7 @@ class ObjectDetector:
                 for box in result.boxes:
                     label = model.names[int(box.cls[0])].lower()
                     confidence = float(box.conf[0])
-                    x1, y1, x2, y2 = (
-                        int(v) for v in box.xyxy[0].tolist()
-                    )
+                    x1, y1, x2, y2 = (int(v) for v in box.xyxy[0].tolist())
                     box_area = max(1, (x2 - x1) * (y2 - y1))
                     area_ratio = box_area / max(1, image_area)
 
@@ -134,9 +120,7 @@ class ObjectDetector:
                     f"main images typically show a single product."
                 )
             if has_watermark:
-                warnings.append(
-                    "Potential watermark or logo detected on the image."
-                )
+                warnings.append("Potential watermark or logo detected on the image.")
             if has_text_overlay:
                 warnings.append(
                     "Text overlay detected; most marketplaces "

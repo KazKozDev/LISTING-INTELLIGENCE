@@ -21,7 +21,7 @@ class OllamaProvider(BaseLLMProvider):
         model: str = "qwen3-vl:8b",
         api_key: str | None = None,
         base_url: str = "http://localhost:11434",
-        **kwargs
+        **kwargs,
     ):
         """Initialize Ollama provider.
 
@@ -71,8 +71,7 @@ class OllamaProvider(BaseLLMProvider):
 
         # Resize if needed
         with Image.open(image_path) as img:
-            if img.size[0] > self.max_image_size[0] or \
-               img.size[1] > self.max_image_size[1]:
+            if img.size[0] > self.max_image_size[0] or img.size[1] > self.max_image_size[1]:
                 img.thumbnail(self.max_image_size, Image.Resampling.LANCZOS)
                 temp_path = image_path.parent / f"temp_{image_path.name}"
                 img.save(temp_path)
@@ -88,7 +87,7 @@ class OllamaProvider(BaseLLMProvider):
         prompt: str,
         temperature: float = 0.7,
         max_tokens: int = 2048,
-        **kwargs
+        **kwargs,
     ) -> ProviderResponse:
         """Analyze image with Ollama using Chat API."""
         if not self.supports_vision:
@@ -100,13 +99,7 @@ class OllamaProvider(BaseLLMProvider):
 
         image_data = self._encode_image(image_path)
 
-        messages = [
-            {
-                "role": "user",
-                "content": prompt,
-                "images": [image_data]
-            }
-        ]
+        messages = [{"role": "user", "content": prompt, "images": [image_data]}]
 
         payload = {
             "model": self.model,
@@ -115,7 +108,7 @@ class OllamaProvider(BaseLLMProvider):
             "options": {
                 "temperature": temperature,
                 "num_predict": max_tokens,
-            }
+            },
         }
 
         try:
@@ -148,12 +141,13 @@ class OllamaProvider(BaseLLMProvider):
                 usage={
                     "prompt_tokens": result.get("prompt_eval_count", 0),
                     "completion_tokens": result.get("eval_count", 0),
-                    "total_tokens": result.get("prompt_eval_count", 0) + result.get("eval_count", 0),
+                    "total_tokens": result.get("prompt_eval_count", 0)
+                    + result.get("eval_count", 0),
                 },
                 metadata={
                     "total_duration": result.get("total_duration", 0) / 1_000_000,
                     "load_duration": result.get("load_duration", 0) / 1_000_000,
-                }
+                },
             )
 
         except requests.exceptions.RequestException as e:
@@ -161,11 +155,7 @@ class OllamaProvider(BaseLLMProvider):
             raise
 
     def chat(
-        self,
-        messages: list,
-        temperature: float = 0.7,
-        max_tokens: int = 2048,
-        **kwargs
+        self, messages: list, temperature: float = 0.7, max_tokens: int = 2048, **kwargs
     ) -> ProviderResponse:
         """Chat with Ollama."""
         prompt = "\n".join([f"{m['role']}: {m['content']}" for m in messages])
@@ -177,7 +167,7 @@ class OllamaProvider(BaseLLMProvider):
             "options": {
                 "temperature": temperature,
                 "num_predict": max_tokens,
-            }
+            },
         }
 
         try:
@@ -191,11 +181,12 @@ class OllamaProvider(BaseLLMProvider):
                 usage={
                     "prompt_tokens": result.get("prompt_eval_count", 0),
                     "completion_tokens": result.get("eval_count", 0),
-                    "total_tokens": result.get("prompt_eval_count", 0) + result.get("eval_count", 0),
+                    "total_tokens": result.get("prompt_eval_count", 0)
+                    + result.get("eval_count", 0),
                 },
                 metadata={
                     "total_duration": result.get("total_duration", 0) / 1_000_000,
-                }
+                },
             )
 
         except requests.exceptions.RequestException as e:

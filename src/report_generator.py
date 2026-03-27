@@ -9,6 +9,7 @@ from config import Config
 
 try:
     from .pdf_exporter import PDFExporter
+
     PDF_EXPORT_AVAILABLE = True
 except ImportError:
     PDF_EXPORT_AVAILABLE = False
@@ -35,7 +36,7 @@ class ReportGenerator:
         output_path: Path | None = None,
         title: str = "Listing Intelligence Report",
         include_metadata: bool = True,
-        **kwargs
+        **kwargs,
     ) -> Path:
         """Generate a report from analysis results.
 
@@ -66,10 +67,7 @@ class ReportGenerator:
 
         # Generate markdown report
         content = self._generate_markdown(
-            results=results,
-            title=title,
-            include_metadata=include_metadata,
-            **kwargs
+            results=results, title=title, include_metadata=include_metadata, **kwargs
         )
 
         # Write to file
@@ -80,11 +78,7 @@ class ReportGenerator:
         return output_path
 
     def _generate_markdown(
-        self,
-        results: list[Any],
-        title: str,
-        include_metadata: bool = True,
-        **kwargs
+        self, results: list[Any], title: str, include_metadata: bool = True, **kwargs
     ) -> str:
         """Generate markdown report content.
 
@@ -208,12 +202,7 @@ class ReportGenerator:
 
         return "\n".join(lines)
 
-    def generate_json(
-        self,
-        results: list[Any],
-        output_path: Path | None = None,
-        **kwargs
-    ) -> Path:
+    def generate_json(self, results: list[Any], output_path: Path | None = None, **kwargs) -> Path:
         """Generate JSON report.
 
         Args:
@@ -256,7 +245,7 @@ class ReportGenerator:
         output_path: Path | None = None,
         title: str = "Listing Intelligence Report",
         include_metadata: bool = True,
-        **kwargs
+        **kwargs,
     ) -> Path:
         """Generate PDF report.
 
@@ -275,8 +264,7 @@ class ReportGenerator:
         """
         if not PDF_EXPORT_AVAILABLE:
             raise ImportError(
-                "PDF export requires reportlab. "
-                "Install it with: pip install reportlab"
+                "PDF export requires reportlab. " "Install it with: pip install reportlab"
             )
 
         if output_path is None:
@@ -291,7 +279,7 @@ class ReportGenerator:
             output_path=output_path,
             title=title,
             include_metadata=include_metadata,
-            **kwargs
+            **kwargs,
         )
 
     def generate_pdf_bytes(
@@ -299,7 +287,7 @@ class ReportGenerator:
         results: list[Any],
         title: str = "Listing Intelligence Report",
         include_metadata: bool = True,
-        **kwargs
+        **kwargs,
     ) -> bytes:
         """Generate PDF report as bytes.
 
@@ -317,14 +305,10 @@ class ReportGenerator:
         """
         if not PDF_EXPORT_AVAILABLE:
             raise ImportError(
-                "PDF export requires reportlab. "
-                "Install it with: pip install reportlab"
+                "PDF export requires reportlab. " "Install it with: pip install reportlab"
             )
 
         exporter = PDFExporter()
         return exporter.export_to_bytes(
-            results=results,
-            title=title,
-            include_metadata=include_metadata,
-            **kwargs
+            results=results, title=title, include_metadata=include_metadata, **kwargs
         )

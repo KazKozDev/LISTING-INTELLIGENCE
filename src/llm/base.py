@@ -29,11 +29,7 @@ class BaseLLMProvider(ABC):
     """Abstract base class for LLM providers."""
 
     def __init__(
-        self,
-        model: str,
-        api_key: str | None = None,
-        base_url: str | None = None,
-        **kwargs
+        self, model: str, api_key: str | None = None, base_url: str | None = None, **kwargs
     ):
         """Initialize provider.
 
@@ -55,7 +51,7 @@ class BaseLLMProvider(ABC):
         prompt: str,
         temperature: float = 0.7,
         max_tokens: int = 2048,
-        **kwargs
+        **kwargs,
     ) -> ProviderResponse:
         """Analyze an image with a prompt.
 
@@ -73,11 +69,7 @@ class BaseLLMProvider(ABC):
 
     @abstractmethod
     def chat(
-        self,
-        messages: list,
-        temperature: float = 0.7,
-        max_tokens: int = 2048,
-        **kwargs
+        self, messages: list, temperature: float = 0.7, max_tokens: int = 2048, **kwargs
     ) -> ProviderResponse:
         """Chat completion (text only).
 

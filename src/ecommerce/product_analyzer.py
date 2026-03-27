@@ -83,23 +83,14 @@ Forbidden: {', '.join(rules['forbidden_elements'])}
         rules = get_marketplace_info(marketplace)
         image_facts = self._collect_image_facts(image_path)
 
-        main_image_rules = "\n".join(
-            f"- {rule}" for rule in rules.get("main_image_rules", [])
-        )
-        recommendations = "\n".join(
-            f"- {item}" for item in rules.get("recommendations", [])
-        )
+        main_image_rules = "\n".join(f"- {rule}" for rule in rules.get("main_image_rules", []))
+        recommendations = "\n".join(f"- {item}" for item in rules.get("recommendations", []))
         sources = "\n".join(
-            f"- {source['label']}: {source['url']}"
-            for source in rules.get("sources", [])
+            f"- {source['label']}: {source['url']}" for source in rules.get("sources", [])
         )
         allowed_formats = ", ".join(rules.get("allowed_formats", []))
-        preferred_width = rules.get(
-            "recommended_image_width", rules["min_image_width"]
-        )
-        preferred_height = rules.get(
-            "recommended_image_height", rules["min_image_height"]
-        )
+        preferred_width = rules.get("recommended_image_width", rules["min_image_width"])
+        preferred_height = rules.get("recommended_image_height", rules["min_image_height"])
         image_usage_guidance = (
             "Treat the uploaded image as the marketplace primary listing "
             "image unless the image itself clearly looks like a gallery "
@@ -167,9 +158,7 @@ Forbidden: {', '.join(rules['forbidden_elements'])}
         """Collect deterministic image facts for compliance prompts."""
         with Image.open(image_path) as image:
             width, height = image.size
-            image_format = image.format or image_path.suffix.replace(
-                ".", ""
-            ).upper()
+            image_format = image.format or image_path.suffix.replace(".", "").upper()
             color_mode = image.mode
 
         file_size_mb = image_path.stat().st_size / (1024 * 1024)

@@ -37,9 +37,7 @@ def _ensure_torchvision_compatibility() -> None:
         functional_tensor_module = importlib.import_module(
             "torchvision.transforms._functional_tensor"
         )
-        sys.modules["torchvision.transforms.functional_tensor"] = (
-            functional_tensor_module
-        )
+        sys.modules["torchvision.transforms.functional_tensor"] = functional_tensor_module
 
 
 @dataclass(frozen=True)
@@ -72,35 +70,23 @@ class ImageUpscaler:
 
     def __init__(self, config: Config | None = None) -> None:
         self.config = config or Config()
-        upscale_config = self.config.model_config_data.get(
-            "upscaling", {}
-        )
+        upscale_config = self.config.model_config_data.get("upscaling", {})
         self.enabled = bool(upscale_config.get("enabled", True))
-        self.model_name = str(
-            upscale_config.get("model", "RealESRGAN_x4plus")
-        )
+        self.model_name = str(upscale_config.get("model", "RealESRGAN_x4plus"))
         self.device = str(upscale_config.get("device", "cpu"))
         self.scale = int(upscale_config.get("scale", 4))
         self.tile_size = int(upscale_config.get("tile_size", 512))
-        self.cache_dir = Path(
-            upscale_config.get("cache_dir", "outputs/models")
-        )
+        self.cache_dir = Path(upscale_config.get("cache_dir", "outputs/models"))
         configured_model_file = upscale_config.get("model_file")
-        self.model_file = str(
-            configured_model_file or f"{self.model_name}.pth"
-        )
+        self.model_file = str(configured_model_file or f"{self.model_name}.pth")
         self.model_url = str(
             upscale_config.get(
                 "model_url",
                 self.DEFAULT_MODEL_URLS.get(self.model_name, ""),
             )
         )
-        self.auto_upscale_below_width = int(
-            upscale_config.get("auto_upscale_below_width", 800)
-        )
-        self.auto_upscale_below_height = int(
-            upscale_config.get("auto_upscale_below_height", 800)
-        )
+        self.auto_upscale_below_width = int(upscale_config.get("auto_upscale_below_width", 800))
+        self.auto_upscale_below_height = int(upscale_config.get("auto_upscale_below_height", 800))
 
     def should_upscale(self, image_path: str | Path) -> bool:
         """Check if the image is small enough to benefit from upscaling."""
@@ -295,8 +281,7 @@ class ImageUpscaler:
 
         if not model_url:
             raise FileNotFoundError(
-                "Real-ESRGAN weights not found at "
-                f"{model_path} and no model_url configured."
+                "Real-ESRGAN weights not found at " f"{model_path} and no model_url configured."
             )
 
         download_url_to_file(model_url, str(model_path))

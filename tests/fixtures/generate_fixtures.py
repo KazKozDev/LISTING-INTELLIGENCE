@@ -23,19 +23,14 @@ FIXTURES_DIR = Path(__file__).resolve().parent
 # PNG helpers
 # ---------------------------------------------------------------------------
 
+
 def _make_chunk(chunk_type: bytes, data: bytes) -> bytes:
     """Build a single PNG chunk: length + type + data + CRC."""
     raw = chunk_type + data
-    return (
-        struct.pack(">I", len(data))
-        + raw
-        + struct.pack(">I", zlib.crc32(raw) & 0xFFFFFFFF)
-    )
+    return struct.pack(">I", len(data)) + raw + struct.pack(">I", zlib.crc32(raw) & 0xFFFFFFFF)
 
 
-def create_png(
-    path: Path, r: int, g: int, b: int, width: int = 10, height: int = 10
-) -> None:
+def create_png(path: Path, r: int, g: int, b: int, width: int = 10, height: int = 10) -> None:
     """Write a minimal solid-colour PNG file.
 
     Each row is: filter-byte (0x00) + width * (R, G, B).
@@ -51,7 +46,7 @@ def create_png(
     compressed = zlib.compress(raw_image)
 
     with open(path, "wb") as f:
-        f.write(b"\x89PNG\r\n\x1a\n")           # PNG signature
+        f.write(b"\x89PNG\r\n\x1a\n")  # PNG signature
         f.write(_make_chunk(b"IHDR", ihdr_data))
         f.write(_make_chunk(b"IDAT", compressed))
         f.write(_make_chunk(b"IEND", b""))
@@ -60,6 +55,7 @@ def create_png(
 # ---------------------------------------------------------------------------
 # PDF helper
 # ---------------------------------------------------------------------------
+
 
 def create_pdf(path: Path, text: str = "Test Document") -> None:
     """Write a minimal single-page PDF 1.4 file (< 1 KB).
@@ -121,6 +117,7 @@ def create_pdf(path: Path, text: str = "Test Document") -> None:
 # ---------------------------------------------------------------------------
 # Main
 # ---------------------------------------------------------------------------
+
 
 def main() -> None:
     FIXTURES_DIR.mkdir(parents=True, exist_ok=True)

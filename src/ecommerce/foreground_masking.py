@@ -35,26 +35,14 @@ class ForegroundMaskExtractor:
     def __init__(self, config: Config | None = None):
         self.config = config or Config()
         image_ai_config = self.config.model_config_data.get("image_ai", {})
-        self.model_id = str(
-            image_ai_config.get("background_removal_model", "briaai/RMBG-1.4")
-        )
+        self.model_id = str(image_ai_config.get("background_removal_model", "briaai/RMBG-1.4"))
         self.alpha_threshold = int(image_ai_config.get("alpha_threshold", 8))
-        self.allow_remote_code = bool(
-            image_ai_config.get("allow_remote_code", True)
-        )
+        self.allow_remote_code = bool(image_ai_config.get("allow_remote_code", True))
         self.device = str(image_ai_config.get("device", "cpu"))
-        self.rmbg_input_size = int(
-            image_ai_config.get("rmbg_input_size", 1024)
-        )
-        self.birefnet_input_size = int(
-            image_ai_config.get("birefnet_input_size", 1024)
-        )
-        self.cpu_birefnet_input_size = int(
-            image_ai_config.get("cpu_birefnet_input_size", 512)
-        )
-        self.cpu_birefnet_retry_size = int(
-            image_ai_config.get("cpu_birefnet_retry_size", 384)
-        )
+        self.rmbg_input_size = int(image_ai_config.get("rmbg_input_size", 1024))
+        self.birefnet_input_size = int(image_ai_config.get("birefnet_input_size", 1024))
+        self.cpu_birefnet_input_size = int(image_ai_config.get("cpu_birefnet_input_size", 512))
+        self.cpu_birefnet_retry_size = int(image_ai_config.get("cpu_birefnet_retry_size", 384))
         self.allow_full_image_fallback = bool(
             image_ai_config.get("allow_full_image_fallback", True)
         )
@@ -124,9 +112,7 @@ class ForegroundMaskExtractor:
             )
         except Exception as exc:
             logger.info("Foreground mask model unavailable: %s", exc)
-            self._set_failure_reason(
-                f"Hugging Face segmentation model could not be loaded: {exc}"
-            )
+            self._set_failure_reason(f"Hugging Face segmentation model could not be loaded: {exc}")
             return None
 
         try:
@@ -134,16 +120,14 @@ class ForegroundMaskExtractor:
             mask = self._coerce_prediction_mask(prediction, image.size)
             if mask is None:
                 self._set_failure_reason(
-                    "Hugging Face segmentation returned no usable "
-                    "foreground mask."
+                    "Hugging Face segmentation returned no usable " "foreground mask."
                 )
                 return None
 
             bounds, coverage_ratio = self._compute_bounds_and_coverage(mask)
             if bounds is None:
                 self._set_failure_reason(
-                    "Hugging Face segmentation returned an empty "
-                    "foreground region."
+                    "Hugging Face segmentation returned an empty " "foreground region."
                 )
                 return None
 
@@ -158,9 +142,7 @@ class ForegroundMaskExtractor:
             )
         except Exception as exc:
             logger.warning("Foreground mask inference failed: %s", exc)
-            self._set_failure_reason(
-                f"Hugging Face segmentation inference failed: {exc}"
-            )
+            self._set_failure_reason(f"Hugging Face segmentation inference failed: {exc}")
             return None
 
     def _extract_with_rmbg(
@@ -175,18 +157,14 @@ class ForegroundMaskExtractor:
             )
         except Exception as exc:
             logger.info("RMBG model unavailable: %s", exc)
-            self._set_failure_reason(
-                f"Hugging Face RMBG model could not be loaded: {exc}"
-            )
+            self._set_failure_reason(f"Hugging Face RMBG model could not be loaded: {exc}")
             return None
 
         try:
             mask = self._predict_rmbg_mask(image, model, device)
             bounds, coverage_ratio = self._compute_bounds_and_coverage(mask)
             if bounds is None:
-                self._set_failure_reason(
-                    "Hugging Face RMBG returned an empty foreground region."
-                )
+                self._set_failure_reason("Hugging Face RMBG returned an empty foreground region.")
                 return None
 
             return ForegroundMaskResult(
@@ -200,9 +178,7 @@ class ForegroundMaskExtractor:
             )
         except Exception as exc:
             logger.warning("RMBG inference failed: %s", exc)
-            self._set_failure_reason(
-                f"Hugging Face RMBG inference failed: {exc}"
-            )
+            self._set_failure_reason(f"Hugging Face RMBG inference failed: {exc}")
             return None
 
     def _extract_with_birefnet(
@@ -217,9 +193,7 @@ class ForegroundMaskExtractor:
             )
         except Exception as exc:
             logger.info("BiRefNet model unavailable: %s", exc)
-            self._set_failure_reason(
-                f"Hugging Face BiRefNet model could not be loaded: {exc}"
-            )
+            self._set_failure_reason(f"Hugging Face BiRefNet model could not be loaded: {exc}")
             return None
 
         try:
@@ -227,8 +201,7 @@ class ForegroundMaskExtractor:
             bounds, coverage_ratio = self._compute_bounds_and_coverage(mask)
             if bounds is None:
                 self._set_failure_reason(
-                    "Hugging Face BiRefNet returned an empty foreground "
-                    "region."
+                    "Hugging Face BiRefNet returned an empty foreground " "region."
                 )
                 return None
 
@@ -243,9 +216,7 @@ class ForegroundMaskExtractor:
             )
         except Exception as exc:
             logger.warning("BiRefNet inference failed: %s", exc)
-            self._set_failure_reason(
-                f"Hugging Face BiRefNet inference failed: {exc}"
-            )
+            self._set_failure_reason(f"Hugging Face BiRefNet inference failed: {exc}")
             return None
 
     def _fallback_to_full_image(
@@ -386,15 +357,7 @@ class ForegroundMaskExtractor:
         else:
             normalized = (prediction - min_value) / (max_value - min_value)
 
-        mask = (
-            (normalized * 255)
-            .permute(1, 2, 0)
-            .detach()
-            .cpu()
-            .numpy()
-            .astype("uint8")
-            .squeeze()
-        )
+        mask = (normalized * 255).permute(1, 2, 0).detach().cpu().numpy().astype("uint8").squeeze()
         return Image.fromarray(mask, mode="L")
 
     def _predict_birefnet_mask(
@@ -421,9 +384,13 @@ class ForegroundMaskExtractor:
                     ),
                 ]
             )
-            input_images = transform_image(rgb_image).unsqueeze(0).to(
-                device=device,
-                dtype=model_dtype,
+            input_images = (
+                transform_image(rgb_image)
+                .unsqueeze(0)
+                .to(
+                    device=device,
+                    dtype=model_dtype,
+                )
             )
 
             try:
@@ -434,8 +401,7 @@ class ForegroundMaskExtractor:
                 if getattr(device, "type", str(device)) != "cpu":
                     raise
                 logger.info(
-                    "BiRefNet CPU inference failed at %spx, retrying "
-                    "smaller size: %s",
+                    "BiRefNet CPU inference failed at %spx, retrying " "smaller size: %s",
                     input_size,
                     exc,
                 )

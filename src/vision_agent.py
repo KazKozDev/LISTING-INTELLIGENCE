@@ -80,7 +80,7 @@ class VisionAgent:
             model=self.config.model,
             api_key=self.config.api_key,
             base_url=self.config.base_url,
-            **provider_config
+            **provider_config,
         )
 
         self.pdf_processor = PDFProcessor(self.config)
@@ -90,10 +90,14 @@ class VisionAgent:
         cache_config = self.config.model_config.get("cache", {})
         cache_enabled = cache_config.get("enabled", True)
         cache_ttl = cache_config.get("ttl_seconds", 3600)
-        self.cache = Cache(
-            cache_dir=self.config.output_dir / ".cache",
-            ttl_seconds=cache_ttl,
-        ) if cache_enabled else None
+        self.cache = (
+            Cache(
+                cache_dir=self.config.output_dir / ".cache",
+                ttl_seconds=cache_ttl,
+            )
+            if cache_enabled
+            else None
+        )
 
         rate_config = self.config.model_config.get("rate_limits", {})
         rpm = rate_config.get("requests_per_minute", 60)
@@ -110,7 +114,7 @@ class VisionAgent:
         self,
         image_path: str | Path,
         task: str = "Analyze this image and provide detailed insights.",
-        **kwargs
+        **kwargs,
     ) -> AnalysisResult:
         """Analyze a single image.
 
@@ -162,7 +166,7 @@ class VisionAgent:
             prompt=task,
             temperature=temperature,
             max_tokens=max_tokens,
-            **kwargs
+            **kwargs,
         )
 
         total_tokens = response.usage.get("total_tokens", 0)
@@ -193,10 +197,7 @@ class VisionAgent:
         return result
 
     def analyze_chart(
-        self,
-        chart_path: str | Path,
-        task: str | None = None,
-        **kwargs
+        self, chart_path: str | Path, task: str | None = None, **kwargs
     ) -> AnalysisResult:
         """Analyze a chart or data visualization.
 
@@ -219,10 +220,7 @@ class VisionAgent:
         return self.analyze_image(chart_path, task, **kwargs)
 
     def analyze_ui_screenshot(
-        self,
-        screenshot_path: str | Path,
-        task: str | None = None,
-        **kwargs
+        self, screenshot_path: str | Path, task: str | None = None, **kwargs
     ) -> AnalysisResult:
         """Analyze a UI screenshot.
 
@@ -249,7 +247,7 @@ class VisionAgent:
         pdf_path: str | Path,
         task: str = "Summarize and analyze this document.",
         pages: list[int] | None = None,
-        **kwargs
+        **kwargs,
     ) -> list[AnalysisResult]:
         """Analyze a PDF document.
 
@@ -273,10 +271,7 @@ class VisionAgent:
         logger.info(f"Processing PDF: {pdf_path}")
 
         # Extract images from PDF pages
-        page_images = self.pdf_processor.extract_pages_as_images(
-            pdf_path,
-            pages=pages
-        )
+        page_images = self.pdf_processor.extract_pages_as_images(pdf_path, pages=pages)
 
         results = []
 
@@ -295,7 +290,7 @@ class VisionAgent:
                     prompt=page_task,
                     temperature=temperature,
                     max_tokens=max_tokens,
-                    **kwargs
+                    **kwargs,
                 )
 
                 result = AnalysisResult(
@@ -308,8 +303,8 @@ class VisionAgent:
                         "model": response.model,
                         "usage": response.usage,
                         "provider": self.provider.provider_name,
-                        **response.metadata
-                    }
+                        **response.metadata,
+                    },
                 )
 
                 results.append(result)
@@ -322,10 +317,7 @@ class VisionAgent:
         return results
 
     def batch_analyze(
-        self,
-        file_paths: list[str | Path],
-        task: str = "Analyze this file.",
-        **kwargs
+        self, file_paths: list[str | Path], task: str = "Analyze this file.", **kwargs
     ) -> list[AnalysisResult]:
         """Analyze multiple files in batch.
 
@@ -365,7 +357,7 @@ class VisionAgent:
         results: list[AnalysisResult],
         output_path: str | Path | None = None,
         title: str = "Listing Intelligence Report",
-        **kwargs
+        **kwargs,
     ) -> Path:
         """Generate a report from analysis results.
 
@@ -379,10 +371,7 @@ class VisionAgent:
             Path to the generated report.
         """
         return self.report_generator.generate(
-            results=results,
-            output_path=output_path,
-            title=title,
-            **kwargs
+            results=results, output_path=output_path, title=title, **kwargs
         )
 
     def interactive_analyze(self, file_path: str | Path) -> None:

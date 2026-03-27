@@ -20,7 +20,7 @@ class RateLimiter:
 
     def acquire(self) -> None:
         """Acquire permission to make a request.
-        
+
         Blocks if rate limit is exceeded.
         """
         if self.rate <= 0:
@@ -43,7 +43,4 @@ class RateLimiter:
         Returns:
             Dictionary with usage stats.
         """
-        return {
-            "requests_per_minute": self.rate,
-            "interval": self.interval
-        }
+        return {"requests_per_minute": self.rate, "interval": self.interval}

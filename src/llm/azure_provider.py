@@ -18,7 +18,7 @@ class AzureOpenAIProvider(BaseLLMProvider):
         model: str = "gpt-4o",
         api_key: str | None = None,
         base_url: str | None = None,
-        **kwargs
+        **kwargs,
     ):
         """Initialize Azure OpenAI provider.
 
@@ -40,15 +40,14 @@ class AzureOpenAIProvider(BaseLLMProvider):
 
         try:
             import openai
+
             self.client = openai.AzureOpenAI(
                 api_key=self.api_key,
                 azure_endpoint=self.base_url,
                 api_version=self.api_version,
             )
         except ImportError:
-            raise ImportError(
-                "openai package is required. Install: pip install openai"
-            )
+            raise ImportError("openai package is required. Install: pip install openai")
 
     def verify_connection(self) -> bool:
         """Verify Azure OpenAI connection."""
@@ -93,7 +92,7 @@ class AzureOpenAIProvider(BaseLLMProvider):
         prompt: str,
         temperature: float = 0.7,
         max_tokens: int = 2048,
-        **kwargs
+        **kwargs,
     ) -> ProviderResponse:
         """Analyze image with Azure OpenAI."""
         if not self.supports_vision:
@@ -114,13 +113,10 @@ class AzureOpenAIProvider(BaseLLMProvider):
                     {
                         "type": "image_url",
                         "image_url": {
-                            "url": (
-                                f"data:image/{image_suffix};base64,"
-                                f"{image_data}"
-                            )
-                        }
-                    }
-                ]
+                            "url": (f"data:image/{image_suffix};base64," f"{image_data}")
+                        },
+                    },
+                ],
             }
         ]
 
@@ -130,7 +126,7 @@ class AzureOpenAIProvider(BaseLLMProvider):
                 messages=messages,
                 temperature=temperature,
                 max_tokens=max_tokens,
-                **kwargs
+                **kwargs,
             )
 
             return ProviderResponse(
@@ -143,7 +139,7 @@ class AzureOpenAIProvider(BaseLLMProvider):
                 },
                 metadata={
                     "finish_reason": response.choices[0].finish_reason,
-                }
+                },
             )
 
         except Exception as e:
@@ -151,11 +147,7 @@ class AzureOpenAIProvider(BaseLLMProvider):
             raise
 
     def chat(
-        self,
-        messages: list,
-        temperature: float = 0.7,
-        max_tokens: int = 2048,
-        **kwargs
+        self, messages: list, temperature: float = 0.7, max_tokens: int = 2048, **kwargs
     ) -> ProviderResponse:
         """Chat with Azure OpenAI."""
         try:
@@ -164,7 +156,7 @@ class AzureOpenAIProvider(BaseLLMProvider):
                 messages=messages,
                 temperature=temperature,
                 max_tokens=max_tokens,
-                **kwargs
+                **kwargs,
             )
 
             return ProviderResponse(
@@ -177,7 +169,7 @@ class AzureOpenAIProvider(BaseLLMProvider):
                 },
                 metadata={
                     "finish_reason": response.choices[0].finish_reason,
-                }
+                },
             )
 
         except Exception as e:

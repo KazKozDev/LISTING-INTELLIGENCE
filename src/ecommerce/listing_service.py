@@ -311,8 +311,7 @@ MARKETPLACE_LISTING_RULES: dict[str, dict[str, str]] = {
             "and better buyer trust."
         ),
         "packaging": (
-            "Assess whether packaging helps authenticate the offer or "
-            "clarify what is included."
+            "Assess whether packaging helps authenticate the offer or " "clarify what is included."
         ),
         "visual_search": (
             "Provide item-identification descriptors and exact-match visual "
@@ -372,11 +371,7 @@ def build_listing_prompt(
                 f"\nForbidden: {', '.join(rules['forbidden_elements'])}"
             )
 
-    keyword_context = (
-        f"\nTarget keywords to include: {keywords}"
-        if keywords.strip()
-        else ""
-    )
+    keyword_context = f"\nTarget keywords to include: {keywords}" if keywords.strip() else ""
 
     if mode == "full":
         return f"""**Role**: E-commerce Product Analyst & SEO Copywriter

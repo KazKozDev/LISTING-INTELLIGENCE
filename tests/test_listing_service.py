@@ -51,8 +51,5 @@ class TestBuildListingPrompt:
 
         assert "**Marketplace-specific field rules**:" in prompt
         assert "Use a clean big-box retail title" in prompt
-        assert (
-            "Adapt every field to the selected marketplace's listing style."
-            in prompt
-        )
+        assert "Adapt every field to the selected marketplace's listing style." in prompt
         assert "supplemental search terms" in prompt.lower()

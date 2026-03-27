@@ -39,16 +39,10 @@ class FlorenceAnalyzer:
         self.config = config or Config()
         florence_config = self.config.model_config_data.get("florence2", {})
         self.enabled = bool(florence_config.get("enabled", True))
-        self.model_id = str(
-            florence_config.get("model", "microsoft/Florence-2-base")
-        )
+        self.model_id = str(florence_config.get("model", "microsoft/Florence-2-base"))
         self.device = str(florence_config.get("device", "cpu"))
-        self.allow_remote_code = bool(
-            florence_config.get("allow_remote_code", True)
-        )
-        self.caption_task = str(
-            florence_config.get("caption_task", "<MORE_DETAILED_CAPTION>")
-        )
+        self.allow_remote_code = bool(florence_config.get("allow_remote_code", True))
+        self.caption_task = str(florence_config.get("caption_task", "<MORE_DETAILED_CAPTION>"))
         self.ocr_task = str(florence_config.get("ocr_task", "<OCR>"))
         self.max_new_tokens = int(florence_config.get("max_new_tokens", 256))
         self.max_ocr_tokens = int(florence_config.get("max_ocr_tokens", 128))
@@ -70,12 +64,10 @@ class FlorenceAnalyzer:
             )
 
         try:
-            processor, model, torch_device, torch_dtype = (
-                self._load_model_bundle(
-                    self.model_id,
-                    self.device,
-                    self.allow_remote_code,
-                )
+            processor, model, torch_device, torch_dtype = self._load_model_bundle(
+                self.model_id,
+                self.device,
+                self.allow_remote_code,
             )
         except Exception as exc:
             logger.warning("Florence-2 model unavailable: %s", exc)
@@ -275,11 +267,7 @@ class FlorenceAnalyzer:
                 return value.strip()
             if value is not None:
                 if isinstance(value, list):
-                    parts = [
-                        str(item).strip()
-                        for item in value
-                        if str(item).strip()
-                    ]
+                    parts = [str(item).strip() for item in value if str(item).strip()]
                     return ", ".join(parts)
                 return json.dumps(value, ensure_ascii=True)
 

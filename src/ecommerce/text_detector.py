@@ -44,12 +44,8 @@ class TextDetector:
         self.enabled = bool(ocr_config.get("enabled", True))
         self.languages = list(ocr_config.get("languages", ["en"]))
         self.device = str(ocr_config.get("device", "cpu"))
-        self.confidence_threshold = float(
-            ocr_config.get("confidence_threshold", 0.3)
-        )
-        self.warn_on_text = bool(
-            ocr_config.get("warn_on_text_in_main_image", True)
-        )
+        self.confidence_threshold = float(ocr_config.get("confidence_threshold", 0.3))
+        self.warn_on_text = bool(ocr_config.get("warn_on_text_in_main_image", True))
 
     def detect(self, image_path: str | Path) -> TextDetectionResult:
         """Run OCR on an image and return detected text regions."""
