@@ -133,14 +133,6 @@ The FastAPI backend includes endpoints for:
 
 For endpoint details, see [docs/API.md](docs/API.md).
 
-## Verification Model
-
-- Rule-based checks cover dimensions, aspect-ratio guidance, file size, and selected marketplace background heuristics.
-- OCR-backed checks surface visible text, screen-like UI content, and text-linked evidence excerpts.
-- Detector-backed checks surface people, multi-object clutter, and text or logo-like overlay regions when available.
-- Product context can be passed from the UI or API to inform category-aware heuristics and lightweight reference-image comparison.
-- Fix Studio and Compliance prefer structured findings for diffs and ranking when verifier output is available.
-
 ## Documentation
 
 - [docs/QUICKSTART.md](docs/QUICKSTART.md)
